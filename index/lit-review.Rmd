@@ -1,0 +1,117 @@
+ <!--
+Notes on articles.
+-->
+
+##Overcoming the Winner’s Curse: Estimating Penetrance Parameters from Case-Control Data
+Zollner and Pritchard, 2007
+
+- instead of calculating odds-ratio, use prevalance to calculate penetrance 
+- algorithm:
+    - sample from L($\theta, \phi$) (population freq and penetrance)
+    - get L(data | phi, theta) and pick highest
+    - perturb each param by epsilon, if better accept
+    - to test, generate 3 samples: naive, corrected, and estimated w an independent sample
+- questions:
+    - what is the naive model? isn't it still maximizing L(data)?
+    - why can't we calculate the MLE?
+    - in general terminology
+    
+
+##BAYESIAN METHODS TO OVERCOME THE WINNER’S CURSE IN GENETIC STUDIES
+Xu et al 2011
+
+- winner’s curse in biostat
+- Bayesian framework with model averaging
+- logistic regression example with biased estimator
+- (hierarchical) Bayesian bias correction
+    - spike-and-slab prior for mu, p(mu given epsilon)
+    - Beta prior for epsilon p(epsilon given a,b)
+    - inv gamma for sigma sq with mean  = s^2 and var = 200
+        - 200 chosen bc empirically doesn’t matter much
+    - sample from posterior w data augmentation metropolis hasting
+    - use BMA to increase robustness
+        - depends on the power and whether it is known or not
+        
+-questions: 
+    - calculations that prove there are no unbiased estimators
+    - spike and slab prior?
+    - interpretation of power in Bayesian setting
+    
+
+##Empirical Bayes Correction for the Winner's Curse in Genetic Association Studies
+Ferguson et al 2013
+
+- calculate log(OR), which has mean mu_i from a distribution f
+- empirical bayes method
+    - find posterior (where f is the prior) and use the mean
+        - results in smallest sq error
+        - f is unknown, but can express mean and variance of post with marginal p(z)
+        - can estimate log(p(z)) with binning and fitting a regression (splines)
+        - can achieve pseudo Bayesian credible intervals
+    - combine with cond likelihood to account for tail behavior
+        - compare length of 95%CI for empirical bayes and conditional likelihood intervals, and pick the shortest
+
+- questions:
+    - in general the sq loss optimality section
+    - Tweedie's formula and aproximation of p(z)?
+    - does not require a significance threshold?
+    
+    
+##Redefine statistical significance
+Benjamin et al 2017
+
+- map Bayes factors to p-values
+    - depends on H1 so it needs to be for specific alternatives
+    - plots of bayes factors to p values show that 5% threshold is too high
+    - suggests .005 to reduce false positives (esp in low power)
+    
+- questions:
+    - maybe just review how bayes factors, alpha, power are calculated
+
+
+##Calibration of p Values for Testing Precise Null Hypotheses
+Sellke et al 2003
+
+- transform p value to bayes factor (lower bound on this) and alpha (type 1 error)
+- questions:
+    - I'm overall very confused especially on section 3 and where the new hypotheses come from
+    
+
+
+----
+some other articles about winner's curse:
+
+conditional MLE: 
+
+##Bias-reduced estimators and confidence intervals for odds ratios in genome-wide association studies
+Zhong H, Prentice RL. 2008
+
+##Estimating odds ratios in genome scans: an approximate conditional likelihood approach.
+Ghosh A, Zou F, Wright FA 2008
+
+Bootstrap:
+
+##BR-squared: a practical solution to the winner’s curse in genome-wide scans
+Sun et al 2011 
+
+- bootstrapping to address ranking effect and threshold effect
+- independent detection and validation/effect estimation using sample split
+- calculate effect for both in and out of bootstrap sample x, then get bias as diff and adjust
+- can use genome wide bootstrap to improve over likelihood based methods
+
+
+##Extracting Actionable Information From Genome Scans
+Bacanu and Kendler 2012
+
+- soft threshold, adjusts statistics such that their sum of squares do not overestimate the true mean
+- this is a type of shrinkage?
+
+
+##A simple yet accurate correction for winner's curse can predict signals discovered in much larger genome scans
+Bigdelli et al 2016
+
+- uses multiple testing adjustment (False Discovery Rate) FDR Inverse Quantile Transformation (FIQT)
+- transforms to p vals, shrinks towards one, and then transforms back to z scores
+- this is still shrinkage?
+
+
