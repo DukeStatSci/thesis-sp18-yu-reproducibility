@@ -4,6 +4,7 @@ Notes on articles.
 
 ##Overcoming the Winner’s Curse: Estimating Penetrance Parameters from Case-Control Data
 Zollner and Pritchard, 2007
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1852705/
 
 - instead of calculating odds-ratio, use prevalance to calculate penetrance 
 - algorithm:
@@ -19,6 +20,7 @@ Zollner and Pritchard, 2007
 
 ##BAYESIAN METHODS TO OVERCOME THE WINNER’S CURSE IN GENETIC STUDIES
 Xu et al 2011
+https://arxiv.org/pdf/0907.2770.pdf
 
 - winner’s curse in biostat
 - Bayesian framework with model averaging
@@ -40,6 +42,7 @@ Xu et al 2011
 
 ##Empirical Bayes Correction for the Winner's Curse in Genetic Association Studies
 Ferguson et al 2013
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4048064/
 
 - calculate log(OR), which has mean mu_i from a distribution f
 - empirical bayes method
@@ -59,6 +62,7 @@ Ferguson et al 2013
     
 ##Redefine statistical significance
 Benjamin et al 2017
+https://www.nature.com/articles/s41562-017-0189-z
 
 - map Bayes factors to p-values
     - depends on H1 so it needs to be for specific alternatives
@@ -71,6 +75,7 @@ Benjamin et al 2017
 
 ##Calibration of p Values for Testing Precise Null Hypotheses
 Sellke et al 2003
+http://www.tandfonline.com/doi/pdf/10.1198/000313001300339950?needAccess=true
 
 - transform p value to bayes factor (lower bound on this) and alpha (type 1 error)
 - questions:
