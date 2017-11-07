@@ -69,9 +69,6 @@ https://www.nature.com/articles/s41562-017-0189-z
     - plots of bayes factors to p values show that 5% threshold is too high
     - suggests .005 to reduce false positives (esp in low power)
     
-- questions:
-    - maybe just review how bayes factors, alpha, power are calculated
-
 
 ##Calibration of p Values for Testing Precise Null Hypotheses
 Sellke et al 2003
@@ -82,7 +79,6 @@ http://www.tandfonline.com/doi/pdf/10.1198/000313001300339950?needAccess=true
     - I'm overall very confused especially on section 3 and where the new hypotheses come from
     
 
-
 ----
 some other articles about winner's curse:
 
@@ -91,32 +87,68 @@ conditional MLE:
 ##Bias-reduced estimators and confidence intervals for odds ratios in genome-wide association studies
 Zhong H, Prentice RL. 2008
 
+##Statistical correction of the Winner’s Curse explains replication variability in quantitative trait genome-wide association studies
+Palmer and Pe'er. 2017
+
+- similar to Zhong and Prentice.
+- code here: https://github.com/cpalmer718/gwas-winners-curse
+
 ##Estimating odds ratios in genome scans: an approximate conditional likelihood approach.
 Ghosh A, Zou F, Wright FA 2008
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2665019/
+
+- there used to be code online but not anymore
+www.bios.unc.edu/~wrightf/genomebias/
+
 
 Bootstrap:
 
 ##BR-squared: a practical solution to the winner’s curse in genome-wide scans
-Sun et al 2011 
+Sun et al. 2011 
+https://www.ncbi.nlm.nih.gov/pubmed/21246217
 
 - bootstrapping to address ranking effect and threshold effect
 - independent detection and validation/effect estimation using sample split
 - calculate effect for both in and out of bootstrap sample x, then get bias as diff and adjust
 - can use genome wide bootstrap to improve over likelihood based methods
-
+- software here: http://www.utstat.toronto.edu/sun/Software/BR2/
 
 ##Extracting Actionable Information From Genome Scans
-Bacanu and Kendler 2012
+Bacanu and Kendler. 2012
+http://onlinelibrary.wiley.com/doi/10.1002/gepi.21682/full
 
 - soft threshold, adjusts statistics such that their sum of squares do not overestimate the true mean
-- this is a type of shrinkage?
+- this is a type of shrinkage? not sure if super relevant
 
 
 ##A simple yet accurate correction for winner's curse can predict signals discovered in much larger genome scans
-Bigdelli et al 2016
+Bigdelli et al. 2016
+https://academic.oup.com/bioinformatics/article/32/17/2598/2450747
 
 - uses multiple testing adjustment (False Discovery Rate) FDR Inverse Quantile Transformation (FIQT)
 - transforms to p vals, shrinks towards one, and then transforms back to z scores
 - this is still shrinkage?
+- false discovery rate vs. false positive rate
+- they have code: https://github.com/bacanusa/FIQT
 
+###Statistical significance for genomewide studies
+Storey and Tibshirani. 2003
+http://www.pnas.org/content/100/16/9440.full
 
+- FDR = expectation of false positives/significant features
+- q is "proportion of false positives incurred when calling that feature significant"
+    - sort of Bayesian (probability that a feature is null given it is significant)
+- provides estimates for proportion of truly null features empirically
+    - there's several other papers on how to estimate this
+
+Empirical Bayes:
+
+##Power estimation and sample size determination for replication studies of genome-wide association studies
+Jiang and Yu. 2016
+https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-015-2296-4
+
+- spike and slab prior
+- hyperparameters estimated empirically
+- proportion of null hypothesis is based on another parameter gamma corresponding to a p-value threshold
+- can calculate Bayesian predictive power estimator 
+- simulation to compare estimate to true power
