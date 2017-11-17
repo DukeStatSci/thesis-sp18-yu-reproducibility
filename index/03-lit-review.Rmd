@@ -2,9 +2,11 @@
 Notes on articles.
 -->
 
-#Background and Motivation
+# Literature Review  {#lit-review}
+
+## Background and Motivation
     
-### Redefine statistical significance
+#### Redefine statistical significance
 Benjamin et al 2017
 https://www.nature.com/articles/s41562-017-0189-z
 
@@ -14,7 +16,7 @@ https://www.nature.com/articles/s41562-017-0189-z
     - suggests .005 to reduce false positives (esp in low power)
     
 
-### Calibration of p Values for Testing Precise Null Hypotheses
+#### Calibration of p Values for Testing Precise Null Hypotheses
 Sellke et al 2003
 http://www.tandfonline.com/doi/pdf/10.1198/000313001300339950?needAccess=true
 
@@ -22,11 +24,11 @@ http://www.tandfonline.com/doi/pdf/10.1198/000313001300339950?needAccess=true
 
 ---
 
-# Frequentist Methods
+## Frequentist Methods
 
-## Conditional Likelihood
+### Conditional Likelihood
 
-### Overcoming the Winner’s Curse: Estimating Penetrance Parameters from Case-Control Data
+#### Overcoming the Winner’s Curse: Estimating Penetrance Parameters from Case-Control Data
 
 Zollner and Pritchard, 2007
 
@@ -42,7 +44,7 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1852705/
     - to test, generate 3 samples: naive, corrected, and estimated w an independent sample
   
 
-### Estimating odds ratios in genome scans: an approximate conditional likelihood approach.
+#### Estimating odds ratios in genome scans: an approximate conditional likelihood approach.
 
 Ghosh A, Zou F, Wright FA 2008
 
@@ -51,22 +53,22 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2665019/
 - proposes mean of conditional likelihood, MLE, and mixture of both 
 - there used to be code online www.bios.unc.edu/~wrightf/genomebias/
 
-### Bias-reduced estimators and confidence intervals for odds ratios in genome-wide association studies
+#### Bias-reduced estimators and confidence intervals for odds ratios in genome-wide association studies
 
 Zhong H, Prentice RL. 2008
 
 - similar to Zollner and Pritchard, but with asymptotic approximation instead of sampling
 - "slightly different" likelihood formulation
 
-#### Statistical correction of the Winner’s Curse explains replication variability in quantitative trait genome-wide association studies
+#####Statistical correction of the Winner’s Curse explains replication variability in quantitative trait genome-wide association studies
 Palmer and Pe'er. 2017
 
 - based on Zhong and Prentice.
 - code here: https://github.com/cpalmer718/gwas-winners-curse
 
-## Bootstrap
+###Bootstrap
 
-### BR-squared: a practical solution to the winner’s curse in genome-wide scans
+####BR-squared: a practical solution to the winner’s curse in genome-wide scans
 Sun et al. 2011 
 https://www.ncbi.nlm.nih.gov/pubmed/21246217
 
@@ -76,9 +78,9 @@ https://www.ncbi.nlm.nih.gov/pubmed/21246217
 - can use genome wide bootstrap to improve over likelihood based methods
 - software here: http://www.utstat.toronto.edu/sun/Software/BR2/
 
-## Shrinkage
+###Shrinkage
 
-### Extracting Actionable Information From Genome Scans
+####Extracting Actionable Information From Genome Scans
 
 Bacanu and Kendler. 2012
 
@@ -86,7 +88,7 @@ http://onlinelibrary.wiley.com/doi/10.1002/gepi.21682/full
 
 - soft threshold, adjusts statistics such that their sum of squares do not overestimate the true mean
 
-### A simple yet accurate correction for winner's curse can predict signals discovered in much larger genome scans
+#### A simple yet accurate correction for winner's curse can predict signals discovered in much larger genome scans
 
 Bigdelli et al. 2016
 
@@ -96,7 +98,7 @@ https://academic.oup.com/bioinformatics/article/32/17/2598/2450747
 - transforms to p vals, shrinks towards one, and then transforms back to z scores
 - code: https://github.com/bacanusa/FIQT
 
-#### Statistical significance for genomewide studies
+#####Statistical significance for genomewide studies
 
 Storey and Tibshirani. 2003
 
@@ -109,11 +111,11 @@ http://www.pnas.org/content/100/16/9440.full
     - there's several other papers on how to estimate this
 
 
-# Bayesian Methods
+## Bayesian Methods
 
-## "Fully Bayesian"
+### "Fully Bayesian"
 
-### Bayesian methods to overcome the winner's curse in genetic studies
+#### Bayesian methods to overcome the winner's curse in genetic studies
 
 Xu et al 2011
 
@@ -130,9 +132,9 @@ https://arxiv.org/pdf/0907.2770.pdf
     - sample from posterior w data augmentation metropolis hasting
 - BMA without conditioning on significance
     
-## Empirical Bayes 
+### Empirical Bayes 
 
-### Empirical Bayes Correction for the Winner's Curse in Genetic Association Studies
+#### Empirical Bayes Correction for the Winner's Curse in Genetic Association Studies
 
 Ferguson et al 2013
 
@@ -151,7 +153,7 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4048064/
     - combine with cond likelihood to account for tail behavior by comparing length of 95%CI for empirical bayes and conditional likelihood intervals, and pick the shortest
 - simulation study with data from 3 distributions (normal, contamindated normal, double exponential) to test robustness
 
-### Power estimation and sample size determination for replication studies of genome-wide association studies
+#### Power estimation and sample size determination for replication studies of genome-wide association studies
 
 Jiang and Yu. 2016
 
