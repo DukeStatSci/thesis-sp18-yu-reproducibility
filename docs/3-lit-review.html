@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>My Final College Paper</title>
+  <meta name="description" content="My Final College Paper">
+  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+
+  <meta property="og:title" content="My Final College Paper" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="My Final College Paper" />
+  
+  
+  
+
+<meta name="author" content="Huijia Yu">
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="2-intro.html">
+<link rel="next" href="4-models.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./"></a></li>
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="1" data-path="1-abstract.html"><a href="1-abstract.html"><i class="fa fa-check"></i><b>1</b> Abstract</a></li>
+<li class="chapter" data-level="2" data-path="2-intro.html"><a href="2-intro.html"><i class="fa fa-check"></i><b>2</b> Introduction</a></li>
+<li class="chapter" data-level="3" data-path="3-lit-review.html"><a href="3-lit-review.html"><i class="fa fa-check"></i><b>3</b> Literature Review</a><ul>
+<li class="chapter" data-level="3.1" data-path="3-lit-review.html"><a href="3-lit-review.html#background-and-motivation"><i class="fa fa-check"></i><b>3.1</b> Background and Motivation</a></li>
+<li class="chapter" data-level="3.2" data-path="3-lit-review.html"><a href="3-lit-review.html#frequentist-methods"><i class="fa fa-check"></i><b>3.2</b> Frequentist Methods</a><ul>
+<li class="chapter" data-level="3.2.1" data-path="3-lit-review.html"><a href="3-lit-review.html#conditional-likelihood"><i class="fa fa-check"></i><b>3.2.1</b> Conditional Likelihood</a></li>
+<li class="chapter" data-level="3.2.2" data-path="3-lit-review.html"><a href="3-lit-review.html#bootstrap"><i class="fa fa-check"></i><b>3.2.2</b> Bootstrap</a></li>
+<li class="chapter" data-level="3.2.3" data-path="3-lit-review.html"><a href="3-lit-review.html#shrinkage"><i class="fa fa-check"></i><b>3.2.3</b> Shrinkage</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="3-lit-review.html"><a href="3-lit-review.html#bayesian-methods"><i class="fa fa-check"></i><b>3.3</b> Bayesian Methods</a><ul>
+<li class="chapter" data-level="3.3.1" data-path="3-lit-review.html"><a href="3-lit-review.html#fully-bayesian"><i class="fa fa-check"></i><b>3.3.1</b> “Fully Bayesian”</a></li>
+<li class="chapter" data-level="3.3.2" data-path="3-lit-review.html"><a href="3-lit-review.html#empirical-bayes"><i class="fa fa-check"></i><b>3.3.2</b> Empirical Bayes</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="4-models.html"><a href="4-models.html"><i class="fa fa-check"></i><b>4</b> Models</a></li>
+<li class="chapter" data-level="5" data-path="5-simulation-study.html"><a href="5-simulation-study.html"><i class="fa fa-check"></i><b>5</b> Simulation Study</a></li>
+<li class="chapter" data-level="6" data-path="6-application.html"><a href="6-application.html"><i class="fa fa-check"></i><b>6</b> Application</a></li>
+<li class="chapter" data-level="7" data-path="7-discussion.html"><a href="7-discussion.html"><i class="fa fa-check"></i><b>7</b> Discussion</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">My Final College Paper</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="lit-review" class="section level1">
+<h1><span class="header-section-number">Chapter 3</span> Literature Review</h1>
+<div id="background-and-motivation" class="section level2">
+<h2><span class="header-section-number">3.1</span> Background and Motivation</h2>
+<div id="redefine-statistical-significance" class="section level4">
+<h4><span class="header-section-number">3.1.0.1</span> Redefine statistical significance</h4>
+<p>Benjamin et al 2017 <a href="https://www.nature.com/articles/s41562-017-0189-z" class="uri">https://www.nature.com/articles/s41562-017-0189-z</a></p>
+<ul>
+<li>map Bayes factors to p-values
+<ul>
+<li>depends on H1 so it needs to be for specific alternatives</li>
+<li>plots of bayes factors to p values show that 5% threshold is too high</li>
+<li>suggests .005 to reduce false positives (esp in low power)</li>
+</ul></li>
+</ul>
+</div>
+<div id="calibration-of-p-values-for-testing-precise-null-hypotheses" class="section level4">
+<h4><span class="header-section-number">3.1.0.2</span> Calibration of p Values for Testing Precise Null Hypotheses</h4>
+<p>Sellke et al 2003 <a href="http://www.tandfonline.com/doi/pdf/10.1198/000313001300339950?needAccess=true" class="uri">http://www.tandfonline.com/doi/pdf/10.1198/000313001300339950?needAccess=true</a></p>
+<ul>
+<li>transform p value to bayes factor (lower bound on this) and alpha (type 1 error)</li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="frequentist-methods" class="section level2">
+<h2><span class="header-section-number">3.2</span> Frequentist Methods</h2>
+<div id="conditional-likelihood" class="section level3">
+<h3><span class="header-section-number">3.2.1</span> Conditional Likelihood</h3>
+<div id="overcoming-the-winners-curse-estimating-penetrance-parameters-from-case-control-data" class="section level4">
+<h4><span class="header-section-number">3.2.1.1</span> Overcoming the Winner’s Curse: Estimating Penetrance Parameters from Case-Control Data</h4>
+<p>Zollner and Pritchard, 2007</p>
+<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1852705/" class="uri">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1852705/</a></p>
+<ul>
+<li><p>instead of calculating odds-ratio, use prevalance to calculate penetrance</p></li>
+<li>likelihood conditional on parameters and significance at level alpha.</li>
+<li>algorithm:
+<ul>
+<li>sample from L(<span class="math inline">\(\theta, \phi\)</span>) (population freq and penetrance)</li>
+<li>get L(data | phi, theta) and pick highest</li>
+<li>perturb each param by epsilon, if better accept</li>
+<li>to test, generate 3 samples: naive, corrected, and estimated w an independent sample</li>
+</ul></li>
+</ul>
+</div>
+<div id="estimating-odds-ratios-in-genome-scans-an-approximate-conditional-likelihood-approach." class="section level4">
+<h4><span class="header-section-number">3.2.1.2</span> Estimating odds ratios in genome scans: an approximate conditional likelihood approach.</h4>
+<p>Ghosh A, Zou F, Wright FA 2008</p>
+<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2665019/" class="uri">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2665019/</a></p>
+<ul>
+<li>proposes mean of conditional likelihood, MLE, and mixture of both</li>
+<li>there used to be code online www.bios.unc.edu/~wrightf/genomebias/</li>
+</ul>
+</div>
+<div id="bias-reduced-estimators-and-confidence-intervals-for-odds-ratios-in-genome-wide-association-studies" class="section level4">
+<h4><span class="header-section-number">3.2.1.3</span> Bias-reduced estimators and confidence intervals for odds ratios in genome-wide association studies</h4>
+<p>Zhong H, Prentice RL. 2008</p>
+<ul>
+<li>similar to Zollner and Pritchard, but with asymptotic approximation instead of sampling</li>
+<li>“slightly different” likelihood formulation</li>
+</ul>
+<div id="statistical-correction-of-the-winners-curse-explains-replication-variability-in-quantitative-trait-genome-wide-association-studies" class="section level5">
+<h5><span class="header-section-number">3.2.1.3.1</span> Statistical correction of the Winner’s Curse explains replication variability in quantitative trait genome-wide association studies</h5>
+<p>Palmer and Pe’er. 2017</p>
+<ul>
+<li>based on Zhong and Prentice.</li>
+<li>code here: <a href="https://github.com/cpalmer718/gwas-winners-curse" class="uri">https://github.com/cpalmer718/gwas-winners-curse</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="bootstrap" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> Bootstrap</h3>
+<div id="br-squared-a-practical-solution-to-the-winners-curse-in-genome-wide-scans" class="section level4">
+<h4><span class="header-section-number">3.2.2.1</span> BR-squared: a practical solution to the winner’s curse in genome-wide scans</h4>
+<p>Sun et al. 2011 <a href="https://www.ncbi.nlm.nih.gov/pubmed/21246217" class="uri">https://www.ncbi.nlm.nih.gov/pubmed/21246217</a></p>
+<ul>
+<li>bootstrapping to address ranking effect and threshold effect</li>
+<li>independent detection and validation/effect estimation using sample split</li>
+<li>calculate effect for both in and out of bootstrap sample x, then get bias as diff and adjust</li>
+<li>can use genome wide bootstrap to improve over likelihood based methods</li>
+<li>software here: <a href="http://www.utstat.toronto.edu/sun/Software/BR2/" class="uri">http://www.utstat.toronto.edu/sun/Software/BR2/</a></li>
+</ul>
+</div>
+</div>
+<div id="shrinkage" class="section level3">
+<h3><span class="header-section-number">3.2.3</span> Shrinkage</h3>
+<div id="extracting-actionable-information-from-genome-scans" class="section level4">
+<h4><span class="header-section-number">3.2.3.1</span> Extracting Actionable Information From Genome Scans</h4>
+<p>Bacanu and Kendler. 2012</p>
+<p><a href="http://onlinelibrary.wiley.com/doi/10.1002/gepi.21682/full" class="uri">http://onlinelibrary.wiley.com/doi/10.1002/gepi.21682/full</a></p>
+<ul>
+<li>soft threshold, adjusts statistics such that their sum of squares do not overestimate the true mean</li>
+</ul>
+</div>
+<div id="a-simple-yet-accurate-correction-for-winners-curse-can-predict-signals-discovered-in-much-larger-genome-scans" class="section level4">
+<h4><span class="header-section-number">3.2.3.2</span> A simple yet accurate correction for winner’s curse can predict signals discovered in much larger genome scans</h4>
+<p>Bigdelli et al. 2016</p>
+<p><a href="https://academic.oup.com/bioinformatics/article/32/17/2598/2450747" class="uri">https://academic.oup.com/bioinformatics/article/32/17/2598/2450747</a></p>
+<ul>
+<li>uses multiple testing adjustment (False Discovery Rate) FDR Inverse Quantile Transformation (FIQT)</li>
+<li>transforms to p vals, shrinks towards one, and then transforms back to z scores</li>
+<li>code: <a href="https://github.com/bacanusa/FIQT" class="uri">https://github.com/bacanusa/FIQT</a></li>
+</ul>
+<div id="statistical-significance-for-genomewide-studies" class="section level5">
+<h5><span class="header-section-number">3.2.3.2.1</span> Statistical significance for genomewide studies</h5>
+<p>Storey and Tibshirani. 2003</p>
+<p><a href="http://www.pnas.org/content/100/16/9440.full" class="uri">http://www.pnas.org/content/100/16/9440.full</a></p>
+<ul>
+<li>FDR = expectation of false positives/significant features</li>
+<li>q is “proportion of false positives incurred when calling that feature significant”
+<ul>
+<li>sort of Bayesian (probability that a feature is null given it is significant)</li>
+</ul></li>
+<li>provides estimates for proportion of truly null features empirically
+<ul>
+<li>there’s several other papers on how to estimate this</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="bayesian-methods" class="section level2">
+<h2><span class="header-section-number">3.3</span> Bayesian Methods</h2>
+<div id="fully-bayesian" class="section level3">
+<h3><span class="header-section-number">3.3.1</span> “Fully Bayesian”</h3>
+<div id="bayesian-methods-to-overcome-the-winners-curse-in-genetic-studies" class="section level4">
+<h4><span class="header-section-number">3.3.1.1</span> Bayesian methods to overcome the winner’s curse in genetic studies</h4>
+<p>Xu et al 2011</p>
+<p><a href="https://arxiv.org/pdf/0907.2770.pdf" class="uri">https://arxiv.org/pdf/0907.2770.pdf</a></p>
+<ul>
+<li>Bayesian framework with model averaging</li>
+<li>logistic regression example with biased estimator, approximated with normal by CLT</li>
+<li>(hierarchical) Bayesian bias correction
+<ul>
+<li>spike-and-slab prior for mu, p(mu given epsilon)</li>
+<li>Beta prior for epsilon p(epsilon given a,b) -unifor prior is problematic because of Bartlett’s paradox</li>
+<li>inv gamma for sigma sq with mean = s^2 and var = 200
+<ul>
+<li>200 chosen bc empirically doesn’t matter much</li>
+</ul></li>
+<li>sample from posterior w data augmentation metropolis hasting</li>
+</ul></li>
+<li>BMA without conditioning on significance</li>
+</ul>
+</div>
+</div>
+<div id="empirical-bayes" class="section level3">
+<h3><span class="header-section-number">3.3.2</span> Empirical Bayes</h3>
+<div id="empirical-bayes-correction-for-the-winners-curse-in-genetic-association-studies" class="section level4">
+<h4><span class="header-section-number">3.3.2.1</span> Empirical Bayes Correction for the Winner’s Curse in Genetic Association Studies</h4>
+<p>Ferguson et al 2013</p>
+<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4048064/" class="uri">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4048064/</a></p>
+<ul>
+<li>prior of mean mu_i from distribution f</li>
+<li>empirical bayes method
+<ul>
+<li>find posterior (where f is the prior) and use the mean
+<ul>
+<li>results in smallest sq error</li>
+</ul></li>
+<li>f is unknown, but can express mean and variance of posterior with marginal p(z)
+<ul>
+<li>can estimate empirical log(p(z)) with binning and then fitting splines</li>
+<li>nonparametric but still dependent on spline function, bins, etc.</li>
+<li>can achieve pseudo Bayesian credible intervals</li>
+<li>these are not appropriate though, because they are symmetric (which is not guaranteed for multimodal or asymmetric distributions)</li>
+<li>would be better to use HPD</li>
+</ul></li>
+<li>combine with cond likelihood to account for tail behavior by comparing length of 95%CI for empirical bayes and conditional likelihood intervals, and pick the shortest</li>
+</ul></li>
+<li>simulation study with data from 3 distributions (normal, contamindated normal, double exponential) to test robustness</li>
+</ul>
+</div>
+<div id="power-estimation-and-sample-size-determination-for-replication-studies-of-genome-wide-association-studies" class="section level4">
+<h4><span class="header-section-number">3.3.2.2</span> Power estimation and sample size determination for replication studies of genome-wide association studies</h4>
+<p>Jiang and Yu. 2016</p>
+<p><a href="https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-015-2296-4" class="uri">https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-015-2296-4</a></p>
+<ul>
+<li>interested in power</li>
+<li>“bayesian power” takes the expectation over mu of P(replication significant | original study, mu, H1)</li>
+<li>spike and slab prior</li>
+<li>hyperparameters estimated empirically</li>
+<li>this will underestimate the variance</li>
+<li>proportion of null hypothesis is based on another parameter gamma corresponding to a p-value threshold</li>
+<li>can calculate Bayesian predictive power estimator</li>
+<li>simulation to compare estimate to true power</li>
+</ul>
+
+</div>
+</div>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="2-intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="4-models.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"weibo": false,
+"instapper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"download": [["thesis.pdf", "PDF"], ["thesis.epub", "EPUB"], ["thesis.docx", "Word"]],
+"toc": {
+"collapse": "section"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(script.src))
+      script.src  = script.src.replace(/^https?:/, '');
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
