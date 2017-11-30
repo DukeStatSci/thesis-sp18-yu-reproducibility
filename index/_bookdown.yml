@@ -4,3 +4,4 @@ chapter_name: "Chapter "
 rmd_files: ["index.Rmd","01-abstract.Rmd","02-intro.Rmd", "03-lit-review.Rmd", "04-models.Rmd", "05-simulations.Rmd", "06-application.Rmd", "07-discussion.Rmd", "99-references.Rmd"] #
 
 download: [["thesis.pdf", "PDF"], ["thesis.epub", "EPUB"], ["thesis.docx", "Word"]]
+output_dir: "../docs"

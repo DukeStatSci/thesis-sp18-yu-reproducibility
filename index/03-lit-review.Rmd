@@ -167,3 +167,11 @@ https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-015-2296-4
 - proportion of null hypothesis is based on another parameter gamma corresponding to a p-value threshold
 - can calculate Bayesian predictive power estimator 
 - simulation to compare estimate to true power
+
+
+### Adjusted Bayesian inference for selected parameters
+
+Yekutieli. 2012
+
+- necessary to have some adjustement for selection in bayesian framework
+- false coverage instead of p val, etc

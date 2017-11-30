@@ -1,1 +1,30 @@
 # Simulation Study
+
+## Normal Example
+
+### Data Generation
+
+To test the hypothesis $H_0: mu = 0$ versus  $H_1: mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $mu_i = 0$ in the null scenario and $mu_i \sim N(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $mu_i$ and known variance 1, with sample size 10. If $Y_i$ is not significant at $alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.
+
+### Conditional Likelihood
+
+Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{Y significant} P(t| \mu) dt }$. In this case, the sufficient statistic can be used to simplify this: since $\bar Y \sim N(\mu, \sigma^2/n)$, the conditional likelihood for the simulated data simplifies to $L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}$.
+
+The confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi = 1$, and obtaining the HPD (highest posterior density) region covering 95%. Sampling was done with a Metropolis-Hastings algorithm.
+
+### Posterior Distribution
+
+Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. In the Bayesian case, the prior was set to a spike and slab prior, with the "slab" part corresponding to a unit information prior: $\pi(\mu|H=H_0) = \delta_0(\mu)$ and $\pi(\mu|H=H_1) \sim N(0, 1)$. The marginal density $\pi(\mu) = \frac{1}{2}\delta_0(\mu)+ \frac{1}{2}\phi(\mu)$. 
+The marginal posterior distribution, $P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1) $.  The separate posteriors for $\mu$ are:
+$P(\mu|Y, H_0) = \delta_0(\mu) $, $P(\mu|Y, H_1) \sim N(\frac{n}{n+1}\bar Y, \frac{1}{n+1})$. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, $\pi$: $P(H_1| Y ) = \frac{\pi BF}{1-\pi BF}$. For this example, the prior odds are 1 (because the probability of $H_1 = 0.5$). The bayes factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1} exp(\frac{n^2}{2(n+1)}(\bar Y)^2)$. This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim N(0, \frac{n}{n+1})$.
+
+
+Putting these pieces together results in the marginal posterior for $\mu$, which can be used to calculate credible intervals using HPD. 
+
+
+### Results
+
+Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95% credible interval for $\mu| Y$ will contain 0 every time. 
+
+The marginal coverage of the (frequentist) confidence interval C, $P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)$ will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$.
+
