@@ -83,51 +83,60 @@ cond.posterior<- function(Y, n.samp){
 
 ##simulations
 all <- function(H, N, n.samp, interval,alpha){
-mu <- ifelse(H==0, 0, rnorm(1, 0, 1)) ### normally distributed mu
-Y <- rnorm(N, mu, 1)
-count=0
-while(abs(abs(mean(Y))/sqrt(1/N)-qnorm(1-alpha/2))>interval){ #if Z is not in (1.94, 1.98)
-  if(count>1000){ #had to add this bc it wouldn't run
-    return (c(H, mu , mean(Y), NA  , 
-              NA  , NA  , 
-              NA , NA , 
-              NA , NA , NA ))
-  }
-  
+  mu <- ifelse(H==0, 0, rnorm(1, 0, 1)) ### normally distributed mu
   Y <- rnorm(N, mu, 1)
-count<- count+1
-}
-post <- getposterior(Y,  n.samp)
-alt.prob = post$alt.prob
-cred <- HPD(post$draws)
-cred.lower = cred[1]
-cred.upper = cred[2]
-bayes.cov =  (cred.upper>=mu&&cred.lower<=mu)
-
-cond <-cond.posterior(Y, n.samp)
-conf <- HPD(cond)
-conf.lower = conf[1]
-conf.upper = conf[2]
-
-freq.cov =  (conf.upper>=mu&&conf.lower<=mu)
-expected.cov <- .95*alt.prob+(conf.upper>=0&&conf.lower<=0)*(1-alt.prob)
-
-
-(c(H, mu , mean(Y), alt.prob  , 
-   cred.lower  , cred.upper  , 
-   conf.lower , conf.upper , 
-   bayes.cov , freq.cov , expected.cov ))
-
+  count=0
+  while(abs(abs(mean(Y))/sqrt(1/N)-qnorm(1-alpha/2))>interval){ #if Z is not in (1.94, 1.98)
+    if(count>1000){ #had to add this bc it wouldn't run
+      return (c(H, mu , mean(Y), NA  , 
+                NA  , NA  , 
+                NA , NA , 
+                NA , NA , NA, NA  , NA  , 
+                NA , NA ))
+    }
+    
+    Y <- rnorm(N, mu, 1)
+    count<- count+1
+  }
+  post <- getposterior(Y,  n.samp)
+  alt.prob = post$alt.prob
+  cred <- HPD(post$draws)
+  cred.lower = cred[1]
+  cred.upper = cred[2]
+  bayes.cov =  (cred.upper>=mu&&cred.lower<=mu)
+  
+  cond <-cond.posterior(Y, n.samp)
+  conf <- HPD(cond)
+  conf.lower = conf[1]
+  conf.upper = conf[2]
+  
+  freq.cov =  (conf.upper>=mu&&conf.lower<=mu)
+  naive.cov <- mean(Y)+1.96*sqrt(1/N)>=mu&&mean(Y)-1.96*sqrt(1/N)<=mu 
+  expected.cov <- .95*alt.prob+(conf.upper>=0&&conf.lower<=0)*(1-alt.prob)
+  
+  
+  bayes.est = mean(post$draws)
+  cond.mean.est = mean(cond)
+  d <- density(cond)
+  cond.mode.est = d$x[which.max(d$y)]
+  
+  (c(H, mu , mean(Y), alt.prob  , 
+     cred.lower  , cred.upper  , 
+     conf.lower , conf.upper , 
+     bayes.cov , freq.cov , naive.cov, expected.cov, 
+     bayes.est, cond.mean.est,cond.mode.est))
+  
 }
 
 
 N=100; n.samp = 10000;n.sim=1000; pi = .5
 
-results =data.frame(t(apply(matrix(as.numeric(runif(n.sim)<pi)),1, function(x) all(x, N, n.samp, .2, .05))))
+results <-data.frame(t(apply(matrix(as.numeric(runif(n.sim)<pi)),1, function(x) all(x, N, n.samp, .2, .05))))
 colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" , 
-                     "cred.lower"  , "cred.upper"  , 
-                     "conf.lower" , "conf.upper" , 
-                     "bayes.cov" , "freq.cov" , "expected.cov" )
+                      "cred.lower"  , "cred.upper"  , 
+                      "conf.lower" , "conf.upper" , 
+                      "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
+                      "bayes.est", "cond.mean.est","cond.mode.est")
 
 
 #for(i in as.numeric(runif(10)<pi)){print(i);print(all(i, N, n.samp))}
@@ -142,8 +151,8 @@ summary(results[-a,])
 
 # true nulls
 b <- which(results$H==0)
-summary(results[b,])
-summary(results[-b,])
+summary(results1[b,])
+summary(results1[-b,])
 ggplot(data = na.omit(results))+geom_jitter(aes(y = mu, x= Ybar))+geom_violin(aes(y = mu, x = Ybar, alpha = .2))
 #everything contains 0!!!!!!!- bayes factor/alt probability are too low in this range
 #calculated coverage and true coverage are not close bc of selection?
@@ -160,12 +169,17 @@ ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper
 
 results2 =data.frame(t(apply(matrix(as.numeric(runif(n.sim)<pi)),1, function(x) all(x, N, n.samp, .2, .01))))
 colnames(results2)<- c("H", "mu" , "Ybar", "alt.prob" , 
-                      "cred.lower"  , "cred.upper"  , 
-                      "conf.lower" , "conf.upper" , 
-                      "bayes.cov" , "freq.cov" , "expected.cov" )
+                       "cred.lower"  , "cred.upper"  , 
+                       "conf.lower" , "conf.upper" , 
+                       "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
+                       "bayes.est", "cond.mean.est","cond.mode.est")
 
 
 
 
 results1[8,]
 results2[33,]
+
+
+
+

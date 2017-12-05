@@ -8,23 +8,103 @@ To test the hypothesis $H_0: mu = 0$ versus  $H_1: mu \neq 0$, a fixed proportio
 
 ### Conditional Likelihood
 
-Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{Y significant} P(t| \mu) dt }$. In this case, the sufficient statistic can be used to simplify this: since $\bar Y \sim N(\mu, \sigma^2/n)$, the conditional likelihood for the simulated data simplifies to $L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}$.
+Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{\text{significant Y}} P(t| \mu) dt }$.<references here?> In this case, the sufficient statistic can be used to simplify: since $\bar Y \sim N(\mu, \sigma^2/n)$, the conditional likelihood for the simulated data is equivalent to $L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}$.
 
-The confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi = 1$, and obtaining the HPD (highest posterior density) region covering 95%. Sampling was done with a Metropolis-Hastings algorithm.
+Since this likelihood is difficult to integrate analytically, the confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi(\mu) = 1$, and obtaining the HPD (highest posterior density) region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.
 
 ### Posterior Distribution
 
-Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. In the Bayesian case, the prior was set to a spike and slab prior, with the "slab" part corresponding to a unit information prior: $\pi(\mu|H=H_0) = \delta_0(\mu)$ and $\pi(\mu|H=H_1) \sim N(0, 1)$. The marginal density $\pi(\mu) = \frac{1}{2}\delta_0(\mu)+ \frac{1}{2}\phi(\mu)$. 
-The marginal posterior distribution, $P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1) $.  The separate posteriors for $\mu$ are:
-$P(\mu|Y, H_0) = \delta_0(\mu) $, $P(\mu|Y, H_1) \sim N(\frac{n}{n+1}\bar Y, \frac{1}{n+1})$. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, $\pi$: $P(H_1| Y ) = \frac{\pi BF}{1-\pi BF}$. For this example, the prior odds are 1 (because the probability of $H_1 = 0.5$). The bayes factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1} exp(\frac{n^2}{2(n+1)}(\bar Y)^2)$. This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim N(0, \frac{n}{n+1})$.
+Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. In the Bayesian case, the prior was set to a spike and slab prior, with the "spike" being a point mass at 0: $\pi(\mu|H=H_0) = \delta_0(\mu)$, and the "slab" part corresponding to a unit information prior:  $\pi(\mu|H=H_1) \sim N(0, 1)$. The full prior is a mixture model $\pi(\mu|\xi) = \xi \delta_0(\mu)+ (1-\xi )\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
+
+The marginal posterior distribution is $P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1)$.  The separate posteriors for $\mu$ are:
+$P(\mu|Y, H_0) = \delta_0(\mu)$, $P(\mu|Y, H_1) \sim N(\frac{n}{n+1}\bar Y, \frac{1}{n+1})$. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, $\pi = \frac{(1-\xi)}{\xi}$: $P(H_1| Y ) = \frac{\pi BF}{1-\pi BF}$. For this example, the prior odds are 1 (because the probability of $H_1 = \xi = 0.5$). The bayes factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1} exp(\frac{n^2}{2(n+1)}(\bar Y)^2)$. This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim N(0, \frac{n}{n+1})$.
 
 
-Putting these pieces together results in the marginal posterior for $\mu$, which can be used to calculate credible intervals using HPD. 
+Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate HPD credible intervals. 
+
+While true HPD intervals can be disjoint, the intervals calculated for this experiment are actually the shortest continuous segments covering $.95$. This corresponds to the HPD interval under the assumption that the distribution is not severely multimodal, and is what most packages in R use to estimate HPD intervals. However, since this posterior is actually a mixture model, a large enough posterior probability for $H_1$ could lead to a difference between the true HPD credible interval and the calculated one. <this will be addressed in the future etc>
 
 
 ### Results
 
-Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95% credible interval for $\mu| Y$ will contain 0 every time. 
 
-The marginal coverage of the (frequentist) confidence interval C, $P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)$ will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$.
+#### Estimators
+
+```{r}
+##plot of estimators or mse
+require(reshape2)
+require(knitr)
+require(ggplot2)
+load("normalresults.RData")
+results <- fullresults
+
+estimators <- data.frame(bayes = abs(results$bayes.est-results$mu),naive = abs(results$Ybar-results$mu), cond.mean = abs(results$cond.mean.est-results$mu),cond.mode = abs(results$cond.mode.est-results$mu))
+
+ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot(aes(fill=variable))
+
+kable(c(bayes = sqrt(sum(estimators$bayes^2)), cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2))), col.names = "RMSE")
+
+```
+
+The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error) for $\mu$, while the RMSE for the bayesian estimator (mean of the posterior) is the lowest.
+
+#### Credible and Confidence Intervals
+
+
+```{r}
+##plot of credible interval sizes
+ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))
+
+```
+
+The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes.
+
+The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood confidence intervals are almost always larger than the credible intervals, but still mostly smaller than the naive ones. 
+
+#### Coverage
+
+The marginal coverage of the (frequentist conditional likelihood) confidence interval C, $P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)$ will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0. 
+
+However, conditioning on the alternative hypothesis does not lead to an empirical coverage of 95%.
+
+We can see that both methods are still significantly better than the naive one.
+
+
+```{r}
+#table of expected vs empirical coverage
+
+results <- na.omit(results)
+kable(c(naive = mean(results$naive.cov), conditional = mean(results$freq.cov),bayesian = mean(results$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals")
+
+b <- which(results$H==0)
+kable(c(naive = mean(results[b,]$naive.cov), conditional = mean(results[b,]$freq.cov),bayesian = mean(results[b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H0")
+kable(c(naive = mean(results[-b,]$naive.cov), conditional = mean(results[-b,]$freq.cov),bayesian = mean(results[-b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H1")
+
+```
+
+#### Hypothesis Rejection(??)
+
+Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
+
+
+```{r}
+##confusion matrices
+kable(table(results$H,abs(results$Ybar)/sqrt(1/100)<qnorm(1-0.05/2))/dim(results)[1], col.names = c("Do not reject null", "Reject null"), row.names = TRUE, caption = "Naive method")
+
+kable(table(results$H,results$conf.upper>=0&results$conf.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Conditional Likelihood Method")
+
+kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Bayesian Mixture Model")
+
+```
+
+Despite never rejecting the null, the conditional likelihood and the bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
+
+
+## Double Exponential Simulation with Adjusted P-Values
+
+
+
+
+
+
 
