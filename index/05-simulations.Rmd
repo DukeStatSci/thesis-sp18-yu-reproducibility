@@ -51,10 +51,11 @@ Since this likelihood is difficult to integrate analytically, the confidence int
 getposterior <- function(Y,n.samp, pi = .5){
   n = length(Y)
   odds = (1-pi)/pi
-  #bf <- -exp(1)*p*log(p)
+  #bf.approx <- -exp(1)*p*log(p)
   bf <-  (n+1)^(-.5)*exp(n^2*mean(Y)^2/(2*(n+1)))
   alt.prob <- odds*bf/(1+odds*bf)
-  
+  #alt.prob.approx <- odds*bf.approx/(1+odds*bf.approx)
+
   #draws from posterior-flip a coin (ber w prob P(H given Y) and then use that to get draw
   draws = sapply(runif(n.samp), function(x)  {
     ifelse(x<(1-alt.prob), rnorm(1, 0, 0), rnorm(1,mean(Y)*n/(n+1), sqrt(1/(n+1))))

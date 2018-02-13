@@ -1,82 +1,83 @@
 X<- sapply(runif(1000), function(x) ifelse(x<.3, rnorm(1,0,0), rnorm(1,3,1)))
 hist(X)
 epsilon <- .001
-HPD <- function(X, prob=.95){
-  ##remove 0- can probably find/approx with some check
-  n<- length(X)
-  d<-X[X!=0]
-  pi<- length(d)/n
-  
-  kde <- density(d)
-  dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
-                data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
-  #mix of normals
-  dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$y, 0, epsilon)
-  min <- quantile(dens$mix, c(1-prob))
-  dens<-dens[order(dens$x),]
-  
-  interval <- which(dens$mix>=min)
-  plot(dens$x[-which(dens$x==0)], dens$mix[-which(dens$x==0)], type = "l")
-  
-  plot(dens$x, dens$mix, type = "l")
-  points(dens$x[interval], dens$mix[interval], col="red")
-  
-  setdiff(1:n, interval)
-  c(dens$x[3],dens$x[527],dens$x[553],dens$x[977])
-  
-  
-  #https://cran.r-project.org/web/packages/LaplacesDemon/LaplacesDemon.pdf
-}
-
-
-HPDM <- function(obj, prob=0.95){          
-  mm <- apply(obj, 2, is.multimodal)
-  if(any(mm)) {
-    cat("\n\nPotentially multimodal column vectors:\n",
-        which(mm),"\n")
-    vals <- apply(obj, 2, sort)
-    if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
-    for (m in which(mm)) {
-      kde <- density(vals[,m])
-      dens <- approx(kde$x, kde$y, vals[,m])$y
-      dens.ind <- dens >= as.vector(quantile(dens,
-                                             probs=1-prob)) * 1
-      ints <- ""
-      count <- 1
-      for (i in 1:nrow(vals)) {
-        if((i == 1) & (dens.ind[i] == 1)) {
-          ints <- paste("(",round(vals[i,m],3),",",sep="")
-          #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-          #ansmm[m,count] <- vals[i,m]
-          count <- count + 1
-        }
-        if(i > 1) {
-          if((dens.ind[i] == 0) & (dens.ind[i-1] == 1)) {
-            ints <- paste(ints,round(vals[i-1,m],3),")",sep="")
-            #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-            #ansmm[m,count] <- vals[i-1,m]
-            count <- count + 1
-          }
-          if((dens.ind[i] == 1) & (dens.ind[i-1] == 0))  {
-            ints <- paste(ints," (",round(vals[i,m],3),",",sep="")
-            #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-            #ansmm[m,count] <- vals[i,m]
-            count <- count + 1
-          }
-        }
-      }
-      if((dens.ind[i] == 1) & (dens.ind[i-1] == 1)) {
-        ints <- paste(ints,round(vals[i,m],3),")",sep="")
-        #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-        #∫ansmm[m,count] <- vals[i,m]
-        count <- count + 1
-      }
-      cat("\nColumn", m, "multimodal intervals:", ints, "\n")
-    }
-  }
-}
+# HPD <- function(X, prob=.95){
+#   ##remove 0- can probably find/approx with some check
+#   n<- length(X)
+#   d<-X[X!=0]
+#   pi<- length(d)/n
+#   
+#   kde <- density(d)
+#   dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
+#                 data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
+#   #mix of normals
+#   dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$y, 0, epsilon)
+#   min <- quantile(dens$mix, c(1-prob))
+#   dens<-dens[order(dens$x),]
+#   
+#   interval <- which(dens$mix>=min)
+#   plot(dens$x[-which(dens$x==0)], dens$mix[-which(dens$x==0)], type = "l")
+#   
+#   plot(dens$x, dens$mix, type = "l")
+#   points(dens$x[interval], dens$mix[interval], col="red")
+#   
+#   setdiff(1:n, interval)
+#   c(dens$x[3],dens$x[527],dens$x[553],dens$x[977])
+#   
+#   
+#   #https://cran.r-project.org/web/packages/LaplacesDemon/LaplacesDemon.pdf
+# }
+# 
+# 
+# HPDM <- function(obj, prob=0.95){
+#   ans
+#   mm <- apply(obj, 2, is.multimodal)
+#   if(any(mm)) {
+#     cat("\n\nPotentially multimodal column vectors:\n",
+#         which(mm),"\n")
+#     vals <- apply(obj, 2, sort)
+#     if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
+#     for (m in which(mm)) {
+#       kde <- density(vals[,m])
+#       dens <- approx(kde$x, kde$y, vals[,m])$y
+#       dens.ind <- dens >= as.vector(quantile(dens,
+#                                              probs=1-prob)) * 1
+#       ints <- ""
+#       count <- 1
+#       for (i in 1:nrow(vals)) {
+#         if((i == 1) & (dens.ind[i] == 1)) {
+#           ints <- paste("(",round(vals[i,m],3),",",sep="")
+#           #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+#           #ansmm[m,count] <- vals[i,m]
+#           count <- count + 1
+#         }
+#         if(i > 1) {
+#           if((dens.ind[i] == 0) & (dens.ind[i-1] == 1)) {
+#             ints <- paste(ints,round(vals[i-1,m],3),")",sep="")
+#             #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+#             #ansmm[m,count] <- vals[i-1,m]
+#             count <- count + 1
+#           }
+#           if((dens.ind[i] == 1) & (dens.ind[i-1] == 0))  {
+#             ints <- paste(ints," (",round(vals[i,m],3),",",sep="")
+#             #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+#             #ansmm[m,count] <- vals[i,m]
+#             count <- count + 1
+#           }
+#         }
+#       }
+#       if((dens.ind[i] == 1) & (dens.ind[i-1] == 1)) {
+#         ints <- paste(ints,round(vals[i,m],3),")",sep="")
+#         #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+#         #∫ansmm[m,count] <- vals[i,m]
+#         count <- count + 1
+#       }
+#       cat("\nColumn", m, "multimodal intervals:", ints, "\n")
+#     }
+#   }
+# }
 ####not sure if this is necessary
-Modes <- function(x, min.size=0.1) {
+Modes <- function(x, min.size) {
   ### Initial Checks
   if(missing(x)) stop("The x argument is required.")
   x <- as.vector(as.numeric(as.character(x)))
@@ -137,8 +138,20 @@ is.multimodal <- function(x, min.size=0.01)
 
 
 
-HPDM2 <- function(obj, prob=0.95){          
-  mm <- apply(obj, 2, is.multimodal)
+HPDM <- function(obj, prob=0.95, min.size=.01){
+  vals <- apply(obj, 2, sort)
+  if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
+  nsamp <- nrow(vals)
+  npar <- ncol(vals)
+  gap <- max(1, min(nsamp - 1, round(nsamp * prob)))
+  init <- 1:(nsamp - gap)
+  inds <- apply(vals[init + gap, , drop=FALSE] -
+                  vals[init, , drop=FALSE], 2, which.min)
+  ansmm <- cbind(vals[cbind(inds, 1:npar)],
+               vals[cbind(inds + gap, 1:npar)])
+  dimnames(ansmm) <- list(colnames(obj), c("Lower", "Upper"))
+  
+  mm <- apply(obj, 2, is.multimodal, min.size)
   if(any(mm)) {
     cat("\n\nPotentially multimodal column vectors:\n",
         which(mm),"\n")
@@ -156,7 +169,7 @@ HPDM2 <- function(obj, prob=0.95){
       dens<-dens[order(dens$x),]
       #mix of normals
       epsilon<- min(abs(X[max(zeroes)+1]),abs(X[min(zeroes)-1]))/20
-      dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)
+      dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)/dnorm(0, 0, epsilon)
       dens.ind <- dens$mix >= as.vector(quantile(dens$mix,
                                              probs=1-prob)) * 1
       
@@ -165,60 +178,60 @@ HPDM2 <- function(obj, prob=0.95){
       for (i in 1:nrow(vals)) {
         if((i == 1) & (dens.ind[i] == 1)) {
           ints <- paste("(",round(vals[i,m],3),",",sep="")
-          #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-          #ansmm[m,count] <- vals[i,m]
+          if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+          ansmm[m,count] <- vals[i,m]
           count <- count + 1
         }
         if(i > 1) {
           if((dens.ind[i] == 0) & (dens.ind[i-1] == 1)) {
             ints <- paste(ints,round(vals[i-1,m],3),")",sep="")
-            #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-            #ansmm[m,count] <- vals[i-1,m]
+            if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+            ansmm[m,count] <- vals[i-1,m]
             count <- count + 1
           }
           if((dens.ind[i] == 1) & (dens.ind[i-1] == 0))  {
             ints <- paste(ints," (",round(vals[i,m],3),",",sep="")
-            #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-            #ansmm[m,count] <- vals[i,m]
+            if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+            ansmm[m,count] <- vals[i,m]
             count <- count + 1
           }
         }
       }
       if((dens.ind[i] == 1) & (dens.ind[i-1] == 1)) {
         ints <- paste(ints,round(vals[i,m],3),")",sep="")
-        #if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-        #∫ansmm[m,count] <- vals[i,m]
+        if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+        ansmm[m,count] <- vals[i,m]
         count <- count + 1
       }
       cat("\nColumn", m, "multimodal intervals:", ints, "\n")
       plot(dens$x, dens$mix, type = "l")
-      points(dens$x[dens.ind==1], dens$mix[interval], col="red")
-
+      points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
+      return(ansmm)
     }
   }
 }
 
 ##testing
 X<- sapply(runif(1000), function(x) ifelse(x<.3, rnorm(1,0,0), rnorm(1,3,1)))
-HPDM2(matrix(X))
+HPDM(matrix(X))
 
 plot(density(X))
 
 X<- sapply(runif(1000), function(x) ifelse(x<.5, rnorm(1,0,0), rnorm(1,3,1.5)))
-HPDM2(matrix(X))
+HPDM(matrix(X))
 
 
 X<- sapply(runif(1000), function(x) ifelse(x<.5, rnorm(1,0,0), rnorm(1,2,1.5)))
 HPDM2(matrix(X))
 
 X<- sapply(runif(1000), function(x) ifelse(x<.8, rnorm(1,0,0), rnorm(1,2,1.5)))
-HPDM2(matrix(X))
+HPDM(matrix(X))
 
 
 X<- sapply(runif(1000), function(x) ifelse(x<.05, rnorm(1,0,0), rnorm(1,2,.5)))
-HPDM2(matrix(X))
+HPDM(matrix(X))
 
 #what to do about this? would expect 0 not to be included bc <0.01 
 X<- sapply(runif(1000), function(x) ifelse(x<.01, rnorm(1,0,0), rnorm(1,2,.5)))
-HPDM2(matrix(X))
+HPDM(matrix(X))
 
