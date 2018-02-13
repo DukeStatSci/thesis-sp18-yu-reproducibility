@@ -1,6 +1,5 @@
 library(distr)
 
-
 N = 1E5
 lambda = sample(c(10,1), size = N, replace = TRUE, prob = c(.9,.1))
 theta = sapply(lambda, function(l){
@@ -67,6 +66,25 @@ lines(Y[significant],Y[significant]-1.96)
 
 
 #model 3, spike and slab
+getposterior <- function(Y,n.samp, pi = .5){
+  n = length(Y)
+  odds = (1-pi)/pi
+  #bf <- -exp(1)*p*log(p)
+  #could also do numerical integration to get BF for precision (but could be unstable)
+  #look at BAS zellner
+  #mathematica?? *integrate*
+  ##plot priors
+  bf <-  (n+1)^(-.5)*exp(n^2*mean(Y)^2/(2*(n+1)))
+  alt.prob <- odds*bf/(1+odds*bf)
+  
+  #draws from posterior-flip a coin (ber w prob P(H given Y) and then use that to get draw
+  draws = sapply(runif(n.samp), function(x)  {
+    ifelse(x<(1-alt.prob), rnorm(1, 0, 0), rcauchy(1,mean(Y)*n/(n+1), sqrt(1/(n+1))))
+  })
+  #ggplot(data = data.frame(draws))+geom_density(aes(x=draws))
+  (list(alt.prob=alt.prob, draws=draws)) 
+  
+}
 
 model3.ci <- NULL
 for (y in Y[significant]){
