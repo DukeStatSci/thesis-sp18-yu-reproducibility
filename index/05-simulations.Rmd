@@ -227,8 +227,8 @@ kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov)
       row.names = TRUE,
       caption = "Empirical Coverage for 95% Confidence/Credible Intervals")
 
-kable(c(naive = , conditional = ,bayesian = mean(results[b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H0")
-kable(c(naive =c(0) , conditional = mean(results[-b,]$freq.cov),bayesian = mean(results[-b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H1")
+#kable(c(naive = , conditional = ,bayesian = mean(results[b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H0")
+#kable(c(naive =c(0) , conditional = mean(results[-b,]$freq.cov),bayesian = mean(results[-b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H1")
 
 ```
 
@@ -250,7 +250,7 @@ kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[
 Despite never rejecting the null, the conditional likelihood and the bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
 
 
-## Double Exponential Simulation with Adjusted P-Values
+**## Double Exponential Simulation with Adjusted P-Values**
 
 
 

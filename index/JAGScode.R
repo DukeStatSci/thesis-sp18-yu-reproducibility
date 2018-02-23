@@ -66,12 +66,12 @@ p53.newmodel3 = function() {
 p53.normal = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+    logit(theta[j]) <- beta.site[site[j]] + mu.p53*p53[j] +
       beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
   
   for (l in 1:n.sites) {
     beta.site[l] ~ dnorm(mu.site, phi.site)
-    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
+    #beta.p53[l] ~ dnorm(mu.p53, phi.p53)
     beta.Age[l] ~ dnorm(mu.Age, phi.Age)
   }
   C<-1000
@@ -154,13 +154,13 @@ p53.newmodel4 = function() {
 p53.bf.approx = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+    logit(theta[j]) <- beta.site[site[j]] + mu.p53*p53[j] +
       beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
   
   for (l in 1:n.sites) {
     beta.site[l] ~ dnorm(mu.site, phi.site)
     beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*(assoc)
+    #beta.p53[l] <- beta.p53.1[l]*(assoc)
     beta.Age[l] ~ dnorm(mu.Age, phi.Age)
   }
   C<-1000
