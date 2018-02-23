@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>My Final College Paper</title>
+  <meta name="description" content="My Final College Paper">
+  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+
+  <meta property="og:title" content="My Final College Paper" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="My Final College Paper" />
+  
+  
+  
+
+<meta name="author" content="Huijia Yu">
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="4-simulation-study.html">
+<link rel="next" href="6-application.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./"></a></li>
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="1" data-path="1-abstract.html"><a href="1-abstract.html"><i class="fa fa-check"></i><b>1</b> Abstract</a></li>
+<li class="chapter" data-level="2" data-path="2-intro.html"><a href="2-intro.html"><i class="fa fa-check"></i><b>2</b> Introduction</a></li>
+<li class="chapter" data-level="3" data-path="3-lit-review.html"><a href="3-lit-review.html"><i class="fa fa-check"></i><b>3</b> Literature Review</a></li>
+<li class="chapter" data-level="4" data-path="4-simulation-study.html"><a href="4-simulation-study.html"><i class="fa fa-check"></i><b>4</b> Simulation Study</a><ul>
+<li class="chapter" data-level="4.1" data-path="4-simulation-study.html"><a href="4-simulation-study.html#normal-example"><i class="fa fa-check"></i><b>4.1</b> Normal Example</a><ul>
+<li class="chapter" data-level="4.1.1" data-path="4-simulation-study.html"><a href="4-simulation-study.html#data-generation"><i class="fa fa-check"></i><b>4.1.1</b> Data Generation</a></li>
+<li class="chapter" data-level="4.1.2" data-path="4-simulation-study.html"><a href="4-simulation-study.html#conditional-likelihood"><i class="fa fa-check"></i><b>4.1.2</b> Conditional Likelihood</a></li>
+<li class="chapter" data-level="4.1.3" data-path="4-simulation-study.html"><a href="4-simulation-study.html#posterior-distribution"><i class="fa fa-check"></i><b>4.1.3</b> Posterior Distribution</a></li>
+<li class="chapter" data-level="4.1.4" data-path="4-simulation-study.html"><a href="4-simulation-study.html#results"><i class="fa fa-check"></i><b>4.1.4</b> Results</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="5-hierarchical-model-simulation.html"><a href="5-hierarchical-model-simulation.html"><i class="fa fa-check"></i><b>5</b> Hierarchical Model Simulation</a></li>
+<li class="chapter" data-level="6" data-path="6-application.html"><a href="6-application.html"><i class="fa fa-check"></i><b>6</b> Application</a><ul>
+<li class="chapter" data-level="6.1" data-path="6-application.html"><a href="6-application.html#genome-study"><i class="fa fa-check"></i><b>6.1</b> Genome Study</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="6-application.html"><a href="6-application.html#eda"><i class="fa fa-check"></i><b>6.1.1</b> EDA</a></li>
+<li class="chapter" data-level="6.1.2" data-path="6-application.html"><a href="6-application.html#models"><i class="fa fa-check"></i><b>6.1.2</b> model(s)</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">My Final College Paper</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="hierarchical-model-simulation" class="section level1">
+<h1><span class="header-section-number">Chapter 5</span> Hierarchical Model Simulation</h1>
+<p>This simulation generates data from a hierarchical logistic model as follows: If there is a true association, <span class="math inline">\(\mu\)</span> is a (fixed) nonzero value and <span class="math inline">\(\beta_j \sim N(\mu, \sigma^2)\)</span> where <span class="math inline">\(\sigma^2\)</span> is fixed. Otherwise, <span class="math inline">\(\mu=\beta_j = 0, \forall j\)</span>. The observed data <span class="math inline">\(Y_{ij}\)</span> is binary, and has <span class="math inline">\(P(Y_{ij}| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}\)</span>. The <span class="math inline">\(j\)</span> index corresponds to the “group” to which the observation belongs.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>)
+knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">cache =</span> <span class="ot">TRUE</span>)
+<span class="kw">library</span>(<span class="st">&quot;R2jags&quot;</span>)</code></pre></div>
+<pre><code>Loading required package: rjags</code></pre>
+<pre><code>Loading required package: coda</code></pre>
+<pre><code>Linked to JAGS 4.2.0</code></pre>
+<pre><code>Loaded modules: basemod,bugs</code></pre>
+<pre><code>
+Attaching package: &#39;R2jags&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:coda&#39;:
+
+    traceplot</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1</span>)
+epsilon=.<span class="dv">01</span>
+<span class="co">#fix everything (even betas)</span>
+mu.p53=.<span class="dv">5</span>
+phi.p53=<span class="st"> </span><span class="dv">10</span>
+observations=<span class="dv">1000</span>
+n.sites=<span class="dv">7</span>
+beta.p53.fixed =<span class="st"> </span><span class="kw">rnorm</span>(n.sites,mu.p53,phi.p53<span class="op">^</span>(<span class="op">-</span>.<span class="dv">5</span>)) <span class="co">#&quot;fixed&quot; because seed</span>
+beta.p53.fixed.<span class="dv">1</span> &lt;-beta.p53.fixed
+Y &lt;-site &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="ot">NA</span>, observations<span class="op">*</span>n.sites)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites){
+    Y[((i<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span>observations<span class="op">+</span><span class="dv">1</span>)<span class="op">:</span>(i<span class="op">*</span>observations)]&lt;-<span class="kw">rbinom</span>(observations, <span class="dv">1</span>, <span class="kw">exp</span>(beta.p53.fixed[i])<span class="op">/</span>(<span class="dv">1</span><span class="op">+</span><span class="kw">exp</span>(beta.p53.fixed[i])))
+    site[((i<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span>observations<span class="op">+</span><span class="dv">1</span>)<span class="op">:</span>(i<span class="op">*</span>observations)]&lt;-<span class="st"> </span><span class="kw">rep</span>(i, observations)
+}
+sim.data1.<span class="dv">1</span>&lt;-<span class="kw">list</span>(<span class="dt">CaseCon=</span>Y, <span class="dt">site=</span>site,  <span class="dt">J=</span>n.sites<span class="op">*</span>observations ,<span class="dt">n.sites=</span>n.sites)
+
+Y &lt;-site &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="ot">NA</span>, observations<span class="op">*</span>n.sites)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites){
+  Y[((i<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span>observations<span class="op">+</span><span class="dv">1</span>)<span class="op">:</span>(i<span class="op">*</span>observations)]&lt;-<span class="kw">rbinom</span>(observations, <span class="dv">1</span>,.<span class="dv">5</span>) <span class="co">#beta=0</span>
+  site[((i<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span>observations<span class="op">+</span><span class="dv">1</span>)<span class="op">:</span>(i<span class="op">*</span>observations)]&lt;-<span class="st"> </span><span class="kw">rep</span>(i, observations)
+}
+sim.data1.<span class="dv">0</span>&lt;-<span class="kw">list</span>(<span class="dt">CaseCon=</span>Y, <span class="dt">site=</span>site,  <span class="dt">J=</span>n.sites<span class="op">*</span>observations ,<span class="dt">n.sites=</span>n.sites)
+<span class="co">#this might just be 0?</span>
+
+<span class="kw">set.seed</span>(<span class="dv">1</span>)
+mu.p53=.<span class="dv">1</span>
+phi.p53=<span class="st"> </span><span class="dv">10</span>
+observations=<span class="dv">100</span>
+n.sites=<span class="dv">7</span>
+beta.p53.fixed =<span class="st"> </span><span class="kw">rnorm</span>(n.sites,mu.p53,phi.p53<span class="op">^</span>(<span class="op">-</span>.<span class="dv">5</span>)) <span class="co">#&quot;fixed&quot; because seed</span>
+beta.p53.fixed.<span class="dv">2</span> &lt;-beta.p53.fixed
+Y &lt;-site &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="ot">NA</span>, observations<span class="op">*</span>n.sites)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites){
+    Y[((i<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span>observations<span class="op">+</span><span class="dv">1</span>)<span class="op">:</span>(i<span class="op">*</span>observations)]&lt;-<span class="kw">rbinom</span>(observations, <span class="dv">1</span>, <span class="kw">exp</span>(beta.p53.fixed[i])<span class="op">/</span>(<span class="dv">1</span><span class="op">+</span><span class="kw">exp</span>(beta.p53.fixed[i])))
+    site[((i<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span>observations<span class="op">+</span><span class="dv">1</span>)<span class="op">:</span>(i<span class="op">*</span>observations)]&lt;-<span class="st"> </span><span class="kw">rep</span>(i, observations)
+}
+sim.data1.<span class="dv">2</span>&lt;-<span class="kw">list</span>(<span class="dt">CaseCon=</span>Y, <span class="dt">site=</span>site,  <span class="dt">J=</span>n.sites<span class="op">*</span>observations ,<span class="dt">n.sites=</span>n.sites)
+
+<span class="kw">source</span>(<span class="st">&quot;HPD.R&quot;</span>)
+#############</code></pre></div>
+<p>Since there is uncertainty regarding whether or not there is a true association, this can be modeled as a probability <span class="math inline">\(\xi\)</span> with a beta prior. Then an inverse gamma prior is chosen for variance <span class="math inline">\(\sigma^2\)</span> and a spike and slab prior conditioning on the probability of association for <span class="math inline">\(mu\)</span>: <span class="math inline">\(\pi(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)\)</span>.</p>
+<p>There are a couple of changes that can be made in the model implementation to to obtain MCMC samples:</p>
+<ol style="list-style-type: decimal">
+<li><p>The point mass can be approximated using a very concentrated normal distribution, centered at 0. Thus, <span class="math inline">\(\pi(\mu|\xi) = (1-\xi) N(\mu, 0, \epsilon)+ \xi N(\mu,0 ,1)\)</span>.</p></li>
+<li><p>The probability <span class="math inline">\(\xi\)</span> can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of <span class="math inline">\(\mu\)</span>. That is, <span class="math inline">\(\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)\)</span>, and <span class="math inline">\(P(\iota = 1 ) = \xi\)</span>.</p></li>
+</ol>
+<p>However, due to the sequential nature of MCMC sampling, these seemingly identical models produce different results.</p>
+<p>Models that do not use the latent variable must specify the mixture distribution in JAGS directly. This is done through the zeroes and ones trick, which use properties of the Poisson and Bernoulli distributions in order to allow for arbitrary distributions.</p>
+<p>In these scenarios, the model from which a sample comes from is also not evident. To determine whether a small value is truly from the concentrated normal, we can compute the probability of the sample for the two distributions and choose the model that results in a larger one.</p>
+<p><em>not sure how relevant this is, maybe will remove different implementations once things work out</em></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#model</span>
+p53.test.ind =<span class="st"> </span><span class="cf">function</span>() {
+  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>J) {
+    CaseCon[j] <span class="op">~</span><span class="st"> </span><span class="kw">dbern</span>(theta[j])
+    <span class="kw">logit</span>(theta[j]) &lt;-<span class="st">  </span>beta.p53[site[j]]  }
+  
+  <span class="cf">for</span> (l <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites) {
+    beta.p53.<span class="dv">1</span>[l] <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(mu.p53, phi.p53)
+    beta.p53[l] &lt;-<span class="st"> </span>beta.p53.<span class="dv">1</span>[l]<span class="op">*</span>(mu.p53.notzero)
+  }
+  <span class="co">#zeroes trick</span>
+  C&lt;-<span class="dv">1000</span>
+  epsilon&lt;-<span class="fl">0.01</span>
+  tau&lt;-<span class="st"> </span><span class="kw">pow</span>(epsilon,<span class="op">-</span><span class="dv">2</span>)
+  <span class="co">#if mu geq 0 and mu leq 0, prior is from point mass</span>
+  <span class="co">#mu in (-epsilon, epsilon)</span>
+  mu.p53.notzero&lt;-<span class="st"> </span><span class="kw">step</span>(<span class="kw">abs</span>(mu.p53)<span class="op">-</span>epsilon) <span class="co">#LR and then decide</span>
+  L&lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>mu.p53.notzero)<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>pind)<span class="op">+</span><span class="st"> </span><span class="co">#(dnorm(mu.p53,0,tau)*(1-pind))+ #</span>
+<span class="st">    </span>(<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,<span class="dv">1</span>)<span class="op">*</span>pind)
+  <span class="co">#need pind for mixing</span>
+  
+  phi&lt;-<span class="st"> </span><span class="op">-</span><span class="kw">log</span>(L)<span class="op">+</span>C
+  zero<span class="op">~</span><span class="kw">dpois</span>(phi)
+  mu.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="op">-</span><span class="dv">10</span>,<span class="dv">10</span>) <span class="co">#not sure how big this interval should be, just picked one large enough for .1 sd, started at 10, but even 1 has too large jumps</span>
+  
+  phi.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dgamma</span>(<span class="dv">1</span>, .<span class="dv">05</span>)
+  <span class="co">#    phi.p53 ~ dgamma(2, .02)</span>
+  sigma.p53 &lt;-<span class="st"> </span><span class="kw">pow</span>(phi.p53, <span class="op">-</span>.<span class="dv">5</span>)
+  
+  <span class="co">#assoc~dbern(pind)</span>
+  pind <span class="op">~</span><span class="st"> </span><span class="kw">dbeta</span>(.<span class="dv">5</span>,.<span class="dv">5</span>)
+}
+
+
+p53.test.approx=<span class="st"> </span><span class="cf">function</span>() {
+  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>J) {
+    CaseCon[j] <span class="op">~</span><span class="st"> </span><span class="kw">dbern</span>(theta[j])
+    <span class="kw">logit</span>(theta[j]) &lt;-<span class="st">  </span>beta.p53[site[j]]  }
+  
+  <span class="cf">for</span> (l <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites) {
+    beta.p53.<span class="dv">1</span>[l] <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(mu.p53, phi.p53)
+    beta.p53[l] &lt;-<span class="st"> </span>beta.p53.<span class="dv">1</span>[l]<span class="op">*</span>(mu.p53.notzero)
+  }
+  <span class="co">#zeroes trick</span>
+  C&lt;-<span class="dv">1000</span>
+  epsilon&lt;-<span class="fl">0.01</span>
+  tau&lt;-<span class="st"> </span><span class="kw">pow</span>(epsilon,<span class="op">-</span><span class="dv">2</span>)
+  <span class="co">#if mu geq 0 and mu leq 0, prior is from point mass</span>
+  <span class="co">#is not zero if prob is greater</span>
+  mu.p53.notzero&lt;-<span class="st"> </span><span class="kw">step</span>(temp) <span class="co">#should come from this?</span>
+  temp&lt;-<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,<span class="dv">1</span>)<span class="op">-</span><span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,tau)
+  L&lt;-<span class="st"> </span>(<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,tau)<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>pind))<span class="op">+</span><span class="st"> </span><span class="co">#(1- mu.p53.notzero)*(1-pind)+ #</span>
+<span class="st">    </span>(<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,<span class="dv">1</span>)<span class="op">*</span>pind)
+  <span class="co">#need pind for mixing</span>
+  
+  phi&lt;-<span class="st"> </span><span class="op">-</span><span class="kw">log</span>(L)<span class="op">+</span>C
+  zero<span class="op">~</span><span class="kw">dpois</span>(phi)
+  mu.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="op">-</span><span class="dv">10</span>,<span class="dv">10</span>) <span class="co">#not sure how big this interval should be, just picked one large enough for .1 sd, started at 10, but even 1 has too large jumps</span>
+  
+  phi.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dgamma</span>(<span class="dv">1</span>, .<span class="dv">05</span>)
+  <span class="co">#    phi.p53 ~ dgamma(2, .02)</span>
+  sigma.p53 &lt;-<span class="st"> </span><span class="kw">pow</span>(phi.p53, <span class="op">-</span>.<span class="dv">5</span>)
+  
+  <span class="co">#assoc~dbern(pind)</span>
+  pind <span class="op">~</span><span class="st"> </span><span class="kw">dbeta</span>(.<span class="dv">5</span>,.<span class="dv">5</span>)
+}
+
+
+p53.test.latent=<span class="st"> </span><span class="cf">function</span>() {
+  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>J) {
+    CaseCon[j] <span class="op">~</span><span class="st"> </span><span class="kw">dbern</span>(theta[j])
+    <span class="kw">logit</span>(theta[j]) &lt;-<span class="st">  </span>beta.p53[site[j]]  }
+  
+  <span class="cf">for</span> (l <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites) {
+    beta.p53.<span class="dv">1</span>[l] <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(mu.p53, phi.p53)
+    beta.p53[l] &lt;-<span class="st"> </span>beta.p53.<span class="dv">1</span>[l]<span class="op">*</span>(mu.p53.notzero)
+  }
+  <span class="co">#zeroes trick</span>
+  C&lt;-<span class="dv">1000</span>
+  epsilon&lt;-<span class="fl">0.01</span>
+  tau&lt;-<span class="st"> </span><span class="kw">pow</span>(epsilon,<span class="op">-</span><span class="dv">2</span>)
+  <span class="co">#if mu geq 0 and mu leq 0, prior is from point mass</span>
+  <span class="co">#is not zero if prob is greater</span>
+  mu.p53.notzero&lt;-<span class="st"> </span>assoc
+  temp&lt;-<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,<span class="dv">1</span>)<span class="op">-</span><span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,tau)
+  <span class="co">#L&lt;- (dnorm(mu.p53,0,tau)^(1-assoc))*(dnorm(mu.p53,0,1)^(assoc))</span>
+  <span class="co">#need pind for mixing</span>
+  
+  <span class="co">#phi&lt;- -log(L)+C</span>
+  <span class="co">#zero~dpois(phi)</span>
+  <span class="co">#mu.p53 ~ dunif(-10,10) #not sure how big this interval should be, just picked one large enough for .1 sd, started at 10, but even 1 has too large jumps</span>
+  mu.p53&lt;-<span class="st"> </span>mu1.p53<span class="op">*</span>assoc
+  mu1.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(<span class="dv">0</span>,<span class="dv">1</span>)
+  phi.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dgamma</span>(<span class="dv">1</span>, .<span class="dv">05</span>)
+  <span class="co">#    phi.p53 ~ dgamma(2, .02)</span>
+  sigma.p53 &lt;-<span class="st"> </span><span class="kw">pow</span>(phi.p53, <span class="op">-</span>.<span class="dv">5</span>)
+  
+  assoc<span class="op">~</span><span class="kw">dbern</span>(pind)
+  pind <span class="op">~</span><span class="st"> </span><span class="kw">dbeta</span>(.<span class="dv">5</span>,.<span class="dv">5</span>)
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">0.</span>a =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">0</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>),
+                    <span class="dt">model =</span> p53.test.approx)</code></pre></div>
+<pre><code>module glm loaded</code></pre>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7000
+   Unobserved stochastic nodes: 11
+   Total graph size: 14076
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.0.a))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">0.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>
+
+Potentially multimodal column vectors:
+ 1 
+
+Column 1 multimodal intervals:  (-0.036,0.041) </code></pre>
+<p><img src="thesis_files/figure-html/fixed%200-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>           Lower     Upper
+[1,] -0.03566506 0.0405582</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">0.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.001147017</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">0.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.001183041</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">0.</span>i =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">0</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>),
+                    <span class="dt">model =</span> p53.test.ind)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7000
+   Unobserved stochastic nodes: 11
+   Total graph size: 14068
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.0.i))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">0.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>
+
+Potentially multimodal column vectors:
+ 1 
+
+Column 1 multimodal intervals:  (-0.08,-0.016) (-0.01,0.01) </code></pre>
+<p><img src="thesis_files/figure-html/fixed%200-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>           Lower       Upper                         
+[1,] -0.07958173 -0.01596594 -0.009995439 0.009995481</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">0.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] -0.002581946</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">0.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] -0.0003995983</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotvar</span>(p53.fulljags1.<span class="fl">0.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53,<span class="dt">e=</span>epsilon)
+<span class="kw">plotvar</span>(p53.fulljags1.<span class="fl">0.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53,<span class="dt">e=</span>epsilon,<span class="dt">newplot=</span><span class="ot">FALSE</span>)</code></pre></div>
+<p><img src="thesis_files/figure-html/fixed%200-3.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#glm</span>
+p53.fullglm1.<span class="dv">0</span> =<span class="st"> </span><span class="kw">glm</span>(CaseCon <span class="op">~</span><span class="st"> </span><span class="kw">factor</span>(site), <span class="dt">data=</span>sim.data1.<span class="dv">0</span>,  ####also this
+               <span class="dt">family=</span>binomial, <span class="dt">x=</span>T)
+
+<span class="kw">coef</span>(p53.fullglm1.<span class="dv">0</span>)</code></pre></div>
+<pre><code>  (Intercept) factor(site)2 factor(site)3 factor(site)4 factor(site)5 
+  -0.10810516    0.11210517    0.07610243    0.21219905    0.02405572 
+factor(site)6 factor(site)7 
+   0.07610243    0.12810583 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">confint</span>(p53.fullglm1.<span class="dv">0</span>)</code></pre></div>
+<pre><code>Waiting for profiling to be done...</code></pre>
+<pre><code>                    2.5 %     97.5 %
+(Intercept)   -0.23242434 0.01593609
+factor(site)2 -0.06328383 0.28763842
+factor(site)3 -0.09932072 0.25162370
+factor(site)4  0.03675574 0.38791507
+factor(site)5 -0.15146721 0.19960978
+factor(site)6 -0.09932072 0.25162370
+factor(site)7 -0.04727711 0.30365352</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fullglm1.<span class="fl">0.</span>simple =<span class="st"> </span><span class="kw">glm</span>(CaseCon <span class="op">~</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data=</span>sim.data1.<span class="dv">0</span>,  ####also this
+               <span class="dt">family=</span>binomial, <span class="dt">x=</span>T)
+<span class="kw">coef</span>(p53.fullglm1.<span class="fl">0.</span>simple)</code></pre></div>
+<pre><code>(Intercept) 
+-0.01828622 </code></pre>
+<p>Overall the Bayesian and frequentist results on this (nonassociated) dataset are very similar. Using a parameter vs an index does produce significantly different results at this stage. Even while using the same prior for pind, the index-based model has a greater amount of “0”s. However, this does not change the posterior of pind (<span class="math inline">\(\xi\)</span>). On the other hand, the normal approx at least shifts it towards 0 (which is what we expect).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">1.</span>a =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">1</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>),
+                    <span class="dt">model =</span> p53.test.approx)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7000
+   Unobserved stochastic nodes: 11
+   Total graph size: 14076
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.1.a))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">1.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>         Lower     Upper
+[1,] 0.2814818 0.6950824</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">1.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.4837337</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">1.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.4825983</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">1.</span>i =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">1</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>),
+                    <span class="dt">model =</span> p53.test.ind)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7000
+   Unobserved stochastic nodes: 11
+   Total graph size: 14068
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.1.i))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">1.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>         Lower     Upper
+[1,] 0.3022243 0.7036912</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">1.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.4848036</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">1.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.4826411</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#glm</span>
+p53.fullglm1.<span class="dv">1</span> =<span class="st"> </span><span class="kw">glm</span>(CaseCon <span class="op">~</span><span class="st"> </span><span class="kw">factor</span>(site), <span class="dt">data=</span>sim.data1.<span class="dv">1</span>,  ####also this
+               <span class="dt">family=</span>binomial, <span class="dt">x=</span>T)
+
+<span class="kw">summary</span>(p53.fullglm1.<span class="dv">1</span>)</code></pre></div>
+<pre><code>
+Call:
+glm(formula = CaseCon ~ factor(site), family = binomial, data = sim.data1.1, 
+    x = T)
+
+Deviance Residuals: 
+    Min       1Q   Median       3Q      Max  
+-1.5735  -1.3263   0.9464   0.9563   1.1068  
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)    0.34333    0.06418   5.350 8.82e-08 ***
+factor(site)2  0.22769    0.09195   2.476   0.0133 *  
+factor(site)3 -0.03286    0.09064  -0.363   0.7169    
+factor(site)4  0.55205    0.09474   5.827 5.64e-09 ***
+factor(site)5  0.21903    0.09189   2.384   0.0171 *  
+factor(site)6 -0.17494    0.09026  -1.938   0.0526 .  
+factor(site)7  0.20178    0.09178   2.198   0.0279 *  
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 9313.4  on 6999  degrees of freedom
+Residual deviance: 9236.2  on 6993  degrees of freedom
+AIC: 9250.2
+
+Number of Fisher Scoring iterations: 4</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fullglm1.<span class="fl">1.</span>simple =<span class="st"> </span><span class="kw">glm</span>(CaseCon <span class="op">~</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data=</span>sim.data1.<span class="dv">1</span>,  ####also this
+               <span class="dt">family=</span>binomial, <span class="dt">x=</span>T)
+
+<span class="kw">plot</span>(<span class="kw">coef</span>(p53.fullglm1.<span class="dv">1</span>), beta.p53.fixed.<span class="dv">1</span>)
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</code></pre></div>
+<p><img src="thesis_files/figure-html/fixed%201-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Using <span class="math inline">\(\mu=0.5\)</span>, the posterior results match the intercept. The MCMC dod not select mu = 0 at any point, but this only indicates that the data overwhelms the prior.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">2.</span>a =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">2</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>, <span class="st">&quot;temp&quot;</span>),
+                    <span class="dt">model =</span> p53.test.approx)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 700
+   Unobserved stochastic nodes: 11
+   Total graph size: 1476
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.2.a))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">2.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>
+
+Potentially multimodal column vectors:
+ 1 
+
+Column 1 multimodal intervals:  (-0.289,-0.016) (0.013,0.348) </code></pre>
+<p><img src="thesis_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>          Lower       Upper                     
+[1,] -0.2888934 -0.01643942 0.01344605 0.3483093</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">2.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.04721087</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">2.</span>a<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.06882402</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">2.</span>i =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">2</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>),
+                    <span class="dt">model =</span> p53.test.ind)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 700
+   Unobserved stochastic nodes: 11
+   Total graph size: 1468
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.2.i))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">2.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>
+
+Potentially multimodal column vectors:
+ 1 
+
+Column 1 multimodal intervals:  (-0.309,-0.01) (0.01,0.37) </code></pre>
+<p><img src="thesis_files/figure-html/unnamed-chunk-9-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>          Lower       Upper                     
+[1,] -0.3094696 -0.01022024 0.01006981 0.3700762</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">2.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.03330651</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">2.</span>i<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.03619337</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#glm</span>
+p53.fullglm1.<span class="dv">2</span> =<span class="st"> </span><span class="kw">glm</span>(CaseCon <span class="op">~</span><span class="st"> </span><span class="kw">factor</span>(site), <span class="dt">data=</span>sim.data1.<span class="dv">2</span>,  ####also this
+               <span class="dt">family=</span>binomial, <span class="dt">x=</span>T)
+
+<span class="kw">summary</span>(p53.fullglm1.<span class="dv">2</span>)</code></pre></div>
+<pre><code>
+Call:
+glm(formula = CaseCon ~ factor(site), family = binomial, data = sim.data1.2, 
+    x = T)
+
+Deviance Residuals: 
+   Min      1Q  Median      3Q     Max  
+-1.335  -1.194   1.027   1.110   1.530  
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)  
+(Intercept)    -0.1201     0.2004  -0.600   0.5487  
+factor(site)2   0.2805     0.2836   0.989   0.3226  
+factor(site)3  -0.6800     0.2948  -2.307   0.0211 *
+factor(site)4   0.4841     0.2855   1.696   0.0899 .
+factor(site)5   0.4841     0.2855   1.696   0.0899 .
+factor(site)6   0.1601     0.2831   0.566   0.5716  
+factor(site)7   0.2805     0.2836   0.989   0.3226  
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 970.26  on 699  degrees of freedom
+Residual deviance: 947.40  on 693  degrees of freedom
+AIC: 961.4
+
+Number of Fisher Scoring iterations: 4</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fullglm1.<span class="fl">2.</span>simple =<span class="st"> </span><span class="kw">glm</span>(CaseCon <span class="op">~</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data=</span>sim.data1.<span class="dv">2</span>,  ####also this
+               <span class="dt">family=</span>binomial, <span class="dt">x=</span>T)
+
+<span class="kw">plot</span>(<span class="kw">coef</span>(p53.fullglm1.<span class="dv">2</span>), beta.p53.fixed.<span class="dv">2</span>)
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</code></pre></div>
+<p><img src="thesis_files/figure-html/unnamed-chunk-9-3.png" width="672" style="display: block; margin: auto;" /> For this <span class="math inline">\(\mu= 0.1\)</span>, the posterior appears to be in conflict with expected behavior. However, upon observing the GLM coefficients we can see that the true <span class="math inline">\(\beta_j\)</span>’s were quite dispersed, and that the frequentist and bayesian methods agree in expressing that there is a nonzero effect, but it can positive or negative.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">0.</span>l =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">0</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>,<span class="st">&quot;assoc&quot;</span>,<span class="st">&quot;mu1.p53&quot;</span>),
+                    <span class="dt">model =</span> p53.test.latent)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7000
+   Unobserved stochastic nodes: 11
+   Total graph size: 14056
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.0.l))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">0.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>     Lower Upper
+[1,]     0     0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">0.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">0.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ones trick?</span>
+p53.test.latent.<span class="dv">1</span>=<span class="st"> </span><span class="cf">function</span>() {
+  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>J) {
+    CaseCon[j] <span class="op">~</span><span class="st"> </span><span class="kw">dbern</span>(theta[j])
+    <span class="kw">logit</span>(theta[j]) &lt;-<span class="st">  </span>beta.p53[site[j]]  }
+  
+  <span class="cf">for</span> (l <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.sites) {
+    beta.p53.<span class="dv">1</span>[l] <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(mu.p53, phi.p53)
+    beta.p53[l] &lt;-<span class="st"> </span>beta.p53.<span class="dv">1</span>[l]<span class="op">*</span>(mu.p53.notzero)
+  }
+  <span class="co">#zeroes trick</span>
+  C&lt;-<span class="fl">1e6</span>
+  epsilon&lt;-<span class="fl">0.01</span>
+  tau&lt;-<span class="st"> </span><span class="kw">pow</span>(epsilon,<span class="op">-</span><span class="dv">2</span>)
+  <span class="co">#if mu geq 0 and mu leq 0, prior is from point mass</span>
+  <span class="co">#is not zero if prob is greater</span>
+  mu.p53.notzero&lt;-<span class="st"> </span><span class="kw">step</span>(temp)
+  temp&lt;-<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,<span class="dv">1</span>)<span class="op">-</span><span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,tau) <span class="co">#CHANGED precision to 1/4</span>
+  L&lt;-(<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,tau)<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>pind))<span class="op">+</span><span class="st"> </span><span class="co">#(1- mu.p53.notzero)*(1-pind)+ #</span>
+<span class="st">    </span>(<span class="kw">dnorm</span>(mu.p53,<span class="dv">0</span>,<span class="dv">1</span>)<span class="op">*</span>pind)
+  p &lt;-<span class="st"> </span>L<span class="op">/</span><span class="st"> </span>C
+  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n.ones){
+    ones[i] <span class="op">~</span><span class="st"> </span><span class="kw">dbern</span>(p)
+
+  }
+  mu.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="op">-</span><span class="dv">10</span>,<span class="dv">10</span>) <span class="co">#not sure how big this interval should be, just picked one large enough for .1 sd, started at 10, but even 1 has too large jumps</span>
+  <span class="co">#mu.p53&lt;- mu1.p53*assoc</span>
+  <span class="co">#mu1.p53 ~ dnorm(0,1)</span>
+  phi.p53 <span class="op">~</span><span class="st"> </span><span class="kw">dgamma</span>(<span class="dv">1</span>, .<span class="dv">05</span>)
+  <span class="co">#    phi.p53 ~ dgamma(2, .02)</span>
+  sigma.p53 &lt;-<span class="st"> </span><span class="kw">pow</span>(phi.p53, <span class="op">-</span>.<span class="dv">5</span>)
+  
+  <span class="co">#assoc~dbern(pind)</span>
+  pind <span class="op">~</span><span class="st"> </span><span class="kw">dbeta</span>(.<span class="dv">5</span>,.<span class="dv">5</span>)
+}
+
+n.ones=<span class="dv">1</span>
+onesdata&lt;-<span class="st"> </span>sim.data1.<span class="dv">0</span>
+onesdata<span class="op">$</span>ones&lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span>,n.ones) <span class="co">#same</span>
+onesdata<span class="op">$</span>n.ones&lt;-<span class="st"> </span>n.ones
+p53.fulljags1.<span class="fl">0.</span>l1 =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>onesdata, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>),
+                    <span class="dt">model =</span> p53.test.latent.<span class="dv">1</span>)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7001
+   Unobserved stochastic nodes: 10
+   Total graph size: 14075
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.0.l1))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">0.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>     Lower Upper
+[1,]     0     0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">0.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">0.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0</code></pre>
+<p>Ones trick is still a little problematic, especially in trace of mu</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">1.</span>l =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">1</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>,<span class="st">&quot;assoc&quot;</span>,<span class="st">&quot;mu1.p53&quot;</span>),
+                    <span class="dt">model =</span> p53.test.latent)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 7000
+   Unobserved stochastic nodes: 11
+   Total graph size: 14056
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.1.l))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">1.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>         Lower     Upper
+[1,] 0.2759939 0.6766949</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">1.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.4783651</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">1.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.4795407</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p53.fulljags1.<span class="fl">2.</span>l =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>sim.data1.<span class="dv">2</span>, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>,<span class="st">&quot;assoc&quot;</span>,<span class="st">&quot;mu1.p53&quot;</span>),
+                    <span class="dt">model =</span> p53.test.latent)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 700
+   Unobserved stochastic nodes: 11
+   Total graph size: 1456
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.2.l))</span>
+<span class="kw">HPDM</span>(p53.fulljags1.<span class="fl">2.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53, <span class="dt">e=</span>epsilon)</code></pre></div>
+<pre><code>
+
+Potentially multimodal column vectors:
+ 1 
+
+Column 1 multimodal intervals:  (-0.262,0.305) </code></pre>
+<p><img src="thesis_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>         Lower     Upper
+[1,] -0.262373 0.3048219</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(p53.fulljags1.<span class="fl">2.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0.02193662</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(p53.fulljags1.<span class="fl">2.</span>l<span class="op">$</span>BUGSoutput<span class="op">$</span>sims.list<span class="op">$</span>mu.p53)</code></pre></div>
+<pre><code>[1] 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#precision=4</span>
+onesdata&lt;-<span class="st"> </span>sim.data1.<span class="dv">2</span>
+onesdata<span class="op">$</span>n.ones&lt;-<span class="dv">1</span>
+onesdata<span class="op">$</span>ones&lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span>, onesdata<span class="op">$</span>n.ones)
+p53.fulljags1.<span class="fl">2.</span>l1 =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>onesdata, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>),
+                    <span class="dt">model =</span> p53.test.latent.<span class="dv">1</span>)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 701
+   Unobserved stochastic nodes: 10
+   Total graph size: 1475
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.2.l1))</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#with precision = .25</span>
+p53.fulljags1.<span class="fl">2.</span>l2 =<span class="st"> </span><span class="kw">jags</span>(<span class="dt">data=</span>onesdata, ####this
+                    <span class="dt">inits=</span><span class="ot">NULL</span>, <span class="dt">parameters.to.save =</span><span class="kw">c</span>(<span class="st">&quot;pind&quot;</span>, <span class="st">&quot;mu.p53&quot;</span>, <span class="st">&quot;phi.p53&quot;</span>,<span class="st">&quot;mu.p53.notzero&quot;</span>,<span class="st">&quot;temp&quot;</span>),
+                    <span class="dt">model =</span> p53.test.latent.<span class="dv">1</span>)</code></pre></div>
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 701
+   Unobserved stochastic nodes: 10
+   Total graph size: 1475
+
+Initializing model</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#par(mar=rep(1,4))</span>
+<span class="co">#plot(as.mcmc(p53.fulljags1.2.l2))</span></code></pre></div>
+<p>This last simulation is an example of Bartlett’s paradox: the nonzero part of the prior is too diffuse, and so the zero component ends up being favored.</p>
+
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="4-simulation-study.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="6-application.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"weibo": false,
+"instapper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"download": [["thesis.pdf", "PDF"], ["thesis.epub", "EPUB"], ["thesis.docx", "Word"]],
+"toc": {
+"collapse": "section"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(script.src))
+      script.src  = script.src.replace(/^https?:/, '');
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
