@@ -1,6 +1,6 @@
-X<- sapply(runif(1000), function(x) ifelse(x<.3, rnorm(1,0,0), rnorm(1,3,1)))
-hist(X)
-epsilon <- .001
+# X<- sapply(runif(1000), function(x) ifelse(x<.3, rnorm(1,0,0), rnorm(1,3,1)))
+# hist(X)
+# epsilon <- .001
 # HPD <- function(X, prob=.95){
 #   ##remove 0- can probably find/approx with some check
 #   n<- length(X)
@@ -224,33 +224,6 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=TRUE){
     return(ansmm)
   }
 }
-
-##testing
-X<- sapply(runif(1000), function(x) ifelse(x<.3, rnorm(1,0,0), rnorm(1,3,1)))
-HPDM(matrix(X))
-
-plot(density(X))
-
-X<- sapply(runif(1000), function(x) ifelse(x<.5, rnorm(1,0,0), rnorm(1,3,1.5)))
-HPDM(matrix(X))
-
-
-X<- sapply(runif(1000), function(x) ifelse(x<.5, rnorm(1,0,0), rnorm(1,2,1.5)))
-HPDM2(matrix(X))
-
-X<- sapply(runif(1000), function(x) ifelse(x<.8, rnorm(1,0,0), rnorm(1,2,1.5)))
-HPDM(matrix(X))
-
-
-X<- sapply(runif(1000), function(x) ifelse(x<.05, rnorm(1,0,0), rnorm(1,2,.5)))
-HPDM(matrix(X))
-
-#what to do about this? would expect 0 not to be included bc <0.01 
-X<- sapply(runif(1000), function(x) ifelse(x<.01, rnorm(1,0,0), rnorm(1,2,.5)))
-HPDM(matrix(X))
-
-
-
 
 plotvar = function(x, e = 1e-04, nsteps = 500, newplot=TRUE) {
   zeroes = which(abs(x)<e)

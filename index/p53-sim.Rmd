@@ -3,6 +3,8 @@
 This simulation generates data from a hierarchical logistic model as follows: If there is a true association, $\mu$ is a (fixed) nonzero value and $\beta_j \sim N(\mu, \sigma^2)$ where $\sigma^2$ is fixed. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
 
 ```{r generate data}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 library("R2jags")
 set.seed(1)
 epsilon=.01
@@ -42,6 +44,7 @@ for(i in 1:n.sites){
 }
 sim.data1.2<-list(CaseCon=Y, site=site,  J=n.sites*observations ,n.sites=n.sites)
 
+source("HPD.R")
 #############
 
 ```
