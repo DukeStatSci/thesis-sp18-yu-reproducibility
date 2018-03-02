@@ -296,12 +296,10 @@ p53.test.latent.1= function() {
     beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
     beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
   }
-  #zeroes trick
+  #ones trick
   C<-1e6
   epsilon<-0.01
   tau<- pow(epsilon,-2)
-  #if mu geq 0 and mu leq 0, prior is from point mass
-  #is not zero if prob is greater
   mu.p53.notzero<- step(temp)
   temp<-dnorm(mu.p53,0,1)-dnorm(mu.p53,0,tau) #CHANGED precision to 1/4
   L<-(dnorm(mu.p53,0,tau)*(1-pind))+ #(1- mu.p53.notzero)*(1-pind)+ #
@@ -380,8 +378,9 @@ p53.fulljags1.2.l1 = jags(data=onesdata, ####this
 p53.fulljags1.2.l2 = jags(data=onesdata, ####this
                     inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero","temp"),
                     model = p53.test.latent.1)
-#par(mar=rep(1,4))
-#plot(as.mcmc(p53.fulljags1.2.l2))
+par(mar=rep(1,4))
+plot(as.mcmc(p53.fulljags1.2.l2))
 ```
 
 This last simulation is an example of Bartlett's paradox: the nonzero part of the prior is too diffuse, and so the zero component ends up being favored. 
+

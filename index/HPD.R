@@ -148,7 +148,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=TRUE){
   inds <- apply(vals[init + gap, , drop=FALSE] -
                   vals[init, , drop=FALSE], 2, which.min)
   ansmm <- cbind(vals[cbind(inds, 1:npar)],
-               vals[cbind(inds + gap, 1:npar)])
+                 vals[cbind(inds + gap, 1:npar)])
   dimnames(ansmm) <- list(colnames(obj), c("Lower", "Upper"))
   
   mm <- apply(obj, 2, is.multimodal, min.size)
@@ -161,64 +161,69 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=TRUE){
       X<- vals[,m]
       n<- length(X)
       zeroes<- which(abs(X)<=e)
-      if(length(zeroes)==0){ 
-        d<-X
-        epsilon= 1e10
+      if(length(zeroes)>=length(X)-1){ #because need 2 points for density
+        ansmm[m,]<-c(0,0)
       }
-      else{ 
-        d<-X[-zeroes]
-        epsilon<- min(abs(X[max(zeroes)+1]),abs(X[min(zeroes)-1]))/20
+      else{
+        if(length(zeroes)==0){ 
+          d<-X
+          epsilon= 1e10
+        }
+        else{ 
+          d<-X[-zeroes]
+          epsilon<- max(e/3, min(abs(X[max(zeroes)+1]),abs(X[min(zeroes)-1]))/20)
+          
+        }
+        pi<- length(d)/n
+        kde <- density(d)
+        dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
+                      data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
+        dens<-dens[order(dens$x),]
+        #mix of normals
+        dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)/dnorm(0, 0, epsilon)
+        dens.ind <- dens$mix >= as.vector(quantile(dens$mix,
+                                                   probs=1-prob)) * 1
         
-        }
-      pi<- length(d)/n
-      kde <- density(d)
-      dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
-                    data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
-      dens<-dens[order(dens$x),]
-      #mix of normals
-      dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)/dnorm(0, 0, epsilon)
-      dens.ind <- dens$mix >= as.vector(quantile(dens$mix,
-                                             probs=1-prob)) * 1
-      
-      ints <- ""
-      count <- 1
-      for (i in 1:nrow(vals)) {
-        if((i == 1) & (dens.ind[i] == 1)) {
-          ints <- paste("(",round(vals[i,m],3),",",sep="")
-          if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-          ansmm[m,count] <- vals[i,m]
-          count <- count + 1
-        }
-        if(i > 1) {
-          if((dens.ind[i] == 0) & (dens.ind[i-1] == 1)) {
-            ints <- paste(ints,round(vals[i-1,m],3),")",sep="")
-            if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-            ansmm[m,count] <- vals[i-1,m]
-            count <- count + 1
-          }
-          if((dens.ind[i] == 1) & (dens.ind[i-1] == 0))  {
-            ints <- paste(ints," (",round(vals[i,m],3),",",sep="")
+        ints <- ""
+        count <- 1
+        for (i in 1:nrow(vals)) {
+          if((i == 1) & (dens.ind[i] == 1)) {
+            ints <- paste("(",round(vals[i,m],3),",",sep="")
             if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
             ansmm[m,count] <- vals[i,m]
             count <- count + 1
           }
+          if(i > 1) {
+            if((dens.ind[i] == 0) & (dens.ind[i-1] == 1)) {
+              ints <- paste(ints,round(vals[i-1,m],3),")",sep="")
+              if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+              ansmm[m,count] <- vals[i-1,m]
+              count <- count + 1
+            }
+            if((dens.ind[i] == 1) & (dens.ind[i-1] == 0))  {
+              ints <- paste(ints," (",round(vals[i,m],3),",",sep="")
+              if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+              ansmm[m,count] <- vals[i,m]
+              count <- count + 1
+            }
+          }
+        }
+        if((dens.ind[i] == 1) & (dens.ind[i-1] == 1)) {
+          ints <- paste(ints,round(vals[i,m],3),")",sep="")
+          if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+          ansmm[m,count] <- vals[i,m]
+          count <- count + 1
+        }
+        cat("\nColumn", m, "multimodal intervals:", ints, "\n")
+        if(plot){
+          #plot(dens$x, dens$mix, type = "l")
+          plotvar(X,e)
+          points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
         }
       }
-      if((dens.ind[i] == 1) & (dens.ind[i-1] == 1)) {
-        ints <- paste(ints,round(vals[i,m],3),")",sep="")
-        if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
-        ansmm[m,count] <- vals[i,m]
-        count <- count + 1
-      }
-      cat("\nColumn", m, "multimodal intervals:", ints, "\n")
-      if(plot){
-        #plot(dens$x, dens$mix, type = "l")
-        plotvar(X,e)
-        points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
-      }
       
-      return(ansmm)
     }
+    return(ansmm)
   }
   else{
     return(ansmm)
@@ -259,7 +264,7 @@ plotvar = function(x, e = 1e-04, nsteps = 500, newplot=TRUE) {
     # yypos[is.na(yypos)]<-0
     # yy = yyneg+yypos
     kde<- density(xne0)
-    yy= approx(kde$x, kde$y, xx)$y
+    yy= approx(kde$x, kde$y, xx,yleft=0, yright=0)$y
     
     #yy = dt(x=(x-m)/s, df=)/s
     maxyy = max(yy)
@@ -267,8 +272,8 @@ plotvar = function(x, e = 1e-04, nsteps = 500, newplot=TRUE) {
   
   ymax = max(prob0, 1 - prob0)
   if(newplot){
-  plot(c(xlower, xupper), c(0, ymax), type = "n",
-       xlab = "", ylab = "")
+    plot(c(xlower, xupper), c(0, ymax), type = "n",
+         xlab = "", ylab = "")
   }
   lines(c(0, 0), c(0, prob0), lty = 1, lwd = 3,col=as.numeric(newplot)+1)
   lines(xx, (1 - prob0) * yy/maxyy, lty = 1, lwd = 1,col=as.numeric(newplot)+1)

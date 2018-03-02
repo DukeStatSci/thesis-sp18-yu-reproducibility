@@ -5,8 +5,8 @@ institution: 'Duke University'
 division: 'Trinity College of Arts and Sciences'
 advisor: 'Merlise Clyde'
 
-committeememberone: 'Committeemember O. Name'
-committeemembertwo: 'Committeemember T. Name'
+committeememberone: 'Li Ma'
+committeemembertwo: 'Surya Tokdar'
 dus: 'Mine Cetinkaya-Rundel'
 department: 'Department of Statistical Science'
 degree: 'Bachelor of Science in Statistical Science'
@@ -14,7 +14,7 @@ title: 'My Final College Paper' ###
 knit: "bookdown::render_book"
 site: bookdown::bookdown_site
 output: 
-  thesisdowndss::thesis_pdf: default
+  #thesisdowndss::thesis_pdf: default
   thesisdowndss::thesis_gitbook: default
 #  thesisdowndss::thesis_word: default
 #  thesisdowndss::thesis_epub: default
