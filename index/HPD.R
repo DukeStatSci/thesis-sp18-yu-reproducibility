@@ -138,7 +138,7 @@ is.multimodal <- function(x, min.size=0.01)
 
 
 
-HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=TRUE){
+HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
   vals <- apply(obj, 2, sort)
   if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
   nsamp <- nrow(vals)
@@ -217,7 +217,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=TRUE){
         cat("\nColumn", m, "multimodal intervals:", ints, "\n")
         if(plot){
           #plot(dens$x, dens$mix, type = "l")
-          plotvar(X,e)
+          #plotvar(X,e)
           points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
         }
       }

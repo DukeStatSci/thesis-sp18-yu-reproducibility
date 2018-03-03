@@ -1,3 +1,15 @@
+```{r}
+library(doParallel)
+library(R2jags)
+library(random)
+library(reshape2)
+library(ggplot2)
+require(gridExtra)
+source("HPD.R")
+
+```
+
+
 
 ```{r cond likelihood}
 p53.normal = function() {
@@ -18,10 +30,10 @@ p53.normal = function() {
   mu.p53 ~ dnorm(0,.1)
   phi.p53 ~ dgamma(1, .05)
   
-  pind ~ dbeta(2,6)
+  pind ~ dbeta(.5,.5)
 }
 
-cond.likelihood.model<- function(data, p = 0.00325){
+cond.likelihood.model<- function(data, inits, p = 0.00325){
   freq = glm(CaseCon ~ factor(site), data=data,family=binomial, x=T)
   #get "discovery" with smallest p value
   coefs = coef(summary(freq))
@@ -36,7 +48,7 @@ cond.likelihood.model<- function(data, p = 0.00325){
                  q=qnorm(1-p/2))
   newdata$J<- length(newdata$CaseCon)
   #fit jags
-  model = jags(data=newdata,inits=NULL, 
+  model = jags(data=newdata,inits=inits, 
                parameters.to.save =c("pind", "mu.p53", "phi.p53"), 
                model = p53.normal)
   return(model)
@@ -94,7 +106,7 @@ ones.normal.model= function() {
   pind ~ dbeta(.5,.5)
 }
 
-latent.model= function() {
+latent.normal.model= function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
     logit(theta[j]) <-  beta.p53[site[j]]  }
@@ -109,6 +121,37 @@ latent.model= function() {
   phi.p53 ~ dgamma(1, .05)
   sigma.p53 <- pow(phi.p53, -.5)
   
+  mu.p53.notzero~dbern(pind)
+  pind ~ dbeta(.5,.5)
+}
+
+latent.cauchy.model= function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dt(0,1, 1)
+  phi.p53 ~ dgamma(1, .05)
+  sigma.p53 <- pow(phi.p53, -.5)
+  
+  mu.p53.notzero~dbern(pind)
+  pind ~ dbeta(.5,.5)
+}
+
+fixed.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  mu.p53  
+  }
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dnorm(0,.1)
+  phi.p53 ~ dgamma(1, .05)
   mu.p53.notzero~dbern(pind)
   pind ~ dbeta(.5,.5)
 }
@@ -132,17 +175,18 @@ coverage<-function(jagsoutput, mu,e = .03){
     lower <- c(lower,cred[3])
   }
   return(c(hasmu = any(upper>=mu&lower<=mu), 
-              haszero = any(upper>=0&lower<=0), 
-              bias = abs(mean(samples)-mu),
-              ismultimodal=length(cred)>2,
-              intervallength = sum(upper-lower),
-              probzero = sum(abs(samples)<e)/length(samples)
-              ))
+           haszero = any(upper>=0&lower<=0), 
+           mean = mean(samples),
+           median = median(samples),
+           ismultimodal=length(cred)>2,
+           intervallength = sum(upper-lower),
+           probzero = sum(abs(samples)<=e)/length(samples)
+  ))
 }
 
 #true mu fixed, smaller variance to make sure it is above 0 (especially since it's learned anyway)
 
-sample<- function(assoc, observations = 1000, n.sites=7){ #assoc is H
+sample<- function(assoc, mu, sd, observations = 1000, n.sites=7){ #assoc is H
   beta.p53 = rnorm(n.sites,mu,sd)*assoc 
   Y <-site <- rep(NA, observations*n.sites)
   for(i in 1:n.sites){
@@ -154,30 +198,171 @@ sample<- function(assoc, observations = 1000, n.sites=7){ #assoc is H
 
 ```
 
+
 ```{r}
-mu=.15;sd= .075
-S = 10
-set.seed(2)
+run.all<- function(assoc,mu, sd, inits){
 
-###for 0 it's basically perfect 
-#H=0
-OC0 <-ON0<-L0<-CL0<- matrix(NA, S, 6)
-
-for(i in 1:S){
-  data = sample(0)
+  data = sample(assoc, mu, sd)
   #run jags
-  ones.cauchy <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = ones.cauchy.model)
-  ones.normal <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = ones.normal.model)
-  latent <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = latent.model)
-  cond.likelihood <- cond.likelihood.model(data$simdata)
+  ones.cauchy <- jags(data=data$simdata, inits=inits, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = ones.cauchy.model)
+  ones.normal <- jags(data=data$simdata, inits=inits, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = ones.normal.model)
+  latent.normal <- jags(data=data$simdata, inits=inits, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = latent.normal.model)
+  latent.cauchy <- jags(data=data$simdata, inits=inits, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = latent.cauchy.model)
+  cond.likelihood <- cond.likelihood.model(data$simdata,inits=inits)
+  fixed <- jags(data=data$simdata, inits=inits, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = fixed.model)
   
-  #coverage
-  OC0[i,] = coverage(ones.cauchy,0)
-  ON0[i,]= coverage(ones.normal,0)
-  L0[i,] = coverage(latent,0)
-  CL0[i,] = coverage(cond.likelihood,0)
-
+  return(c(coverage(ones.cauchy,mu), coverage(ones.normal,mu),
+           coverage(latent.normal,mu),coverage(latent.cauchy,mu),
+           coverage(cond.likelihood,mu),coverage(fixed,mu), data$beta.p53))
 }
+
+```
+
+
+```{r parallel}
+# stopCluster(cl)
+cl = makeCluster(8)
+registerDoParallel(cl)
+
+# inits= list(mu.p53 = 0, mu.p53.notzero=0, phi.p53=1)
+# inits$.RNG.name = "lecuyer::RngStream"
+# inits$.RNG.seed = randomNumbers(n=1, min=1, max=1e+06, col=1)
+
+mu=0.203;sd= 0.05831085 #from glmer estimates using all data
+I = getDoParWorkers()*10
+system.time({
+  sim.0 = foreach ( i = 1:I, .inorder=FALSE,
+ .packages = c("R2jags"),
+ .combine = "rbind")  %dopar% {
+   #return a vector of all the things to make the graphs, etc easier
+ return(run.all(0,0,1, NULL))
+ }
+})
+save.image()
+
+sim.true = foreach ( i = 1:I, .inorder=FALSE,
+ .packages = c("rjags", "R2jags", "random"),
+ .combine = "rbind",
+ .multicombine=TRUE)  %dopar% {
+   #return a vector of all the things to make the graphs, etc easier
+ return(run.all(1,mu,sd,NULL))
+ }
+save.image()
+
+sim.true.wide = foreach ( i = 1:I, .inorder=FALSE,
+ .packages = c("rjags", "R2jags", "random"),
+ .combine = "rbind",
+ .multicombine=TRUE)  %dopar% {
+   #return a vector of all the things to make the graphs, etc easier
+ return(run.all(1,mu,sd*2,NULL))
+}
+save.image()
+
+sim.true.narrow = foreach ( i = 1:I, .inorder=FALSE,
+ .packages = c("rjags", "R2jags", "random"),
+ .combine = "rbind",
+ .multicombine=TRUE)  %dopar% {
+   #return a vector of all the things to make the graphs, etc easier
+ return(run.all(1,mu,sd/2,NULL))
+}
+save.image()
+
+
+sim.true.wide2 = foreach ( i = 1:I, .inorder=FALSE,
+ .packages = c("rjags", "R2jags", "random"),
+ .combine = "rbind",
+ .multicombine=TRUE)  %dopar% {
+   #return a vector of all the things to make the graphs, etc easier
+ return(run.all(1,mu,sd*4,NULL))
+}
+save.image()
+
+
+
+```
+
+
+
+
+```{r}
+modelnames<- c("Cauchy-Ones Trick","Normal-Ones Trick",
+               "Normal-Latent","Cauchy-Latent",
+               "Cond Likelihood", "Fixed Effect")
+
+make_plots<-function(sim, mu, sd){
+  OC<-sim[,1:7]
+  ON<-sim[,8:14]
+  LN<-sim[,15:21]
+  LC<-sim[,22:28]
+  CL<-sim[,29:35]
+  FE<-sim[,36:42]
+  beta<-sim[,43:49]
+  
+  #hasmu = any(upper>=mu&lower<=mu), 
+  # haszero = any(upper>=0&lower<=0), 
+  # mean = mean(samples),
+  # median = median(samples),
+  # ismultimodal=length(cred)>2,
+  # intervallength = sum(upper-lower),
+  # probzero = sum(abs(samples)<=e)/length(samples)
+  mean.sqerr<- data.frame(sapply(list(OC,ON,LN,LC,CL,FE), function(x) abs(x[,3]-mu)))
+  colnames(mean.sqerr)<-modelnames
+  mean.sqerr$estimator <- rep("mean",dim(mean.sqerr)[1])
+  
+  median.sqerr<- data.frame(sapply(list(OC,ON,LN,LC,CL,FE), function(x) abs(x[,4]-mu)))
+  colnames(median.sqerr)<-modelnames
+  median.sqerr$estimator <- rep("median",dim(median.sqerr)[1])
+  
+  sqerr<- rbind(mean.sqerr,median.sqerr)
+  
+  #mse
+  plot1<- (ggplot(data = melt(sqerr), aes(x=variable, y=value,color=estimator)) +
+    geom_boxplot()+labs(x= "Posterior Mean", y="Squared Error", 
+                        title= "Squared Error Distribution with Mean"))
+  
+  #bar plots for coverage, times it's right
+  coverage<- data.frame(sapply(list(OC,ON,LN,LC,CL,FE), function(x) x[,1]))
+  colnames(coverage)<-modelnames
+  
+  containszero<- data.frame(sapply(list(OC,ON,LN,LC,CL,FE), function(x) x[,2]))
+  both<- coverage*containszero
+  coverage[coverage==1]<-2
+  coverage[containszero==1]<-1
+  coverage[both==1]<-3
+  coverage1<-melt(coverage)
+  levelnames<-c("Neither", "Only Mu","Only Zero","Both")
+  coverage1$value<-factor(levelnames[coverage1$value+1])
+ plot2<-( ggplot(data = coverage1, 
+         aes(x=variable,fill=value,y=rep(1, length(variable))))+
+    geom_bar(stat="identity")+labs(x= "Model", y="Coverage", 
+                        title= "Coverage"))
+  
+  #interval length
+  intlen<- data.frame(sapply(list(OC,ON,LN,LC,CL,FE), function(x) x[,6]))
+  colnames(intlen)<-modelnames
+
+  plot3<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
+    geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
+                        title= "Intervals"))
+  #prob of zero
+    p0<- data.frame(sapply(list(OC,ON,LN,LC,CL,FE), function(x) x[,7]))
+  colnames(p0)<-modelnames
+
+  plot4 <- (ggplot(data = melt(p0), aes(x=variable, y=value)) +
+    geom_boxplot()+labs(x= "Model", y="probability of mu=0", 
+                        title= "Posterior Probability of Null (H=0)"))
+  
+  grid.arrange(plot1, plot2, plot3,plot4 ,ncol=2)
+}
+
+```
+
+
+```{r}
+make_plots(sim.0, 0,1)
+make_plots(sim.true, mu,1)
+make_plots(sim.true.wide, mu,1)
+make_plots(sim.true.wide2, mu,1)
 
 ```
 
@@ -190,7 +375,7 @@ for(i in 1:S){
   #run jags
   ones.cauchy <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = ones.cauchy.model)
   ones.normal <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = ones.normal.model)
-  latent <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = latent.model)
+  latent <- jags(data=data$simdata, inits=NULL, parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), model = latent.normal.model)
   cond.likelihood <- cond.likelihood.model(data$simdata)
   
   #coverage
@@ -198,27 +383,28 @@ for(i in 1:S){
   ON1[i,]= coverage(ones.normal,mu)
   L1[i,] = coverage(latent,mu)
   CL1[i,] = coverage(cond.likelihood,mu)
-
+  
 }
 ```
 
 ```{r}
 coverage.names<-c("contains mu",
-              "contains zero","bias","HPD not continuous",
-              "interval length",
-              "probability of zero")
+                  "contains zero","mean","median","HPD not continuous",
+                  "interval length",
+                  "probability of zero")
 t<-data.frame(cauchy=apply(OC1,2,mean),
-normal=apply(ON1,2,mean),
-latent=apply(L1,2,mean),
-cond=apply(CL1,2,mean))
+              normal=apply(ON1,2,mean),
+              latent=apply(L1,2,mean),
+              cond=apply(CL1,2,mean))
+
 rownames(t)<- coverage.names
 kable(t, caption = "True Nonzero Effect")
 
 
 t0<-data.frame(cauchy=apply(OC0,2,mean),
-normal=apply(ON0,2,mean),
-latent=apply(L0,2,mean),
-cond=apply(CL0,2,mean))
+               normal=apply(ON0,2,mean),
+               latent=apply(L0,2,mean),
+               cond=apply(CL0,2,mean))
 rownames(t0)<- coverage.names
 kable(t0, caption = "true zero Effect")
 ```
@@ -227,9 +413,9 @@ The cauchy and normal use .03 as the cutoff for "0", so the interval really refe
 Note that the one with non continuous HPD probably had negative effects, since
 ```{r}
 t3<-data.frame(OC1[3,],
-ON1[3,],
-L1[3,],
-CL1[3,])
+               ON1[3,],
+               L1[3,],
+               CL1[3,])
 rownames(t3)<-coverage.names
 t3
 ```
