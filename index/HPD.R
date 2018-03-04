@@ -166,21 +166,23 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
       }
       else{
         if(length(zeroes)==0){ 
-          d<-X
-          epsilon= 1e10
+          pi<- length(X)/n
+          kde<-density(X)
+          dens <- rbind(data.frame(approx(kde$x, kde$y, X)),data.frame(x=0,y=0))
+          dens$mix <- dens$y
         }
         else{ 
           d<-X[-zeroes]
           epsilon<- max(e/3, min(abs(X[max(zeroes)+1]),abs(X[min(zeroes)-1]))/20)
-          
+          pi<- length(d)/n
+          kde <- density(d)
+          dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
+                        data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
+          #mix of normals
+          dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)/dnorm(0, 0, epsilon)
         }
-        pi<- length(d)/n
-        kde <- density(d)
-        dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
-                      data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
+        
         dens<-dens[order(dens$x),]
-        #mix of normals
-        dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)/dnorm(0, 0, epsilon)
         dens.ind <- dens$mix >= as.vector(quantile(dens$mix,
                                                    probs=1-prob)) * 1
         
@@ -216,8 +218,8 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
         }
         cat("\nColumn", m, "multimodal intervals:", ints, "\n")
         if(plot){
-          #plot(dens$x, dens$mix, type = "l")
-          #plotvar(X,e)
+          plot(dens$x, dens$mix, type = "l")
+          plotvar(X,e)
           points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
         }
       }
