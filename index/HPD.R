@@ -138,7 +138,7 @@ is.multimodal <- function(x, min.size=0.01)
 
 
 
-HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
+HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
   vals <- apply(obj, 2, sort)
   if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
   nsamp <- nrow(vals)
@@ -153,8 +153,8 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
   
   mm <- apply(obj, 2, is.multimodal, min.size)
   if(any(mm)) {
-    cat("\n\nPotentially multimodal column vectors:\n",
-        which(mm),"\n")
+    if(print) {cat("\n\nPotentially multimodal column vectors:\n",
+        which(mm),"\n")}
     vals <- apply(obj, 2, sort)
     if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
     for (m in which(mm)) {
@@ -173,7 +173,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
         }
         else{ 
           d<-X[-zeroes]
-          epsilon<- max(e/3, min(abs(X[max(zeroes)+1]),abs(X[min(zeroes)-1]))/20)
+          epsilon<- max(e/3, min(abs(X[min(max(zeroes)+1,length(X))]),abs(X[max(min(zeroes)-1,1)]))/20)
           pi<- length(d)/n
           kde <- density(d)
           dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
@@ -216,7 +216,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE){
           ansmm[m,count] <- vals[i,m]
           count <- count + 1
         }
-        cat("\nColumn", m, "multimodal intervals:", ints, "\n")
+        if(print){cat("\nColumn", m, "multimodal intervals:", ints, "\n")}
         if(plot){
           plot(dens$x, dens$mix, type = "l")
           plotvar(X,e)
