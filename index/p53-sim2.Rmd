@@ -28,9 +28,34 @@ cond.likelihood.model = function() {
   }
   
   mu.p53 ~ dnorm(0,.1)
-  phi.p53 ~ dgamma(1, .05)
+  #phi.p53 ~ dgamma(1, .05)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+}
+
+cond.likelihood.re.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
   
-  pind ~ dbeta(.5,.5)
+  C<-1000
+  for (k in 1:n.discovery){
+    #zeroes trick for MLE~cond prob
+    tau[k]<- pow(SE[k], -2)
+    L[k]<- dnorm(MLE[k],beta.p53[discovery.sites[k]], tau[k])/
+      (pnorm(-q*SE, beta.p53[discovery.sites[k]], tau[k]) +
+         1-pnorm(q*SE, beta.p53[discovery.sites[k]], tau[k]))
+    phi[k]<- -log(L[k])+C
+    zeroes[k]~dpois(phi[k])
+  }
+  for (i in 1:n.sites){ #total sites
+    beta.p53[i] ~dnorm(mu.p53,phi.p53)
+  }
+  
+  mu.p53 ~ dnorm(0,.1)
+  #phi.p53 ~ dgamma(1, .05)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
 }
 
 get.cond.likelihood.data<- function(data, p = 0.00325){
@@ -47,8 +72,9 @@ get.cond.likelihood.data<- function(data, p = 0.00325){
   #make new data for model
   exclude <- which(data$site==discovery.site)
   newdata = list(MLE=MLE, SE=SE, n.discovery= 1, zeroes= 0, 
+                 discovery.sites=discovery.site,
                  CaseCon= data$CaseCon[-exclude], 
-                 site= data$site[-exclude], n.sites = data$n.sites-1,
+                 site= data$site[-exclude], n.sites = data$n.sites,
                  q=qnorm(1-p/2))
   newdata$J<- length(newdata$CaseCon)
   return(newdata)
@@ -77,8 +103,10 @@ ones.cauchy.model= function() {
   p <- L/ C
   one~ dbern(p)
   mu.p53 ~ dunif(-10,10) 
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
   pind ~ dbeta(.5,.5)
 }
 
@@ -101,8 +129,10 @@ ones.normal.model= function() {
   p <- L/ C
   one ~ dbern(p)
   mu.p53 ~ dunif(-10,10) 
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
   pind ~ dbeta(.5,.5)
 }
 
@@ -118,9 +148,10 @@ latent.normal.model= function() {
   
   mu.p53<- mu1.p53*mu.p53.notzero
   mu1.p53 ~ dnorm(0,1)
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
   mu.p53.notzero~dbern(pind)
   pind ~ dbeta(.5,.5)
 }
@@ -137,9 +168,10 @@ latent.cauchy.model= function() {
   
   mu.p53<- mu1.p53*mu.p53.notzero
   mu1.p53 ~ dt(0,1, 1)
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  
+  #phi.p53 ~ dgamma(1, .05) 
+  #sigma.p53 <- pow(phi.p53, -.5) #half cauchy, uniform to 1 or to 5, take a guess on sd
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
   mu.p53.notzero~dbern(pind)
   pind ~ dbeta(.5,.5)
 }
@@ -151,11 +183,28 @@ fixed.model = function() {
   }
   mu.p53<- mu1.p53*mu.p53.notzero
   mu1.p53 ~ dnorm(0,.1)
-  phi.p53 ~ dgamma(1, .05)
+  #phi.p53 ~ dgamma(1, .05)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
   mu.p53.notzero~dbern(pind)
   pind ~ dbeta(.5,.5)
 }
 
+original.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
+  }
+  
+  mu.p53 ~ dnorm(0,1)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+}
 #p53.fulljags1.2.l1.cauchy = jags(data=onesdata, ####this
 #                    inits=NULL, parameters.to.save =c("pind", 
 #"mu.p53", "phi.p53","mu.p53.notzero","temp"),
@@ -166,7 +215,7 @@ fixed.model = function() {
 ```{r sampling}
 #true mu fixed, smaller variance to make sure it is above 0 (especially since it's learned anyway)
 
-sample<- function(assoc, mu, sd, observations = 1000, n.sites=7){ #assoc is H
+sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ #assoc is H
   beta.p53 = rnorm(n.sites,mu,sd)*assoc 
   Y <-site <- rep(NA, observations*n.sites)
   for(i in 1:n.sites){
@@ -180,40 +229,47 @@ sample<- function(assoc, mu, sd, observations = 1000, n.sites=7){ #assoc is H
 
 
 ```{r run fn}
-run.all<- function(assoc,mu, sd, inits){
+run.all<- function(assoc,mu, sd, inits,n.sites){
   cond.data = NULL;count=0
   while(is.null(cond.data) & count<1000){
-    data <- sample(assoc, mu, sd)
+    data <- sample(assoc, mu, sd,n.sites)
     cond.data<-get.cond.likelihood.data(data$simdata)
     count=count+1
   }
   #run jags
   ones.cauchy <- jags(data=data$simdata, inits=inits, 
-                      parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"),
+                      parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
                       model = ones.cauchy.model)
   ones.normal <- jags(data=data$simdata, inits=inits,
-                      parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"),
+                      parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
                       model = ones.normal.model)
   latent.normal <- jags(data=data$simdata, inits=inits,
-                        parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"),
+                        parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
                         model = latent.normal.model)
   latent.cauchy <- jags(data=data$simdata, inits=inits,
-                        parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"),
+                        parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
                         model = latent.cauchy.model)
   cond.likelihood<-NULL
   if(!is.null(cond.data)){
     cond.likelihood <- jags(data=cond.data ,inits=inits,
-                            parameters.to.save =c("pind", "mu.p53", "phi.p53"), 
+                            parameters.to.save =c("mu.p53", "sigma.p53"), 
                             model = cond.likelihood.model)
+    cond.likelihood.re<- jags(data=cond.data ,inits=inits,
+                              parameters.to.save =c("mu.p53", "sigma.p53"), 
+                              model = cond.likelihood.re.model)
   }
   
   fixed <- jags(data=data$simdata, inits=inits, 
-                parameters.to.save =c("pind", "mu.p53", "phi.p53","mu.p53.notzero"), 
+                parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"), 
                 model = fixed.model)
+  original<- jags(data=data$simdata, inits=inits,
+                  parameters.to.save =c("mu.p53", "sigma.p53"),
+                  model = original.model)
   
   return(list(ones.cauchy = ones.cauchy, ones.normal=ones.normal,
               latent.normal = latent.normal,latent.cauchy = latent.cauchy,
-              cond.likelihood = cond.likelihood,fixed = fixed, beta.p53 = data$beta.p53))
+              cond.likelihood = cond.likelihood,fixed = fixed, 
+              original= original,cl.re=cond.likelihood.re, beta.p53 = data$beta.p53))
 }
 
 ```
@@ -233,20 +289,61 @@ assoc<-c(0,1,1,1,1)
 muvec<-c(0,mu,mu,mu,mu)
 sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
 
-I = 100 #getDoParWorkers()*10
+I = 10 #getDoParWorkers()*10
 #I=1
 
 system.time({
-  allsim<- foreach(j = 1:5) %:%
+  allsim.u<- foreach(j = 1:5) %:%
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.all(assoc[j],muvec[j],sdvec[j], NULL))
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
     }
 })
 save.image()
 
 ```
 
+```{r}
+
+#########
+cl = makeCluster(8)
+registerDoParallel(cl)
+mu=0.203;sd= 0.05831085 #from glmer estimates using all data
+assoc<-c(1,1)
+muvec<-c(mu,mu)
+sdvec<-c(sd,4*sd)
+
+I = 10 #getDoParWorkers()*10
+#I=1
+
+system.time({
+  allsim.30<- foreach(j = 1:2) %:%
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 30))
+    }
+})
+save.image()
+```
+
+
 ```{r run cl}
+run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the same data so hopefully better
+  cond.data = NULL;count=0
+  while(is.null(cond.data) & count<1000){
+    data <- sample(assoc, mu, sd)
+    cond.data<-get.cond.likelihood.data(data$simdata, min(pvals))
+    count=count+1
+  }
+  if(!is.null(cond.data)){
+    cond.likelihood<- lapply(pvals, function(p){
+      cond.data<-get.cond.likelihood.data(data$simdata, p)
+      return(jags(data=cond.data ,inits=inits,
+                  parameters.to.save =c("pind", "mu.p53", "phi.p53"), 
+                  model = cond.likelihood.model))
+    })
+  }
+  return(cond.likelihood)
+}
+
 run.cl<- function(assoc,mu, sd, inits, p){
   cond.data = NULL;count=0
   while(is.null(cond.data) & count<1000){
@@ -256,7 +353,7 @@ run.cl<- function(assoc,mu, sd, inits, p){
   }
   if(!is.null(cond.data)){
     cond.likelihood <- jags(data=cond.data ,inits=inits,
-                            parameters.to.save =c("pind", "mu.p53", "phi.p53"), 
+                            parameters.to.save =c("pind", "mu.p53", "sigma.p53"), 
                             model = cond.likelihood.model)
   }
   return(cond.likelihood)
@@ -284,10 +381,24 @@ I=100
 system.time({
   cl.sim2<- foreach(j = 1:length(pvals)) %:%
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.cl(1,mu,sd*4, NULL,pvals[j]))
+      return(run.cl(1,mu,sd*, NULL,pvals[j]))
     }
 })
 save.image()
+
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+pvals=c(.05,.01,.005,.001, 1e-7)
+I=100
+system.time({
+  cl.sim.better<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(1,mu,sd*4, NULL,pvals))
+    }
+})
+save.image()
+
 ```
 
 ```{r summary stats}
@@ -298,10 +409,10 @@ getstatsitems<-c("hasmu","haszero","mean","median",
 
 modelnames<- c("Cauchy-Ones Trick","Normal-Ones Trick",
                "Normal-Latent","Cauchy-Latent",
-               "Cond Likelihood", "Fixed Effect")
-getstatsloop<-function(simlist,mu,sd,pind, e=.03){
+               "Cond Likelihood", "Fixed Effect", "Original","CL RE")
+getstatsloop<-function(simlist,mu,sd,pind,modelnames, e=.03){
   I<-length(simlist)
-  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-7],getstats,mu,sd,pind, e))
+  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd,pind, e))
   return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
 }
 
@@ -315,11 +426,14 @@ getstats<-function(jagsoutput, mu, sd, pind, e = .03){
     upper <- c(upper,cred[4])
     lower <- c(lower,cred[3])
   }
-  
-  sd.samples <- (jagsoutput$BUGSoutput$sims.list$phi.p53)^-.5
+  sd.samples <- (jagsoutput$BUGSoutput$sims.list$sigma.p53)
   sd.cred<- HPDM(sd.samples)
-  pind.samples<- jagsoutput$BUGSoutput$sims.list$pind
-  pind.cred<- HPDM(pind.samples)
+  
+  pind.samples<-pind.cred<-NA
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$pind)){
+    pind.samples<- jagsoutput$BUGSoutput$sims.list$pind
+    pind.cred<- HPDM(pind.samples)
+  }
   return(c(hasmu = any(upper>=mu&lower<=mu), 
            haszero = any(upper>=-e&lower<=e), 
            mean = mean(mu.samples),
@@ -357,32 +471,32 @@ sim.4<-getstatsloop(allsim.5[[1]],mu,sd*4,1)
 
 ```{r plotting fn}
 make_simlist<-function(sim){
-  OC<-t(sim[,1,])
-  ON<-t(sim[,2,])
-  LN<-t(sim[,3,])
-  LC<-t(sim[,4,])
-  CL<-t(sim[,5,])
-  FE<-t(sim[,6,])
-  #sapply(list(OC,ON,LN,LC,CL,FE), function(X) colnames(X)<- getstatsitems)
-  return(list(OC,ON,LN,LC,CL,FE))
+  return(lapply(seq(dim(sim)[2]), function(x) t(sim[ , x, ])))
 }
 
-make_plots<-function(simlist, mu, modelnames){
-
-  mean.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,3]-mu)))
+make_estimate_error_plot<-function(simlist, means,medians, true,modelnames,plottitle = "Absolute Error"){
+  mean.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,means]-true)))
   colnames(mean.sqerr)<-modelnames
-  mean.sqerr$estimator <- rep("mean",dim(mean.sqerr)[1])
   
-  median.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,4]-mu)))
+  median.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,medians]-true)))
   colnames(median.sqerr)<-modelnames
+  df <- data.frame(apply(mean.sqerr,2,function(x) sqrt(mean(x^2))),
+                   apply(median.sqerr,2,function(x) sqrt(mean(x^2))))
+  colnames(df)<-c("Posterior Mean", "Posterior Median")
+  mean.sqerr$estimator <- rep("mean",dim(mean.sqerr)[1])
   median.sqerr$estimator <- rep("median",dim(median.sqerr)[1])
   
   sqerr<- rbind(mean.sqerr,median.sqerr)
-  
+  return(list(plot = ggplot(data = melt(sqerr), 
+                            aes(x=variable, y=value,color=estimator)) +
+                geom_boxplot()+labs(x= "Posterior Mean", y="Absolute Error",
+                                    title= plottitle),
+              table = df))
+}
+
+make_plots<-function(simlist, mu, sd, modelnames){
   #mse
-  plot1<- (ggplot(data = melt(sqerr), aes(x=variable, y=value,color=estimator)) +
-             geom_boxplot()+labs(x= "Posterior Mean", y="Squared Error", 
-                                 title= "Squared Error Distribution with Mean"))
+  muerr<- (make_estimate_error_plot(simlist,3,4,mu,modelnames,"Mu Error Distribution"))
   
   #bar plots for coverage, times it's right
   coverage<- data.frame(sapply(simlist, function(x) x[,1]))
@@ -396,16 +510,13 @@ make_plots<-function(simlist, mu, modelnames){
   coverage1<-melt(coverage)
   levelnames<-c("Neither", "Only Zero","Only Mu","Both")
   coverage1$value<-factor(levelnames[coverage1$value+1])
-  plot2<-( ggplot(data = coverage1, 
-                  aes(x=variable,fill=value,y=rep(1, length(variable))))+
-             geom_bar(stat="identity")+labs(x= "Model", y="Coverage", 
-                                            title= "Coverage"))
-  print(kable(table(coverage1)/100))
+  mucoverage= table(coverage1)/100.
+  print(coverage1)
   
-  disjoint<- data.frame(sapply(simlist, function(x) x[,5]))
-  d0 = (containszero==0)*(disjoint)
-  colnames(d0) = modelnames
-  print(kable(table(melt(d0))))
+  # disjoint<- data.frame(sapply(simlist, function(x) x[,5]))
+  # d0 = (containszero==0)*(disjoint)
+  # colnames(d0) = modelnames
+  # print(kable(table(melt(d0))))
   #interval length
   intlen<- data.frame(sapply(simlist, function(x) x[,6]))
   colnames(intlen)<-modelnames
@@ -421,18 +532,53 @@ make_plots<-function(simlist, mu, modelnames){
               geom_boxplot()+labs(x= "Model", y="probability of mu=0", 
                                   title= "Posterior Probability of Null (H=0)"))
   
-  grid.arrange(plot1, plot2, plot3,plot4 ,ncol=2)
+  ################sd, pind
+  sderr<- (make_estimate_error_plot(simlist, 9,10,sd,modelnames,"Absolute Error of Standard Deviation"))
+  
+  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Absolute Error of Probability of H0"))
+  
+  intlen<- data.frame(sapply(simlist, function(x) x[,11]))
+  colnames(intlen)<-modelnames
+  plot7<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
+            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
+                                title= "SD Intervals"))
+  intlen<- data.frame(sapply(simlist, function(x) x[,15]))
+  colnames(intlen)<-modelnames
+  plot8<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
+            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
+                                title= "pind Intervals"))
+  sdcov<- data.frame(sapply(simlist, function(x) x[,8]))
+  colnames(sdcov)<-modelnames
+  sdcoverage<-table(melt(sdcov))/100.
+  
+  pindcov<- data.frame(sapply(simlist, function(x) x[,12]))
+  colnames(pindcov)<-modelnames
+  pindcoverage<-table(melt(pindcov))/100.
+  
+  return(list(plots = list(muerr$plot, plot3,plot4,sderr$plot,
+                           pinderr$plot,plot7,plot8),
+              tables = list(muerr$table, sderr$table, pinderr$table,
+                            mucoverage, sdcoverage,pindcoverage)))
 }
 
 ```
 
 
 ```{r}
-make_plots(make_simlist(sim.0), 0,modelnames)
-make_plots(make_simlist(sim.half), mu,modelnames)
-make_plots(make_simlist(sim.1), mu,modelnames)
-make_plots(make_simlist(sim.2), mu,modelnames)
-make_plots(make_simlist(sim.4), mu,modelnames)
+plots0<-make_plots(make_simlist(sim.0), 0,1, modelnames)
+
+```
+
+```{r}
+plots1<-make_plots(make_simlist(sim.1), mu,sd,modelnames[1:6])
+
+```
+
+
+```{r}
+make_plots(make_simlist(sim.half), mu,sd, 1,modelnames)
+make_plots(make_simlist(sim.2),mu,sd, 1,modelnames)
+plots4<-make_plots(make_simlist(sim.4), mu,sd, 1,modelnames)
 
 ```
 
@@ -442,9 +588,73 @@ sim.cl.2<-sapply(cl.sim[[2]], getstats,mu,sd,1)
 sim.cl.3<-sapply(cl.sim[[3]], getstats,mu,sd,1)
 sim.cl.4<-sapply(cl.sim[[4]], getstats,mu,sd,1)
 sim.cl.5<-sapply(cl.sim[[5]], getstats,mu,sd,1)
-make_plots(list(t(sim.cl.1), t(sim.cl.2), t(sim.cl.3),t(sim.cl.4),t(sim.cl.5)), mu, pvals)
+make_plots(list(t(sim.cl.1), t(sim.cl.2), t(sim.cl.3),t(sim.cl.4),t(sim.cl.5)), mu,sd, pvals)
+#change this to lapply
 
+sim.cl.stats2 <- lapply(cl.sim2, function(x) t(sapply(x, getstats,mu,sd,1)))
+
+clplots2<-make_plots(sim.cl.stats2, mu, sd,1,pvals)
+
+#return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
+
+vec <- sapply(cl.sim.better, function(x) sapply(x, getstats,mu,sd,1))
+sim.cl.stats.better <-array(data=vec,dim= c(length(getstatsitems),length(pvals),I))
+cl.better.simlist<-make_simlist(sim.cl.stats.better)
+cl.better.plots<-make_plots(cl.better.simlist, mu,sd,pvals)
 ```
+
+#### assorted notes/explanations/stuff- will move around once things are more set
+
+The models are specified as follows: 
+
+
+The "ones-cauchy" and "latent-cauchy" have the same structure as the original ones, but use a $Cauchy(0,1)$ prior for $\mu$ to allow for larger effects without increasing the variance and making the prior too diffuse, which could lead to Lindley's paradox.
+
+The "fixed" model is just the same but without the site effect.
+
+The "original" model is a slightly modified version of the one used in the previous analysis of the TP53 data (see Data section-link or st here-). This is a hierarchical random effects model with a normal prior for $\mu$, the global effect. Here we use a truncated cauchy prior for $\sigma$, the standard deviation, instead of the inverse gamma prior, to get better estimates of small variance. This model is equivalent to the mixture model given the alternative (i.e. that mu is significant).
+
+The conditional likelihood model takes into account the probability of a "significant" even when calculating its likelihood (i.e. the likelihood conditional on having significant data). In this model, we differentiate between the discovery and validation data. Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\mu, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \mu, SE_i)}{\Phi(-q, \mu, SE_i)+1-\Phi(q, \mu, SE_i)}$, where $\phi(x, \mu, \sigma)$ is the pdf of a normal distribution with mean $\mu$ and variance $\sigma^2$, and $\Phi(x, \mu, \sigma)$ is the cdf of the same distribution. The value of $q$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, and $\alpha$ is the power of the test (that is, p-values that are greater than $\alpha$ are not considered significant). Let this distribution be denoted as $CL(\mu,SE_i, q)$. The MLE and SE are sufficient statistics.
+
+The validation sites are from the mixed effect model with a normal prior for $\mu$ and truncated cauchy for $\sigma$. There is one model specified with random effects and one without. The random effect model assumes $MLE_i$ comes from a normal distribution centered at site effect $\beta_i$ rather than at $\mu$, and that the validation data $Y_{ij} \sim N(\beta_j, \sigma)$ as before.
+
+In this simulation study, a logistic regression with fixed effects for sites was conducted to find the site with the smallest p-value less than $\alpha$. If no sites matched this description, the data was resampled until at least one site was viable. The observations for this site were then taken out of the data, and the maximum likelihood estimate of this effect and its variance were added for the Bayesian model. The full specification of this model is as follows:
+$Y_{ij} \sim logit^{-1}(\mu)$,
+$MLE_k \sim CL(\mu,SE_k, q)$,
+$\mu \sim N(0, .1)$.
+
+
+##### Some Analysis
+
+Sensitivity of CL
+The conditional likelihood method is not robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model for each level was then fitted. The results from these show that, while the posterior mean estimate was the same for different $\alpha$, the credible intervals got larger as $\alpha$ decreased. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results, but this can be explained by the fact that the models take into account the selection mechanism. This means that, if an estimate has p-value much lower than $\alpha$, the model will be more confident that it came from a nonzero distribution than if it is close to $\alpha$.
+
+One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because despite having one significant site, it is overpowered by the rest of them, which are too spread out.
+
+
+General model things
+Mu
+Bias/RMSE
+
+
+Sensitivity
+
+
+Probability of H0 v H1
+
+
+Number of Sites
+
+One source of
+
+
+
+JAGS of latent v ones trick
+
+What is wrong with the ones trick HPD
+
+
+Both the uniform and the truncated cauchy perform better than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
 
 
 
