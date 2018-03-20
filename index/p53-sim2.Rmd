@@ -7,57 +7,11 @@ library(ggplot2)
 library(knitr)
 require(gridExtra)
 source("HPD.R")
-
+source("p53simJAGScode.R")
 ```
 
 
 ```{r cond likelihood}
-cond.likelihood.model = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  mu.p53  }
-  
-  C<-1000
-  for (k in 1:n.discovery){
-    #zeroes trick for MLE~cond prob
-    tau[k]<- pow(SE[k], -2)
-    L[k]<- dnorm(MLE[k],mu.p53, tau[k])/(pnorm(-q*SE, mu.p53, tau[k]) +
-                                           1-pnorm(q*SE, mu.p53, tau[k]))
-    phi[k]<- -log(L[k])+C
-    zeroes[k]~dpois(phi[k])
-  }
-  
-  mu.p53 ~ dnorm(0,.1)
-  #phi.p53 ~ dgamma(1, .05)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-}
-
-cond.likelihood.re.model = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]  }
-  
-  C<-1000
-  for (k in 1:n.discovery){
-    #zeroes trick for MLE~cond prob
-    tau[k]<- pow(SE[k], -2)
-    L[k]<- dnorm(MLE[k],beta.p53[discovery.sites[k]], tau[k])/
-      (pnorm(-q*SE, beta.p53[discovery.sites[k]], tau[k]) +
-         1-pnorm(q*SE, beta.p53[discovery.sites[k]], tau[k]))
-    phi[k]<- -log(L[k])+C
-    zeroes[k]~dpois(phi[k])
-  }
-  for (i in 1:n.sites){ #total sites
-    beta.p53[i] ~dnorm(mu.p53,phi.p53)
-  }
-  
-  mu.p53 ~ dnorm(0,.1)
-  #phi.p53 ~ dgamma(1, .05)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-}
-
 get.cond.likelihood.data<- function(data, p = 0.00325){
   freq = glm(CaseCon ~ factor(site), data=data,family=binomial, x=T)
   #get "discovery" with smallest p value (that is significant)
@@ -82,140 +36,11 @@ get.cond.likelihood.data<- function(data, p = 0.00325){
 }
 ```
 
-```{r jags models}
-ones.cauchy.model= function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]  }
-  
-  for (l in 1:n.sites) {
-    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
-  }
-  #ones trick
-  C<-1e6
-  epsilon<-0.01
-  tau<- pow(epsilon,-2)
-  mu.p53.notzero<- step(temp)
-  temp<-dt(mu.p53,0,1, 1)-dnorm(mu.p53,0,tau) 
-  #cauchy is same as t with df=1
-  L<-(dnorm(mu.p53,0,tau)*(1-pind))+(dt(mu.p53,0,1,1)*pind)
-  p <- L/ C
-  one~ dbern(p)
-  mu.p53 ~ dunif(-10,10) 
-  # phi.p53 ~ dgamma(1, .05)
-  # sigma.p53 <- pow(phi.p53, -.5)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-  pind ~ dbeta(.5,.5)
-}
-
-ones.normal.model= function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]  }
-  
-  for (l in 1:n.sites) {
-    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
-  }
-  #ones trick
-  C<-1e6
-  epsilon<-0.01
-  tau<- pow(epsilon,-2)
-  mu.p53.notzero<- step(temp)
-  temp<-dnorm(mu.p53,0,1)-dnorm(mu.p53,0,tau) 
-  L<-(dnorm(mu.p53,0,tau)*(1-pind))+(dnorm(mu.p53,0,1)*pind)
-  p <- L/ C
-  one ~ dbern(p)
-  mu.p53 ~ dunif(-10,10) 
-  # phi.p53 ~ dgamma(1, .05)
-  # sigma.p53 <- pow(phi.p53, -.5)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-  pind ~ dbeta(.5,.5)
-}
-
-latent.normal.model= function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]  }
-  
-  for (l in 1:n.sites) {
-    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
-  }
-  
-  mu.p53<- mu1.p53*mu.p53.notzero
-  mu1.p53 ~ dnorm(0,1)
-  # phi.p53 ~ dgamma(1, .05)
-  # sigma.p53 <- pow(phi.p53, -.5)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-  mu.p53.notzero~dbern(pind)
-  pind ~ dbeta(.5,.5)
-}
-
-latent.cauchy.model= function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]  }
-  
-  for (l in 1:n.sites) {
-    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
-  }
-  
-  mu.p53<- mu1.p53*mu.p53.notzero
-  mu1.p53 ~ dt(0,1, 1)
-  #phi.p53 ~ dgamma(1, .05) 
-  #sigma.p53 <- pow(phi.p53, -.5) #half cauchy, uniform to 1 or to 5, take a guess on sd
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-  mu.p53.notzero~dbern(pind)
-  pind ~ dbeta(.5,.5)
-}
-
-fixed.model = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  mu.p53  
-  }
-  mu.p53<- mu1.p53*mu.p53.notzero
-  mu1.p53 ~ dnorm(0,.1)
-  #phi.p53 ~ dgamma(1, .05)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-  mu.p53.notzero~dbern(pind)
-  pind ~ dbeta(.5,.5)
-}
-
-original.model = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]  }
-  
-  for (l in 1:n.sites) {
-    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
-  }
-  
-  mu.p53 ~ dnorm(0,1)
-  # phi.p53 ~ dgamma(1, .05)
-  # sigma.p53 <- pow(phi.p53, -.5)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
-}
-#p53.fulljags1.2.l1.cauchy = jags(data=onesdata, ####this
-#                    inits=NULL, parameters.to.save =c("pind", 
-#"mu.p53", "phi.p53","mu.p53.notzero","temp"),
-#                    model = cauchyprior)
-```
-
 
 ```{r sampling}
-#true mu fixed, smaller variance to make sure it is above 0 (especially since it's learned anyway)
 
-sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ #assoc is H
+sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ 
+  #assoc is H
   beta.p53 = rnorm(n.sites,mu,sd)*assoc 
   Y <-site <- rep(NA, observations*n.sites)
   for(i in 1:n.sites){
@@ -381,7 +206,7 @@ I=100
 system.time({
   cl.sim2<- foreach(j = 1:length(pvals)) %:%
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.cl(1,mu,sd*, NULL,pvals[j]))
+      return(run.cl(1,mu,sd*4, NULL,pvals[j]))
     }
 })
 save.image()
@@ -608,23 +433,39 @@ cl.better.plots<-make_plots(cl.better.simlist, mu,sd,pvals)
 
 #### assorted notes/explanations/stuff- will move around once things are more set
 
+Simulations: 
+
+
+The data are generated from a hierarchical logistic model as follows: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
+
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$ (see [Frequentist Results]). The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7 and 30 to compare. Each site had 1000 observations.
+
 The models are specified as follows: 
 
+1. The probability of association $\xi$ can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$. That is,  $\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)$, and $P(\iota = 1 ) = \xi$. This is the latent variable model with normal prior. Then $\xi \sim Beta(1/2, 1/2), \sigma \sim invGamma(1, .05), \beta_j \sim N(\mu, \sigma^2), Y_{ij} \sim logit^{-1}(\beta_j)$.
 
-The "ones-cauchy" and "latent-cauchy" have the same structure as the original ones, but use a $Cauchy(0,1)$ prior for $\mu$ to allow for larger effects without increasing the variance and making the prior too diffuse, which could lead to Lindley's paradox.
+2. The point mass can be approximated using a very concentrated normal distribution, centered at 0. Thus, $\pi(\mu|\xi) = (1-\xi) N(\mu, 0, \epsilon)+ \xi N(\mu,0 ,1)$. The other priors are the same as in the latent variable model.
 
-The "fixed" model is just the same but without the site effect.
+Models that do not use the latent variable must specify the mixture distribution in JAGS directly. This is done through the ones trick, which use the Bernoulli distribution in order to allow for arbitrary distributions. Consider a prior  for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
 
-The "original" model is a slightly modified version of the one used in the previous analysis of the TP53 data (see Data section-link or st here-). This is a hierarchical random effects model with a normal prior for $\mu$, the global effect. Here we use a truncated cauchy prior for $\sigma$, the standard deviation, instead of the inverse gamma prior, to get better estimates of small variance. This model is equivalent to the mixture model given the alternative (i.e. that mu is significant).
+In these scenarios, the model from which a sample comes from is also not evident. To determine whether a small value is truly from the concentrated normal, we can compute the probability of the sample for the two distributions and choose the model that results in a larger one.
 
-The conditional likelihood model takes into account the probability of a "significant" even when calculating its likelihood (i.e. the likelihood conditional on having significant data). In this model, we differentiate between the discovery and validation data. Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\mu, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \mu, SE_i)}{\Phi(-q, \mu, SE_i)+1-\Phi(q, \mu, SE_i)}$, where $\phi(x, \mu, \sigma)$ is the pdf of a normal distribution with mean $\mu$ and variance $\sigma^2$, and $\Phi(x, \mu, \sigma)$ is the cdf of the same distribution. The value of $q$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, and $\alpha$ is the power of the test (that is, p-values that are greater than $\alpha$ are not considered significant). Let this distribution be denoted as $CL(\mu,SE_i, q)$. The MLE and SE are sufficient statistics.
+3. and 4. The "ones-cauchy" and "latent-cauchy" have the same structure as the original ones, but use a $Cauchy(0,1)$ prior for $\mu$ to allow for larger effects without increasing the variance and making the prior too diffuse, which could lead to Lindley's paradox. In the case of the ones model, the point mass approximation is kept as a Normal.
 
-The validation sites are from the mixed effect model with a normal prior for $\mu$ and truncated cauchy for $\sigma$. There is one model specified with random effects and one without. The random effect model assumes $MLE_i$ comes from a normal distribution centered at site effect $\beta_i$ rather than at $\mu$, and that the validation data $Y_{ij} \sim N(\beta_j, \sigma)$ as before.
+5. The "fixed" model is just the same as the latent variable model with normal prior, but without the site effect.
+
+6. The "original" model is a slightly modified version of the one used in the previous analysis of the TP53 data (see Data section **link or st here**). This has a normal prior for $\mu$, the global effect. This model is equivalent to the mixture model given the alternative (i.e. that mu is significant or $\xi = 1$).
+
+7. and 8. The conditional likelihood model takes into account the probability of a "significant" event occurring when calculating its likelihood (i.e. the likelihood conditional on having significant data). In this model, we differentiate between the discovery and validation data. Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\mu, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \mu, SE_i)}{\Phi(-q, \mu, SE_i)+1-\Phi(q, \mu, SE_i)}$, where $\phi(x, \mu, \sigma)$ is the pdf of a normal distribution with mean $\mu$ and variance $\sigma^2$, and $\Phi(x, \mu, \sigma)$ is the cdf of the same distribution. The value of $q$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, and $\alpha$ is the power of the test (that is, p-values that are greater than $\alpha$ are not considered significant). Let this distribution be denoted as $CL(\mu,SE_i, q)$. The MLE and SE are sufficient statistics.
 
 In this simulation study, a logistic regression with fixed effects for sites was conducted to find the site with the smallest p-value less than $\alpha$. If no sites matched this description, the data was resampled until at least one site was viable. The observations for this site were then taken out of the data, and the maximum likelihood estimate of this effect and its variance were added for the Bayesian model. The full specification of this model is as follows:
 $Y_{ij} \sim logit^{-1}(\mu)$,
 $MLE_k \sim CL(\mu,SE_k, q)$,
 $\mu \sim N(0, .1)$.
+The validation sites are modeled with the mixed effect model with a normal prior for $\mu$ and inverse gamma for $\sigma$.
+
+There is one model specified with random effects and one without. The fixed effect model is described above, and the random effect model assumes $MLE_i$ comes from a normal distribution centered at site effect $\beta_i$ rather than at $\mu$, and that the validation data $Y_{ij} \sim N(\beta_j, \sigma)$ as in the fully Bayesian models.
+
 
 
 ##### Some Analysis
@@ -632,7 +473,7 @@ $\mu \sim N(0, .1)$.
 Sensitivity of CL
 The conditional likelihood method is not robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model for each level was then fitted. The results from these show that, while the posterior mean estimate was the same for different $\alpha$, the credible intervals got larger as $\alpha$ decreased. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results, but this can be explained by the fact that the models take into account the selection mechanism. This means that, if an estimate has p-value much lower than $\alpha$, the model will be more confident that it came from a nonzero distribution than if it is close to $\alpha$.
 
-One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because despite having one significant site, it is overpowered by the rest of them, which are too spread out.
+One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
 
 
 General model things
@@ -640,24 +481,30 @@ Mu
 Bias/RMSE
 
 
-Sensitivity
+### Sensitivity
+
+As expected, the models performed more poorly as $\sigma$ increased. However, while one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for the implementations using the ones trick, indicating that **a**.
 
 
-Probability of H0 v H1
+### Probability of H0 v H1
+
+Simulated datasets that were not truly associated were also fit with the models described above, all of which did well as expected. **table**
+
+### Number of Sites
+
+Although using 7 sites more closely mimics the real data, these are not enough to get a good estimate if we consider each site as an observation of sorts in the hierarchical model. Thus, to test the behaviour of the priors for $\sigma$, this number was increased to 30, which led to significantly improved estimates for sigma, showing that although the inverse gamma was not the best fit, part of the reason it led to overestimates of theta was the small number of sites.
 
 
-Number of Sites
+### mu and zero part
+JAGS of latent v ones trick- potentially have some traceplots to show
+ 
 
-One source of
-
-
-
-JAGS of latent v ones trick
-
-What is wrong with the ones trick HPD
+One problem that arises when using the ones trick is that the markov chain does not sample from the entire space, but rather gets stuck within a subset of values **figure this out**. This leads to posteriors for $\mu$ that are either positive or negative, with almost no zero values.
 
 
-Both the uniform and the truncated cauchy perform better than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
+### sigma
+
+Both the uniform and the truncated cauchy lead to better estimates of the variance than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
 
 
 
