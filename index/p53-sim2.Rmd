@@ -246,9 +246,9 @@ save.image()
 
 ```{r summary stats}
 getstatsitems<-c("hasmu","haszero","mean","median",
-                 "ismultimodal", "intervallength","probzero",
+                 "ismultimodal", "intervallength","probneqzero",
                  "hassd","sdmean","sdmedian","sdintlen",
-                 "haspind","pindmean","pindmedian","pindintlen")
+                 "haspind","pindmean","pindmedian","pindg.5")
 
 modelnames<- c("Cauchy-Ones Trick","Normal-Ones Trick",
                "Normal-Latent","Cauchy-Latent",
@@ -282,7 +282,7 @@ getstats<-function(jagsoutput, mu, sd){
   pind.samples<-pind.cred<-NA
   if(!is.null(jagsoutput$BUGSoutput$sims.list$pind)){
     pind.samples<- jagsoutput$BUGSoutput$sims.list$pind
-    pind.cred<- HPDM(pind.samples)
+    # pind.cred<- HPDM(pind.samples)
   }
   return(c(hasmu = any(upper>=mu&lower<=mu), 
            haszero = any(upper>=0&lower<=0), 
@@ -290,7 +290,7 @@ getstats<-function(jagsoutput, mu, sd){
            median = median(mu.samples),
            ismultimodal=length(cred)>2,
            intervallength = sum(upper-lower),
-           probzero = sum(mu.samples==0)/length(mu.samples),
+           probneqzero = sum(mu.samples!=0)/length(mu.samples),
            hassd= sd.cred[2]>=sd&sd.cred[1]<=sd,
            sdmean= mean(sd.samples),
            sdmedian= median(sd.samples),
@@ -298,7 +298,8 @@ getstats<-function(jagsoutput, mu, sd){
            haspind=pind.cred[2]>=0&pind.cred[1]<=1,
            pindmean =mean(pind.samples),
            pindmedian=median(pind.samples),
-           pindintlen=pind.cred[2]-pind.cred[1]
+           # pindintlen=pind.cred[2]-pind.cred[1]
+           pindgreater.5=mean(pind.samples>.5)
            
   ))
 }
@@ -307,7 +308,7 @@ getstats<-function(jagsoutput, mu, sd){
 
 
 ```{r get stats}
-sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames[1:6]) #13 modes?
+sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames[1:6])
 sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames[1:6])
 sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames[1:6])
 sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames[1:6])
@@ -339,7 +340,7 @@ make_estimate_error_plot<-function(simlist, means,medians, true,modelnames,plott
   sqerr<- rbind(mean.sqerr,median.sqerr)
   return(list(plot = ggplot(data = melt(sqerr), 
                             aes(x=variable, y=value,color=estimator)) +
-                geom_boxplot()+labs(x= "Posterior Mean", y="Absolute Error",
+                geom_boxplot()+labs(x= "Model", y="Absolute Value",
                                     title= plottitle),
               table = df))
 }
@@ -360,7 +361,7 @@ make_plots<-function(simlist, mu, sd, modelnames){
   coverage1<-melt(coverage)
   levelnames<-c("Neither", "Only Zero","Only Mu","Both")
   coverage1$value<-factor(levelnames[coverage1$value+1])
-  mucoverage= table(coverage1)/length(simlist[[1]])
+  mucoverage= table(coverage1)/dim(simlist[[1]])[1]
 
   # disjoint<- data.frame(sapply(simlist, function(x) x[,5]))
   # d0 = (containszero==0)*(disjoint)
@@ -378,13 +379,13 @@ make_plots<-function(simlist, mu, sd, modelnames){
   colnames(p0)<-modelnames
   
   plot4 <- (ggplot(data = melt(p0), aes(x=variable, y=value)) +
-              geom_boxplot()+labs(x= "Model", y="probability of mu=0", 
-                                  title= "Posterior Probability of Null (H=0)"))
+              geom_boxplot()+labs(x= "Model", y="proportion of mu!=0", 
+                                  title= "Posterior proportion of nonzero mu"))
   
   ################sd, pind
   sderr<- (make_estimate_error_plot(simlist, 9,10,sd,modelnames,"Absolute Error of Standard Deviation"))
   
-  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Absolute Error of Probability of H0"))
+  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Probability of H0 (xi) "))
   
   intlen<- data.frame(sapply(simlist, function(x) x[,11]))
   colnames(intlen)<-modelnames
@@ -400,7 +401,7 @@ make_plots<-function(simlist, mu, sd, modelnames){
   colnames(sdcov)<-modelnames
   sdcov1<-melt(sdcov)
   sdcov1$value<-ifelse(sdcov1$value==1,  "Contains","Does Not Contain")
-  sdcoverage<-table(melt(sdcov1))/length(simlist[[1]])
+  sdcoverage<-table(melt(sdcov1))/dim(simlist[[1]])[1]
   
   return(list(plots = list(muerr$plot, plot3,plot4,sderr$plot,
                            pinderr$plot,plot7,plot8),
@@ -501,11 +502,19 @@ lapply(clplots1$tables, kable)
 ### Sensitivity
 
 To test the robustness of the models (and their mixing ability), the simulations were run with a range of standard deviations:  $\frac{\sigma}{2},\sigma, 2\sigma,4\sigma$. The rest of the parameters remained the same.
-As expected, the models performed more poorly as $\sigma$ increased. However, while one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for the implementations using the ones trick, indicating that **a**.
+As expected, the models performed more poorly as $\sigma$ increased. However, while one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for any of the implementations, which had consistent posterior estimates of $\xi$. This means that this model is robust, since it does not need a highly concentrated distribution to detect that there is a true effect. Another thing to consider is that under the null hypothesis (i.e. that there is no association), the variance across sites would actually be close to zero, since they would all have an effect of 0.
+
 
 ```{r}
-plots2
+lapply(plotshalf$tables[c(1,3,4)],kable) #these don't have the sigma^2 samples
+lapply(plots1$tables[c(1,3,4)],kable)
+lapply(plots2$tables[c(1,3,4)],kable)
+lapply(plots4$tables[c(1,3,4)],kable)
 
+lapply(plotshalf$tables[3],kable) #these don't have the sigma^2 samples
+lapply(plots1$tables[3],kable)
+lapply(plots2$tables[3],kable)
+lapply(plots4$tables[3],kable)
 ```
 
 
@@ -513,7 +522,7 @@ plots2
 
 ### Probability of H0 v H1
 
-Simulated datasets that were not truly associated were also fit with the models described above, all of which did well, as expected. 
+`r I` datasets were also simulated under the null hypothesis. They were fit with the models described above, and resulted in reasonable estimates. In this case, the proportion of samples with $\mu = 0$ was quite high for all models, and the point estimate of $\xi$ is also less than $0.5$. The conditional effect model has a larger bias than the other models, but this is still very small relative to the scale of $\mu$. The cauchy prior latent variable model had the smallest intervals. Surprisingly, the cauchy ones' trick model had wider intervals than the normal model with the ones' trick (and than both latent variable models), but still had lower coverage. 
 
 ```{r}
 plots0
@@ -523,13 +532,16 @@ plots0
 
 ### Number of Sites
 
-Although using 7 sites more closely mimics the real data, these are not enough to get a good estimate if we consider each site as an observation of sorts in the hierarchical model. Thus, to test the behaviour of the priors for $\sigma$, this number was increased to 30, which led to significantly improved estimates for sigma, showing that although the inverse gamma was not the best fit, part of the reason it led to overestimates of theta was the small number of sites.
+Although using 7 sites more closely mimics the real data, these are not enough to get a good estimate if we consider each site as an observation of sorts in the hierarchical model. Thus, to test the behaviour of the priors for $\sigma$, this number was increased to 30, which led to significantly improved estimates for sigma, showing that part of the reason the inverse gamma prior led to overestimates of theta was the small number of sites.
+
+However, the estimates for $\mu$ become biased for all models, although the conditional likelihood model obtained the best estimates. **should re run with more simulations and see if the results are still like this**.
 
 ```{r}
 plots.30.1<-make_plots(make_simlist(sim.30.1), mu,sd,modelnames[1:6])
+plots.30.4<-make_plots(make_simlist(sim.30.4), mu,sd,modelnames[1:6])
 
-plots1$tables
-plots.30.1$tables
+plots4$tables
+plots.30.4$tables
 ```
 
 
@@ -547,7 +559,7 @@ allsim[[3]][[68]][[7]] #true beta
 ```
  
 
-One problem that arises when using the ones trick is that the markov chain does not sample from the entire space, but rather gets stuck within a subset of values. This leads to posteriors for $\mu$ that are either positive or negative, with no zero values. In the example shown, all true values of $\beta_j$ are greater than zero; however, the chains that were initialized with negative values in the latent variable models never reach positive or zero values for $\mu$.
+One problem that arises when using the ones trick is that the markov chain does not sample from the entire space, but rather gets stuck within a subset of values. This leads to posteriors for $\mu$ that are either positive or negative, with no zero values. In the example shown, all true values of $\beta_j$ are greater than zero so the posterior probability of negative values of $\mu$ should be low; however, the chains that were initialized with negative values in the latent variable models never reach positive or zero values for $\mu$.
 
 
 ### sigma
