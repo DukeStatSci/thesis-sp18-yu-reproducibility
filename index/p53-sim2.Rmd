@@ -416,9 +416,12 @@ getstatsloop<-function(simlist,mu,sd,pind,modelnames, e=.03){
   return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
 }
 
-getstats<-function(jagsoutput, mu, sd, pind, e = .03){
+getstats<-function(jagsoutput, mu, sd, pind){
   mu.samples<- jagsoutput$BUGSoutput$sims.list$mu.p53
-  cred<-HPDM(mu.samples,e)
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$mu.p53.notzero)){
+    mu.samples<-mu.samples*jagsoutput$BUGSoutput$sims.list$mu.p53.notzero
+  }
+  cred<-HPDM(mu.samples)
   upper<- cred[2]
   lower<- cred[1]
   if(length(cred)>2){
@@ -435,12 +438,12 @@ getstats<-function(jagsoutput, mu, sd, pind, e = .03){
     pind.cred<- HPDM(pind.samples)
   }
   return(c(hasmu = any(upper>=mu&lower<=mu), 
-           haszero = any(upper>=-e&lower<=e), 
+           haszero = any(upper>=0&lower<=0), 
            mean = mean(mu.samples),
            median = median(mu.samples),
            ismultimodal=length(cred)>2,
            intervallength = sum(upper-lower),
-           probzero = sum(abs(mu.samples)<=e)/length(mu.samples),
+           probzero = sum(mu.samples)==0)/length(mu.samples),
            hassd= sd.cred[2]>=sd&sd.cred[1]<=sd,
            sdmean= mean(sd.samples),
            sdmedian= median(sd.samples),
