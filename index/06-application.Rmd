@@ -6,9 +6,11 @@ knitr::opts_chunk$set(cache = TRUE)
 
 library(rmeta)
 library(lme4)
-library("R2jags")
+library(R2jags)
 library(xtable)
 library(knitr)
+library(dplyr)
+
 source("HPD.R")
 ```
 
@@ -210,9 +212,7 @@ p53.model = function() {
 
 
 ```{r latent var}
-
-#mixture with association variable
-p53.newmodel3 = function() {
+p53.newmodel = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
     logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
@@ -226,50 +226,68 @@ p53.newmodel3 = function() {
   }
   beta.BC ~ dnorm(0, .1)
   
+  # mu.site ~ dnorm(0, .1)
+  # phi.site ~ dgamma(1,.05)
+  # sigma.site <- pow(phi.site, -.5)
+  # 
+  # #E[prec] 20
+  # #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+  # mu.p53.1 ~ dnorm(0,.1)
+  # mu.p53<-mu.p53.1*assoc
+  # phi.p53 ~ dgamma(1, .05)
+  # #    phi.p53 ~ dgamma(2, .02)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  # 
+  # mu.Age ~ dnorm(0, .1)
+  # phi.Age ~ dgamma(1, .05)
+  # sigma.Age  <- pow(phi.Age, -.5)
   mu.site ~ dnorm(0, .1)
   phi.site ~ dgamma(1,.05)
   sigma.site <- pow(phi.site, -.5)
   
   #E[prec] 20
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53.1 ~ dnorm(0,.1)
-  mu.p53<-mu.p53.1*assoc
-  phi.p53 ~ dgamma(1, .05)
-  #    phi.p53 ~ dgamma(2, .02)
-  sigma.p53 <- pow(phi.p53, -.5)
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dt(0,1, 1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   
   mu.Age ~ dnorm(0, .1)
   phi.Age ~ dgamma(1, .05)
   sigma.Age  <- pow(phi.Age, -.5)
   
   assoc ~ dbern(pind) 
-  pind ~ dbeta(2,6)
+  pind ~ dbeta(.5,.5)
 }
 ```
   
   
 ```{r cond likelihood}
 
-#conditional likelihood prior (normal approx, using zeroes trick)
+#mixed effect conditional likelihood
 p53.normal = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + mu.p53*p53[j] +
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
       beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
   
   for (l in 1:n.sites) {
     beta.site[l] ~ dnorm(mu.site, phi.site)
-    #beta.p53[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
     beta.Age[l] ~ dnorm(mu.Age, phi.Age)
   }
   C<-1000
   
+  for(m in (n.sites+1):(n.sites+n.discovery)){
+    beta.p53[m] ~ dnorm(mu.p53, phi.p53)
+  }
+  
   for (k in 1:n.discovery){
-    #zeroes trick for MLE~cond prob
+     #zeroes trick for MLE~cond prob
     tau[k]<- pow(SE[k], -2)
-
-    L[k]<- dnorm(MLE[k],mu.p53, tau[k])/(pnorm(-q*SE, mu.p53, tau[k]) +
-                                        1-pnorm(q*SE, mu.p53, tau[k]))
+    L[k]<- dnorm(MLE[k],beta.p53[k+n.sites], tau[k])/
+      (pnorm(-q*SE, beta.p53[k+n.sites], tau[k]) +
+         1-pnorm(q*SE, beta.p53[k+n.sites], tau[k]))
     phi[k]<- -log(L[k])+C
     zeroes[k]~dpois(phi[k])
   }
@@ -283,15 +301,14 @@ p53.normal = function() {
   #E[prec] 20
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
   mu.p53 ~ dnorm(0,.1)
-  phi.p53 ~ dgamma(1, .05)
-  #    phi.p53 ~ dgamma(2, .02)
-  sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   
   mu.Age ~ dnorm(0, .1)
   phi.Age ~ dgamma(1, .05)
   sigma.Age  <- pow(phi.Age, -.5)
   #assoc~dbern(pind) *assoc
-  pind ~ dbeta(2,6)
+  pind ~ dbeta(.5,.5)
 }
 
 ```
@@ -302,13 +319,13 @@ p53.normal = function() {
 p53.bf.approx = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + mu.p53*p53[j] +
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
       beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
   
   for (l in 1:n.sites) {
     beta.site[l] ~ dnorm(mu.site, phi.site)
     beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    #beta.p53[l] <- beta.p53.1[l]*(assoc)
+    beta.p53[l] <- beta.p53.1[l]*(assoc)
     beta.Age[l] ~ dnorm(mu.Age, phi.Age)
   }
   beta.BC ~ dnorm(0, .1)
@@ -320,9 +337,8 @@ p53.bf.approx = function() {
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
   mu.p53.1 ~ dnorm(0,.1)
   mu.p53<-mu.p53.1*assoc
-  phi.p53 ~ dgamma(1, .05)
-  #    phi.p53 ~ dgamma(2, .02)
-  sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   
   mu.Age ~ dnorm(0, .1)
   phi.Age ~ dgamma(1, .05)
@@ -332,7 +348,7 @@ p53.bf.approx = function() {
   prior.odds<- (1-pind)/pind
   BF<- -exp(1)*p*log(p)
   post.ind<-prior.odds*BF/(1+prior.odds*BF)
-  pind ~ dbeta(2,6)
+  pind ~ dbeta(.5,.5)
 }
 ```
 
@@ -340,13 +356,11 @@ p53.bf.approx = function() {
 ```{r run models}
 parameters = c("mu1.site", "mu1.p53",  "beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind", "phi1.site","phi1.p53","beta.site", "beta.p53","phi.site","phi.p53")
 
-parameters4 = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" , "pind", "beta.site", "beta.p53", "assoc","mu.p53.iszero","beta.p53.iszero")
-
 parameters.normal<- c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" , "pind", "beta.site", "beta.p53", "assoc")
 
 p53.sim = jags(data=p53.data, inits=NULL, parameters.to.save =parameters, model = p53.model)
 p53.simval = jags(data=p53.dataval, inits=NULL, parameters.to.save =parameters, model = p53.model)
-p53.simnew4 = jags(data=p53.data.aug, inits=NULL, parameters.to.save =parameters4, model = p53.newmodel4)
+p53.simnew = jags(data=p53.data.aug, inits=NULL, parameters.to.save =parameters, model = p53.newmodel)
 
 ```
 
@@ -355,16 +369,10 @@ p53.simnormal = jags(data=p53.data.normal, inits=NULL, parameters.to.save =param
 p53.bfsim = jags(data=bfdata, inits=NULL, parameters.to.save =parameters, model = p53.bf.approx)
 ```
 
-```{r}
-p53.simnew3 = jags(data=p53.data, inits=NULL, parameters.to.save =parameters, model = p53.newmodel3)
-
-```
-
 
 
 
 ```{r comparison}
-library(dplyr)
 getOR<-function(sim){
   
 OR = as.data.frame(sim$BUGSoutput$sims.matrix)%>%select( starts_with("beta.p53"), "mu.p53")

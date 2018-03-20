@@ -7,7 +7,6 @@ library(ggplot2)
 library(knitr)
 require(gridExtra)
 source("HPD.R")
-source("p53simJAGScode.R")
 ```
 
 
@@ -77,7 +76,7 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
   cond.likelihood<-NULL
   if(!is.null(cond.data)){
     cond.likelihood <- jags(data=cond.data ,inits=inits,
-                            parameters.to.save =c("mu.p53", "sigma.p53"), 
+                            parameters.to.save =c("mu.p53"), 
                             model = cond.likelihood.model)
     cond.likelihood.re<- jags(data=cond.data ,inits=inits,
                               parameters.to.save =c("mu.p53", "sigma.p53"), 
@@ -85,7 +84,7 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
   }
   
   fixed <- jags(data=data$simdata, inits=inits, 
-                parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"), 
+                parameters.to.save =c("pind", "mu.p53","mu.p53.notzero"), 
                 model = fixed.model)
   original<- jags(data=data$simdata, inits=inits,
                   parameters.to.save =c("mu.p53", "sigma.p53"),
@@ -105,20 +104,38 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
 cl = makeCluster(8)
 registerDoParallel(cl)
 
-# inits= list(mu.p53 = 0, mu.p53.notzero=0, phi.p53=1)
-# inits$.RNG.name = "lecuyer::RngStream"
-# inits$.RNG.seed = randomNumbers(n=1, min=1, max=1e+06, col=1)
 
 mu=0.203;sd= 0.05831085 #from glmer estimates using all data
 assoc<-c(0,1,1,1,1)
 muvec<-c(0,mu,mu,mu,mu)
 sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
 
-I = 10 #getDoParWorkers()*10
-#I=1
+I = 10
+source("p53simJAGScode.R")
+system.time({
+  allsim<- foreach(j = 1:5) %:%
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
+    }
+})
+save.image()
 
+cl = makeCluster(8)
+registerDoParallel(cl)
+source("p53simJAGScode_uniform.R")
 system.time({
   allsim.u<- foreach(j = 1:5) %:%
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
+    }
+})
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+save.image()
+source("p53simJAGScode_cauchy.R")
+system.time({
+  allsim.c<- foreach(j = 1:5) %:%
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
       return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
     }
@@ -128,11 +145,9 @@ save.image()
 ```
 
 ```{r}
-
-#########
+#this one just has more models (re cl, original)
 cl = makeCluster(8)
 registerDoParallel(cl)
-mu=0.203;sd= 0.05831085 #from glmer estimates using all data
 assoc<-c(1,1)
 muvec<-c(mu,mu)
 sdvec<-c(sd,4*sd)
@@ -162,13 +177,15 @@ run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the s
     cond.likelihood<- lapply(pvals, function(p){
       cond.data<-get.cond.likelihood.data(data$simdata, p)
       return(jags(data=cond.data ,inits=inits,
-                  parameters.to.save =c("pind", "mu.p53", "phi.p53"), 
+                  parameters.to.save =c("mu.p53", "phi.p53"), 
+                  #rerun also with random effect?
                   model = cond.likelihood.model))
     })
   }
-  return(cond.likelihood)
+  return(list(cond.likelihood, data$beta.p53))
 }
 
+##delete this once things are done
 run.cl<- function(assoc,mu, sd, inits, p){
   cond.data = NULL;count=0
   while(is.null(cond.data) & count<1000){
@@ -187,6 +204,7 @@ run.cl<- function(assoc,mu, sd, inits, p){
 ```
 
 ```{r parallel cl}
+#remove these two once we can run bettercl with regular sd
 cl = makeCluster(8)
 registerDoParallel(cl)
 pvals=c(.05,.01,.005,.001, 1e-7)
@@ -210,7 +228,7 @@ system.time({
     }
 })
 save.image()
-
+####
 
 cl = makeCluster(8)
 registerDoParallel(cl)
@@ -235,13 +253,14 @@ getstatsitems<-c("hasmu","haszero","mean","median",
 modelnames<- c("Cauchy-Ones Trick","Normal-Ones Trick",
                "Normal-Latent","Cauchy-Latent",
                "Cond Likelihood", "Fixed Effect", "Original","CL RE")
-getstatsloop<-function(simlist,mu,sd,pind,modelnames){
+
+getstatsloop<-function(simlist,mu,sd,modelnames){
   I<-length(simlist)
-  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd,pind))
+  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd))
   return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
 }
 
-getstats<-function(jagsoutput, mu, sd, pind){
+getstats<-function(jagsoutput, mu, sd){
   mu.samples<- jagsoutput$BUGSoutput$sims.list$mu.p53
   if(!is.null(jagsoutput$BUGSoutput$sims.list$mu.p53.notzero)){
     mu.samples<-mu.samples*jagsoutput$BUGSoutput$sims.list$mu.p53.notzero
@@ -276,7 +295,7 @@ getstats<-function(jagsoutput, mu, sd, pind){
            sdmean= mean(sd.samples),
            sdmedian= median(sd.samples),
            sdintlen=sd.cred[2]-sd.cred[1],
-           haspind=pind.cred[2]>=pind&pind.cred[1]<=pind,
+           haspind=pind.cred[2]>=0&pind.cred[1]<=1,
            pindmean =mean(pind.samples),
            pindmedian=median(pind.samples),
            pindintlen=pind.cred[2]-pind.cred[1]
@@ -288,11 +307,11 @@ getstats<-function(jagsoutput, mu, sd, pind){
 
 
 ```{r get stats}
-sim.0<-getstatsloop(allsim[[1]],0, 1, 0) #13 modes?
-sim.half<-getstatsloop(allsim[[2]],mu, sd*.5, 1)
-sim.1<-getstatsloop(allsim[[3]],mu, sd, 1,modelnames[1:6])
-sim.2<-getstatsloop(allsim[[4]],mu,sd*2,1)
-sim.4<-getstatsloop(allsim.5[[1]],mu,sd*4,1)
+sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames[1:6]) #13 modes?
+sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames[1:6])
+sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames[1:6])
+sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames[1:6])
+sim.4<-getstatsloop(allsim.5[[1]],mu,sd*4,modelnames[1:6])
 
 ```
 
@@ -392,55 +411,42 @@ make_plots<-function(simlist, mu, sd, modelnames){
 ```
 
 
+
 ```{r}
 plots0<-make_plots(make_simlist(sim.0), 0,0, modelnames[1:6])
-
-```
-
-```{r}
 plots1<-make_plots(make_simlist(sim.1), mu,sd,modelnames[1:6])
+plots2<-make_plots(make_simlist(sim.2), mu,2*sd,modelnames[1:6])
+plotshalf<-make_plots(make_simlist(sim.2), mu,sd/2,modelnames[1:6])
+plots4<-make_plots(make_simlist(sim.4), mu,4*sd,modelnames[1:6])
 
 ```
 
-
-```{r}
-make_plots(make_simlist(sim.half), mu,sd, 1,modelnames)
-make_plots(make_simlist(sim.2),mu,sd, 1,modelnames)
-plots4<-make_plots(make_simlist(sim.4), mu,sd, 1,modelnames)
-
-```
 
 ```{r cl analysis}
-sim.cl.1<-sapply(cl.sim[[1]], getstats,mu,sd,1)
-sim.cl.2<-sapply(cl.sim[[2]], getstats,mu,sd,1)
-sim.cl.3<-sapply(cl.sim[[3]], getstats,mu,sd,1)
-sim.cl.4<-sapply(cl.sim[[4]], getstats,mu,sd,1)
-sim.cl.5<-sapply(cl.sim[[5]], getstats,mu,sd,1)
-clplots1<-make_plots(list(t(sim.cl.1), t(sim.cl.2), t(sim.cl.3),t(sim.cl.4),t(sim.cl.5)), mu,sd, pvals)
-#change this to lapply
+clplots1<-make_plots(lapply(cl.sim, function(x) t(sapply(x, getstats,mu,sd,1))), mu, sd,1,pvals)
 
-sim.cl.stats2 <- lapply(cl.sim2, function(x) t(sapply(x, getstats,mu,sd,1)))
+clplots2<-make_plots(lapply(cl.sim2, function(x) t(sapply(x, getstats,mu,sd,1))), mu, sd,1,pvals)
 
-clplots2<-make_plots(sim.cl.stats2, mu, sd,1,pvals)
-
-#return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
+#can use the other fn when rerunning so
+#sim.cl.stats.better<-getstatsloop(cl.sim.better,0, 1, pvals) #13 modes?
 
 vec <- sapply(cl.sim.better, function(x) sapply(x, getstats,mu,sd,1))
 sim.cl.stats.better <-array(data=vec,dim= c(length(getstatsitems),length(pvals),I))
-cl.better.simlist<-make_simlist(sim.cl.stats.better)
-cl.better.plots<-make_plots(cl.better.simlist, mu,sd,pvals)
+
+cl.better.plots<-make_plots(make_simlist(sim.cl.stats.better), mu,sd,pvals)
 ```
 
 #### assorted notes/explanations/stuff- will move around once things are more set
 
-Simulations: 
+### Simulations: 
 
+The data are generated from a hierarchical (i.e. mixed effect) logistic model as follows: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
 
-The data are generated from a hierarchical logistic model as follows: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$ (see [Frequentist Results]). The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7 and 30 to compare the effect of sites. Each site had 1000 observations.
 
-To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$ (see [Frequentist Results]). The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7 and 30 to compare. Each site had 1000 observations.
+A total of `r I` simulations were run.
 
-The models are specified as follows: 
+### Models 
 
 1. The probability of association $\xi$ can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$. That is,  $\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)$, and $P(\iota = 1 ) = \xi$. This is the latent variable model with normal prior. Then $\xi \sim Beta(1/2, 1/2), \sigma \sim invGamma(1, .05), \beta_j \sim N(\mu, \sigma^2), Y_{ij} \sim logit^{-1}(\beta_j)$.
 
@@ -467,10 +473,19 @@ The validation sites are modeled with the mixed effect model with a normal prior
 There is one model specified with random effects and one without. The fixed effect model is described above, and the random effect model assumes $MLE_i$ comes from a normal distribution centered at site effect $\beta_i$ rather than at $\mu$, and that the validation data $Y_{ij} \sim N(\beta_j, \sigma)$ as in the fully Bayesian models.
 
 
+Posterior inference for all models was based on running 2,000 iterations of a Markov chain Monte Carlo (MCMC) algorithm using JAGS**version etc**.
 
 ##### Some Analysis
 
-Sensitivity of CL
+### General things
+
+We compute Bayesian 95% credible intervals by using the highest posterior density (HPD), taking the 95% of the sampled values with the highest density. The coverage is based on whether or not the true value is within this interval.
+
+Point estimates for $\mu, \sigma^2, \xi$ were calculated used posterior mean and median; both are shown below.
+
+
+### Sensitivity of conditional likelihood method to changes in $\alpha$
+
 The conditional likelihood method is not robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model for each level was then fitted. The results from these show that, while the posterior mean estimate was the same for different $\alpha$, the credible intervals got larger as $\alpha$ decreased. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results, but this can be explained by the fact that the models take into account the selection mechanism. This means that, if an estimate has p-value much lower than $\alpha$, the model will be more confident that it came from a nonzero distribution than if it is close to $\alpha$.
 
 One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
@@ -482,18 +497,17 @@ lapply(clplots1$tables, kable)
 
 ```
 
-General model things
-Mu
-Bias/RMSE
-
 
 ### Sensitivity
 
+To test the robustness of the models (and their mixing ability), the simulations were run with a range of standard deviations:  $\frac{\sigma}{2},\sigma, 2\sigma,4\sigma$. The rest of the parameters remained the same.
 As expected, the models performed more poorly as $\sigma$ increased. However, while one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for the implementations using the ones trick, indicating that **a**.
 
 ```{r}
+plots2
 
 ```
+
 
 
 
@@ -512,7 +526,10 @@ plots0
 Although using 7 sites more closely mimics the real data, these are not enough to get a good estimate if we consider each site as an observation of sorts in the hierarchical model. Thus, to test the behaviour of the priors for $\sigma$, this number was increased to 30, which led to significantly improved estimates for sigma, showing that although the inverse gamma was not the best fit, part of the reason it led to overestimates of theta was the small number of sites.
 
 ```{r}
+plots.30.1<-make_plots(make_simlist(sim.30.1), mu,sd,modelnames[1:6])
 
+plots1$tables
+plots.30.1$tables
 ```
 
 
@@ -521,10 +538,10 @@ Although using 7 sites more closely mimics the real data, these are not enough t
 JAGS of latent v ones trick- potentially have some traceplots to show
 ```{r}
 #simulation 68 in sim1
-traceplot(allsim[[3]][[68]][[1]], varname="mu.p53") #latent, normal
-traceplot(allsim[[3]][[68]][[2]], varname="mu.p53") #latent, cauchy
-traceplot(allsim[[3]][[68]][[3]], varname="mu.p53") #ones, normal
-traceplot(allsim[[3]][[68]][[4]], varname="mu.p53") #ones, cauchy
+traceplot(allsim[[3]][[68]][[1]], varname="mu.p53") #ones, normal
+traceplot(allsim[[3]][[68]][[2]], varname="mu.p53") #ones, cauchy
+traceplot(allsim[[3]][[68]][[3]], varname="mu.p53") #latent, normal
+traceplot(allsim[[3]][[68]][[4]], varname="mu.p53") #latent, cauchy
 
 allsim[[3]][[68]][[7]] #true beta
 ```
