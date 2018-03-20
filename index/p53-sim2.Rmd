@@ -235,9 +235,9 @@ getstatsitems<-c("hasmu","haszero","mean","median",
 modelnames<- c("Cauchy-Ones Trick","Normal-Ones Trick",
                "Normal-Latent","Cauchy-Latent",
                "Cond Likelihood", "Fixed Effect", "Original","CL RE")
-getstatsloop<-function(simlist,mu,sd,pind,modelnames, e=.03){
+getstatsloop<-function(simlist,mu,sd,pind,modelnames){
   I<-length(simlist)
-  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd,pind, e))
+  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd,pind))
   return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
 }
 
@@ -254,8 +254,11 @@ getstats<-function(jagsoutput, mu, sd, pind){
     upper <- c(upper,cred[4])
     lower <- c(lower,cred[3])
   }
+  sd.samples<-sd.cred<-NA
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$sigma.p53)){
   sd.samples <- (jagsoutput$BUGSoutput$sims.list$sigma.p53)
   sd.cred<- HPDM(sd.samples)
+  }
   
   pind.samples<-pind.cred<-NA
   if(!is.null(jagsoutput$BUGSoutput$sims.list$pind)){
@@ -268,7 +271,7 @@ getstats<-function(jagsoutput, mu, sd, pind){
            median = median(mu.samples),
            ismultimodal=length(cred)>2,
            intervallength = sum(upper-lower),
-           probzero = sum(mu.samples)==0)/length(mu.samples),
+           probzero = sum(mu.samples==0)/length(mu.samples),
            hassd= sd.cred[2]>=sd&sd.cred[1]<=sd,
            sdmean= mean(sd.samples),
            sdmedian= median(sd.samples),
@@ -287,7 +290,7 @@ getstats<-function(jagsoutput, mu, sd, pind){
 ```{r get stats}
 sim.0<-getstatsloop(allsim[[1]],0, 1, 0) #13 modes?
 sim.half<-getstatsloop(allsim[[2]],mu, sd*.5, 1)
-sim.1<-getstatsloop(allsim[[3]],mu, sd, 1)
+sim.1<-getstatsloop(allsim[[3]],mu, sd, 1,modelnames[1:6])
 sim.2<-getstatsloop(allsim[[4]],mu,sd*2,1)
 sim.4<-getstatsloop(allsim.5[[1]],mu,sd*4,1)
 
@@ -338,9 +341,8 @@ make_plots<-function(simlist, mu, sd, modelnames){
   coverage1<-melt(coverage)
   levelnames<-c("Neither", "Only Zero","Only Mu","Both")
   coverage1$value<-factor(levelnames[coverage1$value+1])
-  mucoverage= table(coverage1)/100.
-  print(coverage1)
-  
+  mucoverage= table(coverage1)/length(simlist[[1]])
+
   # disjoint<- data.frame(sapply(simlist, function(x) x[,5]))
   # d0 = (containszero==0)*(disjoint)
   # colnames(d0) = modelnames
@@ -377,23 +379,21 @@ make_plots<-function(simlist, mu, sd, modelnames){
                                 title= "pind Intervals"))
   sdcov<- data.frame(sapply(simlist, function(x) x[,8]))
   colnames(sdcov)<-modelnames
-  sdcoverage<-table(melt(sdcov))/100.
-  
-  pindcov<- data.frame(sapply(simlist, function(x) x[,12]))
-  colnames(pindcov)<-modelnames
-  pindcoverage<-table(melt(pindcov))/100.
+  sdcov1<-melt(sdcov)
+  sdcov1$value<-ifelse(sdcov1$value==1,  "Contains","Does Not Contain")
+  sdcoverage<-table(melt(sdcov1))/length(simlist[[1]])
   
   return(list(plots = list(muerr$plot, plot3,plot4,sderr$plot,
                            pinderr$plot,plot7,plot8),
               tables = list(muerr$table, sderr$table, pinderr$table,
-                            mucoverage, sdcoverage,pindcoverage)))
+                            mucoverage, sdcoverage)))
 }
 
 ```
 
 
 ```{r}
-plots0<-make_plots(make_simlist(sim.0), 0,1, modelnames)
+plots0<-make_plots(make_simlist(sim.0), 0,0, modelnames[1:6])
 
 ```
 
@@ -416,7 +416,7 @@ sim.cl.2<-sapply(cl.sim[[2]], getstats,mu,sd,1)
 sim.cl.3<-sapply(cl.sim[[3]], getstats,mu,sd,1)
 sim.cl.4<-sapply(cl.sim[[4]], getstats,mu,sd,1)
 sim.cl.5<-sapply(cl.sim[[5]], getstats,mu,sd,1)
-make_plots(list(t(sim.cl.1), t(sim.cl.2), t(sim.cl.3),t(sim.cl.4),t(sim.cl.5)), mu,sd, pvals)
+clplots1<-make_plots(list(t(sim.cl.1), t(sim.cl.2), t(sim.cl.3),t(sim.cl.4),t(sim.cl.5)), mu,sd, pvals)
 #change this to lapply
 
 sim.cl.stats2 <- lapply(cl.sim2, function(x) t(sapply(x, getstats,mu,sd,1)))
@@ -475,6 +475,12 @@ The conditional likelihood method is not robust to changes in the level $\alpha$
 
 One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
 
+```{r}
+lapply(cl.better.plots$tables, kable)
+lapply(clplots1$tables, kable)
+
+
+```
 
 General model things
 Mu
@@ -485,27 +491,60 @@ Bias/RMSE
 
 As expected, the models performed more poorly as $\sigma$ increased. However, while one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for the implementations using the ones trick, indicating that **a**.
 
+```{r}
+
+```
+
+
 
 ### Probability of H0 v H1
 
-Simulated datasets that were not truly associated were also fit with the models described above, all of which did well as expected. **table**
+Simulated datasets that were not truly associated were also fit with the models described above, all of which did well, as expected. 
+
+```{r}
+plots0
+```
+
+
 
 ### Number of Sites
 
 Although using 7 sites more closely mimics the real data, these are not enough to get a good estimate if we consider each site as an observation of sorts in the hierarchical model. Thus, to test the behaviour of the priors for $\sigma$, this number was increased to 30, which led to significantly improved estimates for sigma, showing that although the inverse gamma was not the best fit, part of the reason it led to overestimates of theta was the small number of sites.
 
+```{r}
+
+```
+
+
 
 ### mu and zero part
 JAGS of latent v ones trick- potentially have some traceplots to show
+```{r}
+#simulation 68 in sim1
+traceplot(allsim[[3]][[68]][[1]], varname="mu.p53") #latent, normal
+traceplot(allsim[[3]][[68]][[2]], varname="mu.p53") #latent, cauchy
+traceplot(allsim[[3]][[68]][[3]], varname="mu.p53") #ones, normal
+traceplot(allsim[[3]][[68]][[4]], varname="mu.p53") #ones, cauchy
+
+allsim[[3]][[68]][[7]] #true beta
+```
  
 
-One problem that arises when using the ones trick is that the markov chain does not sample from the entire space, but rather gets stuck within a subset of values **figure this out**. This leads to posteriors for $\mu$ that are either positive or negative, with almost no zero values.
+One problem that arises when using the ones trick is that the markov chain does not sample from the entire space, but rather gets stuck within a subset of values. This leads to posteriors for $\mu$ that are either positive or negative, with no zero values. In the example shown, all true values of $\beta_j$ are greater than zero; however, the chains that were initialized with negative values in the latent variable models never reach positive or zero values for $\mu$.
 
 
 ### sigma
 
 Both the uniform and the truncated cauchy lead to better estimates of the variance than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
 
+```{r}
+kable(plots1$tables[[5]], caption = "Coverage of Variance")
+kable(plots1.u$tables[[5]], caption = "Coverage of Variance using Uniform Prior")
+kable(plots1.c$tables[[5]], caption = "Coverage of Variance using Truncated Cauchy Prior")
+
+
+
+```
 
 
 

@@ -96,7 +96,8 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
         }
         else{ 
           d<-X[-zeroes]
-          epsilon<- max(e/3, min(abs(X[min(max(zeroes)+1,length(X))]),abs(X[max(min(zeroes)-1,1)]))/20)
+          epsilons<-c(abs(X[min(max(zeroes)+1,length(X))]),abs(X[max(min(zeroes)-1,1)]))
+          epsilon<-ifelse(min(epsilons)==0, max(epsilons),min(epsilons))/20
           pi<- length(d)/n
           kde <- density(d)
           dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
@@ -142,7 +143,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
         if(print){cat("\nColumn", m, "multimodal intervals:", ints, "\n")}
         if(plot){
           plot(dens$x, dens$mix, type = "l")
-          plotvar(X,e)
+          #plotvar(X,e)
           points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
         }
       }
