@@ -38,9 +38,9 @@ get.cond.likelihood.data<- function(data, p = 0.00325){
 
 
 ```{r sampling}
-#true mu fixed, smaller variance to make sure it is above 0 (especially since it's learned anyway)
 
-sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ #assoc is H
+sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ 
+  #assoc is H
   beta.p53 = rnorm(n.sites,mu,sd)*assoc 
   Y <-site <- rep(NA, observations*n.sites)
   for(i in 1:n.sites){
@@ -435,13 +435,11 @@ Simulations:
 
 The data are generated from a hierarchical logistic model as follows: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
 
-To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu = , \sigma^2 = $ **insert values, link to freq analysis**. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7 and 30 to compare. Each site had 1000 observations.
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$ (see [Frequentist Results]). The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7 and 30 to compare. Each site had 1000 observations.
 
 The models are specified as follows: 
 
-
-1. The probability of association $\xi$ can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$. That is,  $\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)$, and $P(\iota = 1 ) = \xi$. This is the latent variable model with normal prior. Then $\xi \sim Beta(1/2, 1/2), \sigma \sim invGamma(1, .05), \beta_j \sim N(\mu, \sigma^2), Y_{ij} \sim logit^{-1}(\beta_j)$,
-$.
+1. The probability of association $\xi$ can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$. That is,  $\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)$, and $P(\iota = 1 ) = \xi$. This is the latent variable model with normal prior. Then $\xi \sim Beta(1/2, 1/2), \sigma \sim invGamma(1, .05), \beta_j \sim N(\mu, \sigma^2), Y_{ij} \sim logit^{-1}(\beta_j)$.
 
 2. The point mass can be approximated using a very concentrated normal distribution, centered at 0. Thus, $\pi(\mu|\xi) = (1-\xi) N(\mu, 0, \epsilon)+ \xi N(\mu,0 ,1)$. The other priors are the same as in the latent variable model.
 
@@ -464,7 +462,6 @@ $\mu \sim N(0, .1)$.
 The validation sites are modeled with the mixed effect model with a normal prior for $\mu$ and inverse gamma for $\sigma$.
 
 There is one model specified with random effects and one without. The fixed effect model is described above, and the random effect model assumes $MLE_i$ comes from a normal distribution centered at site effect $\beta_i$ rather than at $\mu$, and that the validation data $Y_{ij} \sim N(\beta_j, \sigma)$ as in the fully Bayesian models.
-
 
 
 

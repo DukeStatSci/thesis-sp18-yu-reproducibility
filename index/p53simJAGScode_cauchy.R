@@ -14,7 +14,7 @@ cond.likelihood.model = function() {
   }
   
   mu.p53 ~ dnorm(0,.1)
-
+  
 }
 
 cond.likelihood.re.model = function() {
@@ -37,10 +37,10 @@ cond.likelihood.re.model = function() {
   }
   
   mu.p53 ~ dnorm(0,.1)
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  # phi.p53 <- pow(sigma.p53, -2)
-  # sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
 }
 
 ones.cauchy.model= function() {
@@ -63,10 +63,10 @@ ones.cauchy.model= function() {
   p <- L/ C
   one~ dbern(p)
   mu.p53 ~ dunif(-10,10) 
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  #phi.p53 <- pow(sigma.p53, -2)
-  #sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   pind ~ dbeta(.5,.5)
 }
 
@@ -89,10 +89,10 @@ ones.normal.model= function() {
   p <- L/ C
   one ~ dbern(p)
   mu.p53 ~ dunif(-10,10) 
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  # phi.p53 <- pow(sigma.p53, -2)
-  #sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   pind ~ dbeta(.5,.5)
 }
 
@@ -108,10 +108,10 @@ latent.normal.model= function() {
   
   mu.p53<- mu1.p53*mu.p53.notzero
   mu1.p53 ~ dnorm(0,1)
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  # phi.p53 <- pow(sigma.p53, -2)
-  # sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   mu.p53.notzero~dbern(pind)
   pind ~ dbeta(.5,.5)
 }
@@ -128,10 +128,10 @@ latent.cauchy.model= function() {
   
   mu.p53<- mu1.p53*mu.p53.notzero
   mu1.p53 ~ dt(0,1, 1)
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5) #half cauchy, uniform to 1 or to 5, take a guess on sd
-  # phi.p53 <- pow(sigma.p53, -2)
-  # sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5) #half cauchy, uniform to 1 or to 5, take a guess on sd
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
   mu.p53.notzero~dbern(pind)
   pind ~ dbeta(.5,.5)
 }
@@ -157,8 +157,8 @@ original.model = function() {
   }
   
   mu.p53 ~ dnorm(0,1)
-  phi.p53 ~ dgamma(1, .05)
-  sigma.p53 <- pow(phi.p53, -.5)
-  # phi.p53 <- pow(sigma.p53, -2)
-  # sigma.p53 ~ dunif(0,1) #dt(0,1,1)%_%T(0,)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
 }
