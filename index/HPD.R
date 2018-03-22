@@ -61,7 +61,7 @@ is.multimodal <- function(x, min.size=0.01)
 
 
 
-HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
+HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, pointmass = 0, plot=FALSE, print=FALSE){
   vals <- apply(obj, 2, sort)
   if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
   nsamp <- nrow(vals)
@@ -83,15 +83,15 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
     for (m in which(mm)) {
       X<- vals[,m]
       n<- length(X)
-      zeroes<- which(abs(X)<=e)
+      zeroes<- which(abs(X-pointmass)<=e)
       if(length(zeroes)>=length(X)-1){ #because need 2 points for density
-        ansmm[m,]<-c(0,0)
+        ansmm[m,]<-c(pointmass,pointmass)
       }
       else{
         if(length(zeroes)==0){ 
           pi<- length(X)/n
           kde<-density(X)
-          dens <- rbind(data.frame(approx(kde$x, kde$y, X)),data.frame(x=0,y=0))
+          dens <- rbind(data.frame(approx(kde$x, kde$y, X)),data.frame(x=pointmass,y=0))
           dens$mix <- dens$y
         }
         else{ 
@@ -101,9 +101,9 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
           pi<- length(d)/n
           kde <- density(d)
           dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
-                        data.frame(x = rep(0,(n-length(d))),y= rep(0,(n-length(d)))))
+                        data.frame(x = rep(pointmass,(n-length(d))),y= rep(0,(n-length(d)))))
           #mix of normals
-          dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, 0, epsilon)/dnorm(0, 0, epsilon)
+          dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, pointmass, epsilon)/dnorm(pointmass, pointmass, epsilon)
         }
         
         dens<-dens[order(dens$x),]
@@ -156,16 +156,16 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, plot=FALSE, print=FALSE){
   }
 }
 
-plotvar = function(x, e = 1e-04, nsteps = 500, newplot=TRUE) {
-  zeroes = which(abs(x)<e)
+plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE) {
+  zeroes = which(abs(x-pointmass)<e)
   prob0=length(zeroes)/length(x)
   xne0= x
   if(prob0>0){
     xne0=x[-zeroes]
   }
   if(prob0==1){
-    xlower = -0
-    xupper = 0
+    xlower = pointmass-e
+    xupper = pointmass+e
     xmax = 1
   }
   m=mean(xne0)
@@ -174,8 +174,8 @@ plotvar = function(x, e = 1e-04, nsteps = 500, newplot=TRUE) {
   #qmax = max(qnorm(1 - e/2, m, s))
   #xlower = min(qmin, 0)
   #xupper = max(0, qmax)
-  xlower=min(max(qnorm(e/2, m, s ),min(x)),0)
-  xupper=max(min(max(x),qnorm(1 - e/2, m, s)),0)
+  xlower=min(max(qnorm(e/2, m, s ),min(x)),pointmass)
+  xupper=max(min(max(x),qnorm(1 - e/2, m, s)),pointmass)
   
   xx = seq(xlower, xupper, length.out = nsteps)
   yy = rep(0, times = length(xx))
@@ -201,7 +201,7 @@ plotvar = function(x, e = 1e-04, nsteps = 500, newplot=TRUE) {
     plot(c(xlower, xupper), c(0, ymax), type = "n",
          xlab = "", ylab = "")
   }
-  lines(c(0, 0), c(0, prob0), lty = 1, lwd = 3,col=as.numeric(newplot)+1)
+  lines(c(pointmass, pointmass), c(0, prob0), lty = 1, lwd = 3,col=as.numeric(newplot)+1)
   lines(xx, (1 - prob0) * yy/maxyy, lty = 1, lwd = 1,col=as.numeric(newplot)+1)
   #invisible()
 }
