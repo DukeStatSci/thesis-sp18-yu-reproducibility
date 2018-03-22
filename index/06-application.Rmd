@@ -1,8 +1,9 @@
 # Application
 
 ```{r}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(cache = FALSE)
 
 library(rmeta)
 library(lme4)
@@ -16,8 +17,50 @@ source("HPD.R")
 
 ## Genome Study
 
-- description from previous papers
+### Introduction
 
+The aim is to study the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. Its role in carcinogenesis has been confirmed in various studies (for more detailed information, see **[p53 paper]**).
+
+### Data
+
+#### Discovery Sites
+
+Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS),(21) the Mayo Clinic Case-Control Study (MAYO),(22) and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites.
+
+```{r}
+##table of cases and controls
+```
+
+
+
+#### Replication Sites
+
+Ten other sites contributed data: the Australian Ovarian Cancer Study (AOCS) and the Australian Cancer Study (ACS) presented together as AUS, the Family Registry for Ovarian Cancer (FROC, presented as STA), the Hawaiian Ovarian Cancer Study (HAW), the Malignant Ovarian Cancer Study Denmark (MALOVA), the New England Case-Control Study (NEC), the Nurses' Health Study (NHS), SEARCH Cambridge (SEA), the Los Angeles County Case-Control Study of Ovarian Cancer (LAC-CCOC, presented here as USC), the University of California at Irvine study (UCI), and the United Kingdom Ovarian Cancer Population Study (UKOPS, presented here as UKO).
+
+```{r}
+##table of cases and controls
+```
+
+The combined data set (discovery and replication) comprised ** is this right, use inline r** 5,206 white, non-Hispanic invasive epithelial ovarian cancer cases, of which 2,829 were classified as serous invasive ovarian cancer, and 8,790 white non-Hispanic controls. 
+
+### Motivation
+
+Traditionally, genome-wide-significant associations often fail or have much smaller effects in replication tests because of the winner's curse and using discovery data twice (when testing for significance, and calculating the effect size). To account for this discrepancy, previous studies perform two analyses: one with all the data together, and one only using the validation site data. However, this approach not only throws away all the discovery data, which could be a large portion of the total dataset, reducing power, but also assumes that the significance found in the discovery data is certain, which is especially problematic in genome-wide association studies, which perform multiple testing to find associations.
+
+We propose several approaches: 
+
+1. A Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP(???).
+
+2. A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size.
+
+3. A bayes factor based model that uses the bayes factor from the discovery sites (which is more reliable than the p-value, as discussed previously) to quantify the uncertainty of the significant result.
+
+While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, alpha) are available. 
+
+
+### Bayesian Model
+
+In this model, the prior distribution of $\mu$ is modeled with a spike and slab prior
 
 
 
