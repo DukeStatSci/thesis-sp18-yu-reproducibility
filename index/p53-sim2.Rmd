@@ -1,4 +1,8 @@
 ```{r}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(cache = FALSE)
+
 library(doParallel)
 library(R2jags)
 library(random)
@@ -567,7 +571,7 @@ One problem that arises when using the ones trick is that the markov chain does 
 Both the uniform and the truncated cauchy lead to better estimates of the variance than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
 
 ```{r}
-kable(plots1$tables[[5]], caption = "Coverage of Variance")
+#kable(plots1$tables[[5]], caption = "Coverage of Variance")
 kable(plots1.u$tables[[5]], caption = "Coverage of Variance using Uniform Prior")
 kable(plots1.c$tables[[5]], caption = "Coverage of Variance using Truncated Cauchy Prior")
 
