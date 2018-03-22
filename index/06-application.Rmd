@@ -58,6 +58,9 @@ if(!is.null(drop)) {
   
 }
 
+```
+
+```{r}
 snp.name="rs12951053n"
 discovery.sitenames= c("POL", "MAY", "NCO")
 #regular data
@@ -66,6 +69,7 @@ p53.data<- getdata(snp.name)
 p53.dataval<- getdata(snp.name, drop=discovery.sitenames)
 
 ```
+
 
 
 
@@ -247,7 +251,7 @@ p53.newmodel = function() {
   
   #E[prec] 20
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53<- mu1.p53*mu.p53.notzero
+  mu.p53<- mu1.p53*assoc
   mu1.p53 ~ dt(0,1, 1)
   phi.p53 <- pow(sigma.p53, -2)
   sigma.p53 ~ dt(0,1,1)%_%T(0,)
@@ -346,7 +350,7 @@ p53.bf.approx = function() {
   
   assoc~dbern(post.ind)
   prior.odds<- (1-pind)/pind
-  BF<- -exp(1)*p*log(p)
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
   post.ind<-prior.odds*BF/(1+prior.odds*BF)
   pind ~ dbeta(.5,.5)
 }
@@ -386,20 +390,27 @@ sum.OR = t(apply(exp(OR), 2, function(x) {PI = HPDinterval(as.mcmc(x))
 }
 
 OR1<-getOR(p53.sim) #regular
-OR3<-getOR(p53.simnew3) #w assoc
-OR4<-getOR(p53.simnew4) #w point mass ind
-ORn<-getOR(p53.simnormal) #MLEs for prior
+ORval<-getOR(p53.simval)
+ORnew<-getOR(p53.simnew) #w assoc
+ORnormal<-getOR(p53.simnormal) #MLEs for prior
 ORbf<-getOR(p53.bfsim) #MLEs for prior
 ```
 
 ```{r}
-ORtable = data.frame(original= OR1["mu.p53",], latentvar= OR3["mu.p53",],
-                 zerotrick= OR4["mu.p53",] , cond= ORn["mu.p53",], bfapprox= ORbf["mu.p53",])
+ORtable = data.frame(original= OR1["mu.p53",], validation = ORval["mu.p53",], latentvar= ORnew["mu.p53",], cond= ORnormal["mu.p53",], bfapprox= ORbf["mu.p53",])
 rownames(ORtable)<- c("Median", "2.5%","97.5%")
 kable(ORtable)
+
+plotvar(p53.simnew$BUGSoutput$sims.list$mu.p53)
+plotvar(p53.simnormal$BUGSoutput$sims.list$mu.p53)
+plotvar(p53.bfsim$BUGSoutput$sims.list$mu.p53)
 ```
 
 - discussion of OR
+
+The bayes factor and conditional likelihood 
+
+
 - at least one example of a posterior?
 - plot CI comparisons
 - plot something like the shrinkage
