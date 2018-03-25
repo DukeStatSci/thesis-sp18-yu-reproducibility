@@ -1,0 +1,134 @@
+### additional simulation models
+
+1. The probability of association $\xi$ can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$. That is,  $\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)$, and $P(\iota = 1 ) = \xi$. This is the latent variable model with normal prior. Then $\xi \sim Beta(1/2, 1/2), \sigma \sim invGamma(1, .05), \beta_j \sim N(\mu, \sigma^2), Y_{ij} \sim logit^{-1}(\beta_j)$.
+
+2. The point mass can be approximated using a very concentrated normal distribution, centered at 0. Thus, $\pi(\mu|\xi) = (1-\xi) N(\mu, 0, \epsilon)+ \xi N(\mu,0 ,1)$. The other priors are the same as in the latent variable model.
+
+Models that do not use the latent variable must specify the mixture distribution in JAGS directly. This is done through the ones trick, which use the Bernoulli distribution in order to allow for arbitrary distributions. Consider a prior  for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
+
+In these scenarios, the model from which a sample comes from is also not evident. To determine whether a small value is truly from the concentrated normal, we can compute the probability of the sample for the two distributions and choose the model that results in a larger one.
+
+3. and 4. The "ones-cauchy" and "latent-cauchy" have the same structure as the original ones, but use a $Cauchy(0,1)$ prior for $\mu$ to allow for larger effects without increasing the variance and making the prior too diffuse, which could lead to Lindley's paradox. In the case of the ones model, the point mass approximation is kept as a Normal.
+
+5. The "fixed" model is just the same as the latent variable model with normal prior, but without the site effect.
+
+6. The "original" model is a slightly modified version of the one used in the previous analysis of the TP53 data (see Data section **link or st here**). This has a normal prior for $\mu$, the global effect. This model is equivalent to the mixture model given the alternative (i.e. that mu is significant or $\xi = 1$).
+
+7. and 8. The conditional likelihood model takes into account the probability of a "significant" event occurring when calculating its likelihood (i.e. the likelihood conditional on having significant data). In this model, we differentiate between the discovery and validation data. Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\mu, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \mu, SE_i)}{\Phi(-q, \mu, SE_i)+1-\Phi(q, \mu, SE_i)}$, where $\phi(x, \mu, \sigma)$ is the pdf of a normal distribution with mean $\mu$ and variance $\sigma^2$, and $\Phi(x, \mu, \sigma)$ is the cdf of the same distribution. The value of $q$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, and $\alpha$ is the power of the test (that is, p-values that are greater than $\alpha$ are not considered significant). Let this distribution be denoted as $CL(\mu,SE_i, q)$. The MLE and SE are sufficient statistics.
+
+
+
+### Number of Sites
+
+Although using 7 sites more closely mimics the real data, these are not enough to get a good estimate if we consider each site as an observation of sorts in the hierarchical model. Thus, to test the behaviour of the priors for $\sigma$, this number was increased to 30, which led to significantly improved estimates for sigma, showing that part of the reason the inverse gamma prior led to overestimates of theta was the small number of sites.
+
+However, the estimates for $\mu$ become biased for all models, although the conditional likelihood model obtained the best estimates. **should re run with more simulations and see if the results are still like this**.
+
+```{r}
+plots.30.1<-make_plots(make_simlist(sim.30.1), mu,sd,modelnames[1:6])
+plots.30.4<-make_plots(make_simlist(sim.30.4), mu,sd,modelnames[1:6])
+
+plots4$tables
+plots.30.4$tables
+```
+
+
+
+### mu and zero part
+JAGS of latent v ones trick- potentially have some traceplots to show
+```{r}
+#simulation 68 in sim1
+traceplot(allsim[[3]][[68]][[1]], varname="mu.p53") #ones, normal
+traceplot(allsim[[3]][[68]][[2]], varname="mu.p53") #ones, cauchy
+traceplot(allsim[[3]][[68]][[3]], varname="mu.p53") #latent, normal
+traceplot(allsim[[3]][[68]][[4]], varname="mu.p53") #latent, cauchy
+
+allsim[[3]][[68]][[7]] #true beta
+```
+ 
+
+One problem that arises when using the ones trick is that the markov chain does not sample from the entire space, but rather gets stuck within a subset of values. This leads to posteriors for $\mu$ that are either positive or negative, with no zero values. In the example shown, all true values of $\beta_j$ are greater than zero so the posterior probability of negative values of $\mu$ should be low; however, the chains that were initialized with negative values in the latent variable models never reach positive or zero values for $\mu$.
+
+
+### sigma
+
+Both the uniform and the truncated cauchy lead to better estimates of the variance than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
+
+```{r}
+
+modelnames1<- c("Bayesian","Original","Conditional Likelihood")
+simlist1.u<-getstatsloop(allsim.u[[3]][c(4,7,8)],mu, sd, modelnames[c(4,7,8)])
+plots1.u<-make_plots(make_simlist(simlist1.u), mu,sd,modelnames)
+
+newallsim.c<-lapply(allsim.c[[3]], function(x) x[c(4,7,8,9)])
+simlist1.c<-getstatsloop(newallsim.c,mu, sd, modelnames1)
+plots1.c<-make_plots(make_simlist(simlist1.c), mu,sd,modelnames1)
+
+newallsimhalf.c<-lapply(allsim.c[[2]], function(x) x[c(4,7,8,9)])
+simlisthalf.c<-getstatsloop(newallsimhalf.c,mu, sd, modelnames1)
+
+newallsim2.c<-lapply(allsim.c[[4]], function(x) x[c(4,7,8,9)])
+simlist2.c<-getstatsloop(newallsim2.c,mu, sd, modelnames1)
+
+newallsim4.c<-lapply(allsim.c[[5]], function(x) x[c(4,7,8,9)])
+simlist4.c<-getstatsloop(newallsim4.c,mu, sd, modelnames1)
+plots4.c<-make_plots(make_simlist(simlist4.c), mu,sd,modelnames1)
+
+
+newallsim0.c<-lapply(allsim.c[[1]], function(x) x[c(4,7,8,9)])
+simlist0.c<-getstatsloop(newallsim0.c,mu, sd, modelnames1)
+
+
+
+  df<- data.frame(melt(t(abs(simlist0.c[4,,])))[,2:3], simulation=0)
+  simslist<-list(simlisthalf.c,simlist1.c,simlist2.c,simlist4.c)
+  for (i in 1:4){
+     df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
+  }
+  df
+  mseplot = ggplot(data = (df), 
+                            aes(x=Var2, y=value)) +
+                geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() +
+  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
+    scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c(expression(paste(mu, " = 0")),"s/2", "s", "2s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+mseplot
+###
+
+#simulation plots
+museplot<-plots1.c$plots[[1]]+  theme_minimal() +
+  scale_colour_few()+labs(x="Model", title=expression(paste("Absolute Error of ",mu)))
+muintplot<-plots1.c$plots[[2]]+  theme_minimal() + scale_colour_few()+labs(title=expression(paste("Confidence Interval Length of ",mu)))
+
+rmse<-cbind(plots4.c$table[[1]][,2],plots1.c$table[[1]][,2])
+rownames(rmse)<-c("Bayesian", "Original", "Conditional Likelihood")
+colnames(rmse)<-c("diffuse true distribution", "dense true distribution")
+
+mutable<-grid.arrange(tableGrob(rmse))
+
+#mu4table<-grid.arrange(tableGrob(plots4.c$table[[1]]))
+#plots0$plots[[1]] mayb enot
+
+clplots1<-make_plots(lapply(cl.sim, function(x) t(sapply(x, getstats,mu,sd))), mu, sd,pvals)
+
+clintplot<-clplots1$plots[[2]]+  theme_minimal() + 
+  scale_colour_few()+labs(x= expression(paste(alpha, " level")),title=expression(paste("Confidence Interval Length of ",mu, " by ", alpha)))
+
+grid.arrange(clintplot,muintplot,ncol=2)
+
+
+
+-#-############
+#kable(plots1$tables[[5]], caption = "Coverage of Variance")
+kable(plots1.u$tables[[1]], caption = "RMSE of Mean using Uniform Prior")
+kable(plots1.c$tables[[1]], caption = "RMSE of Mean using Truncated Cauchy Prior")
+
+kable(plots1.u$tables[[1]], caption = "RMSE of Variance using Uniform Prior")
+kable(plots1.c$tables[[1]], caption = "RMSE of Variance using Truncated Cauchy Prior")
+
+kable(plots1.u$tables[[5]], caption = "Coverage of Variance using Uniform Prior")
+kable(plots1.c$tables[[5]], caption = "Coverage of Variance using Truncated Cauchy Prior")
+
+
+
+```
+
