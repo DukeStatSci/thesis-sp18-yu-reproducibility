@@ -60,9 +60,38 @@ While the first approach is truly Bayesian and requires all the data, the second
 
 ### Bayesian Model
 
-In this model, the prior distribution of $\mu$ is modeled with a spike and slab prior
+In this model, the prior distribution of $\mu_{p53}$, the global OR for TP53 is modeled with a spike and slab prior with the point mass at zero, such that the coefficient $1-\xi$ is the probability of the null.
+
+The SNPs were analyzed jointly and separately, but **look at those results?**. For computational efficiency and clarity of interpretation, a separate model for each SNP was used. 
+
+Each model adjusts for study site, reference age, and personal history of breast cancer. History of braest cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. The p53 variable's site-specific log ORs were normally distributed with mean $\mu_{p53}$ and variance $\sigma^2_{p53}$ if  $\mu_{p53}$ was nonzero, otherwise they defaulted to 0. The prior for  $\mu_{p53}$ was a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma_{p53}$ was a truncated Cauchy(0,1), with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 and 1 more than values in between. 
+
+The choice of these parameters is explained further in the simulations section. **is this necessary to say link**
+
+There is no difference between discovery and validation sites in this model. Even considering them separately, one could fit the model using only the discovery sites to obtain posterior distributions of the parameters and use these posteriors as priors given the validation data. This would result in exactly the same results. **do I need to give more details here**
 
 
+### Conditional Likelihood
+
+In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. 
+
+**See simulation section for more information**. We used the random effect conditional likelihood model as a "prior" for $\mu_{p53}$, and then use this prior $P(\mu_{p53} | discovery)$ for the model with the validation data. The rest of the covariates' effects were specified as random or fixed effects in the same was as in the Bayesian model.
+
+Note that the uncertainty from picking the discovery site comes in through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
+
+### Bayes Factor Model
+
+The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu_{p53}$), but in estimating the distribution of the probability of the effect itself ($\xi$). To make this model easily generalizable, we use the upper bound on the Bayes Factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}$. This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the posterior probability of true association $\xi$ given the discovery as a simple transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$. The posterior $\xi' = \frac{o*BF}{1+o*BF}$. Then $\xi'$ can be used in the overall model with the validation data. 
+
+In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled.
+
+
+### Methods
+
+All models were fit using RJAGS **not sure if this is the right place for this,also not sure if I should add that mcmc etc was used**
+
+### HPD and noncontinuous intervals
+**also not sure where to mention this**
 
 ```{r load data}
 load("tp53.Rdata")
@@ -448,6 +477,9 @@ plotvar(p53.simnew$BUGSoutput$sims.list$mu.p53)
 plotvar(p53.simnormal$BUGSoutput$sims.list$mu.p53)
 plotvar(p53.bfsim$BUGSoutput$sims.list$mu.p53)
 ```
+
+
+
 
 - discussion of OR
 
