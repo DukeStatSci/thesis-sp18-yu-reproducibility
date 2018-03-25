@@ -15,6 +15,7 @@ library(ggplot2)
 library(reshape2)
 
 source("HPD.R")
+source("p53finalJAGScode.R")
 ```
 
 ## Genome Study
@@ -27,31 +28,23 @@ The aim is to study the association between single nucleotide polymorphisms (SNP
 
 #### Discovery Sites
 
-Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS),(21) the Mayo Clinic Case-Control Study (MAYO),(22) and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites.
-
-```{r}
-##table of cases and controls
-```
-
+Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS), the Mayo Clinic Case-Control Study (MAYO), and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites.
 
 
 #### Replication Sites
 
 Ten other sites contributed data: the Australian Ovarian Cancer Study (AOCS) and the Australian Cancer Study (ACS) presented together as AUS, the Family Registry for Ovarian Cancer (FROC, presented as STA), the Hawaiian Ovarian Cancer Study (HAW), the Malignant Ovarian Cancer Study Denmark (MALOVA), the New England Case-Control Study (NEC), the Nurses' Health Study (NHS), SEARCH Cambridge (SEA), the Los Angeles County Case-Control Study of Ovarian Cancer (LAC-CCOC, presented here as USC), the University of California at Irvine study (UCI), and the United Kingdom Ovarian Cancer Population Study (UKOPS, presented here as UKO).
 
-```{r}
-##table of cases and controls
-```
 
-The combined data set (discovery and replication) comprised ** is this right, use inline r** 5,206 white, non-Hispanic invasive epithelial ovarian cancer cases, of which 2,829 were classified as serous invasive ovarian cancer, and 8,790 white non-Hispanic controls. 
+The combined data set (discovery and replication) comprised 5,206 white, non-Hispanic invasive epithelial ovarian cancer cases, of which 2,829 were classified as serous invasive ovarian cancer, and 8,790 white non-Hispanic controls. Analysis was restricted to white, non-Hispanic invasive serous ovarian cancer cases and white, non-Hispanic controls.
 
 ### Motivation
 
 Traditionally, genome-wide-significant associations often fail or have much smaller effects in replication tests because of the winner's curse and using discovery data twice (when testing for significance, and calculating the effect size). To account for this discrepancy, previous studies perform two analyses: one with all the data together, and one only using the validation site data. However, this approach not only throws away all the discovery data, which could be a large portion of the total dataset, reducing power, but also assumes that the significance found in the discovery data is certain, which is especially problematic in genome-wide association studies, which perform multiple testing to find associations.
 
-We propose three different approaches: 
+We propose three different Bayesian approaches: 
 
-1. A Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP(???).
+1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP(???).
 
 2. A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size.
 
@@ -60,40 +53,128 @@ We propose three different approaches:
 While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, alpha) are available. 
 
 
-### Bayesian Model
+### Fully Bayesian Model
 
-In this model, the prior distribution of $\mu_{p53}$, the global OR for TP53 is modeled with a spike and slab prior with the point mass at zero, such that the coefficient $1-\xi$ is the probability of the null.
+In this model, the probability of association $\xi$ can give rise to a latent variable $\iota$ drawn from a bernoulli, which is then used to parametrize the distribution of $\mu_{p53}$ and $\beta_{p53 j}$. If $\iota= 0$, $\mu_{p53}=0$ and $\beta_{p53 j} = 0$ for all sites $j$. Otherwise, $\beta_{p53 j}$ are normally distributed around (nonzero) $\mu_{p53}$.
 
-The SNPs were analyzed jointly and separately, but **look at those results?**. For computational efficiency and clarity of interpretation, a separate model for each SNP was used. 
+```{r}
+ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
+  geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
+  labs(title= "Mixture Model with Point Mass at 0",x=expression(theta),y="density")+
+  theme_minimal() + scale_colour_few()
+```
 
-Each model adjusts for study site, reference age, and personal history of breast cancer. History of braest cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. The p53 variable's site-specific log ORs were normally distributed with mean $\mu_{p53}$ and variance $\sigma^2_{p53}$ if  $\mu_{p53}$ was nonzero, otherwise they defaulted to 0. The prior for  $\mu_{p53}$ was a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma_{p53}$ was a truncated Cauchy(0,1), with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 and 1 more than values in between. 
+Each model adjusts for study site, reference age, and personal history of breast cancer. History of breast cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. The p53 variable's site-specific log ORs were normally distributed with mean $\mu_{p53}$ and variance $\sigma^2_{p53}$ if  $\mu_{p53}$ was nonzero, otherwise they defaulted to 0. The prior for  $\mu_{p53}$ was a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma_{p53}$ was a truncated Cauchy(0,1), with support only on the positive real line. This choice of priors is based on simulation results.  The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 or 1 more heavily than the values between them. 
 
-The choice of these parameters is explained further in the simulations section. **is this necessary to say link**
+The full model is as follows:
+$$P(Y_{ij}=1) = logit^{-1}(\beta_{site j}+ \beta_{p53 j}*p53_{ij}+ \beta_{age j}*age_{ij}+\beta_{BC}* BC_{ij})$$
 
-There is no difference between discovery and validation sites in this model. Even considering them separately, one could fit the model using only the discovery sites to obtain posterior distributions of the parameters and use these posteriors as priors given the validation data. This would result in exactly the same results. **do I need to give more details here**
+$$\beta_{site j}\sim N(\mu_{site}, \sigma^2_{site})$$
+$$\beta_{age j}\sim N(\mu_{age}, \sigma^2_{age})$$
+
+$$\beta_{p53 j}|\iota = 1 \sim N(\mu_{p53}, \sigma^2_{p53})$$
+
+
+$$\mu_{p53}|\iota=1\sim Cauchy(0,0.1)$$
+$$\mu_{p53}, \beta_{p53 j}|\iota = 0  \sim N(0,0)$$
+
+$$\sigma_{p53}\sim Cauchy(0,1)$$
+**how do I specify that it's truncated?**
+
+$$\iota \sim Bernoulli(\xi)$$
+$$\xi \sim Beta(1/2, 1/2)$$
+$$\beta_{BC}, \mu_{age},\mu_{site}\sim N(0,0.1)$$
+$$\sigma_{age},\sigma_{site} \sim invGamma(1, 0.05)$$
+
+There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. **do I need to give more details here**
+
+The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. **will put joint in supplement** 
 
 
 ### Conditional Likelihood
 
 In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. 
 
-**See simulation section for more information**. We used the random effect conditional likelihood model as a "prior" for $\mu_{p53}$, and then use this prior $P(\mu_{p53} | discovery)$ for the model with the validation data. The rest of the covariates' effects were specified as random or fixed effects in the same was as in the Bayesian model.
+Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let this distribution be denoted as $CL(\beta_i,SE_i, q_i)$.
 
-Note that the uncertainty from picking the discovery site comes in through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
+```{r}
+CLdata<-data.frame(mu, cond.likelihood(LOR, mu, SE, q = -qnorm(0.005/2)), 
+                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.05/2)),
+                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.01/2)),
+                   dnorm(LOR, mu, SE))
+colnames(CLdata)<- c("mu", "CL.005","CL.05","CL.01","uncond")
+melted <- melt(CLdata, id.vars=c("mu"))
+ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)) +
+  labs(title = "Conditional vs. Unconditional Likelihood", 
+       x = expression(theta), y = "Likelihood")+  theme_minimal()+ 
+  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  scale_colour_few(name="", labels=c(expression(paste(alpha," = .005")), 
+                                     expression(paste(alpha," = .05")), 
+                                     expression(paste(alpha," = .01")),
+                                     "unconditional"))
+
+
+```
+
+
+We used the random effect conditional likelihood model as a "prior" for $\beta_{p53  j}, j\in discovery$, and then use this as the prior $P(\beta_{p53} | discovery)$ for the model with the validation data. The rest of the covariates' effects were specified as random or fixed effects in the same was as in the Bayesian model.
+
+The updated model for p53 effects is:
+
+$$\beta_{p53 j} \sim N(\mu_{p53}, \sigma^2_{p53}) , j \in validation$$
+$$MLE_{p53 j} \sim CL(\beta_{p53 j},SE_{p53 j}, q_j) , j \in discovery$$
+
+$$\mu_{p53}\sim Cauchy(0,0.1)$$
+$$\sigma_{p53}\sim Cauchy(0,1)$$
+**how do I specify that it's truncated?**
+
+Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
+
 
 ### Bayes Factor Model
 
-The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu_{p53}$), but in estimating the distribution of the probability of the effect itself ($\xi$). To make this model easily generalizable, we use the upper bound on the Bayes Factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}$. This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the posterior probability of true association $\xi$ given the discovery as a simple transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$. The posterior $\xi' = \frac{o*BF}{1+o*BF}$. Then $\xi'$ can be used in the overall model with the validation data. 
+The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu_{p53}$), but in estimating the distribution of the probability of the effect itself ($\xi = P(H_1)$). To make this model easily generalizable, we use the upper bound on the Bayes Factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}$, where $p$ is the p-value from the discovery data.**cite this** This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the posterior probability of true association $\xi$ given the discovery as a transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$. The posterior $\xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF}{1+o*BF}$. Then $\xi'$ can be used in the overall model with the validation data.
 
-In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled.
+```{r}
+pind.dens<-function(post.ind,p){
+  BF<- 1/(-exp(1)*p*log(p)) 
+  prior.odds<-post.ind/(1-post.ind)/BF
+  pind<- prior.odds/(1+prior.odds) #a/0
+  #eplogp is BF h0/h1
+  return(pind)
+  }
+postind.dens<-function(pind, p=.0035){
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  return(post.ind)
+}
+pind<- seq(.001, .999,by=.001)
 
+BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
+                         postind.dens(pind, .005),postind.dens(pind, 1e-5),
+                   dbeta(pind,.5,.5))
+colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","theta")
+ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
+  geom_line(aes(x=value, group=variable,color=variable))+
+  labs(title = "Posterior Distribution of Probability of Effect\n with Bayes Factor Approximation", 
+       x = expression(theta), y = "Density")+  theme_minimal()+ 
+  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  scale_colour_few(name="p-value")
+```
+
+In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$, the probability of $\xi'\leq 0.5$ is `r #qbeta(pind.dens(0.5,1e-7),.5,.5)`. Due to this, we use a flatter prior: $\xi\sim Beta(.9,.9)$. Then $\xi'\leq 0.5$ is `r #qbeta(pind.dens(0.5,1e-7),.9,.9)`.
 
 ### Methods
 
-All models were fit using RJAGS **not sure if this is the right place for this,also not sure if I should add that mcmc etc was used**
+All models were fit using R2jags. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
 
-### HPD and noncontinuous intervals
-**also not sure where to mention this**
+Each model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.
+
+All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. Unlike quantile-based intervals, these can account for multimodal distributions and give more reasonable answers.
+
+Point estimates were calculated used the posterior median, so that the estimates would be invariant to transformations (e.g. log).
+
 
 ```{r load data}
 getdata<- function(snp.name, iter=5000, drop.sites= NULL){
@@ -133,26 +214,6 @@ getdata<- function(snp.name, iter=5000, drop.sites= NULL){
 
 ```
 
-```{r}
-snp.name="rs12951053n" 
-discovery.sitenames= c("POL", "MAY", "NCO")
-#regular data
-p53.data<- getdata(snp.name)
-#validation data
-p53.dataval<- getdata(snp.name, drop.sites=discovery.sitenames)
-
-```
-
-
-
-
-### EDA
-
-- plot of data points?
-- conditional likelihood, FDR, etc as function of Y
-- 
-
-### Frequentist Results
 ```{r frequentist analysis function}
 OR.freq = function(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) {
   load("tp53.Rdata")
@@ -217,231 +278,6 @@ OR.freq = function(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) {
 }
 
 ```
-
-```{r actual freq analysis}
-#validation.sitenames = c("AUS" ,"HAW" ,"MAL" ,"NEC" ,"NHS" ,"SEA" ,"STA" ,"UCI","UKO" ,"USC")
-
-freq<-OR.freq(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) 
-
-d = data.frame(t(freq$OR),coef(summary(freq$p53.me))["p53","Estimate"])
-colnames(d) <- c(freq$DS$names, "Overall")
-kable(t((d)))
-```
-
-- put this into a table-- see paper
-
-```{r}
-freq$p.value
-```
-
-- p values,
-```{r}
-
-```
-
-fdr, BF interpretations
-### model(s)
-
-- rationale for priors
-- plot for mixture
-- plots of cond likelihood of mu
-
-```{r more data stuff}
-# p53.data.aug<-p53.data
-# p53.data.aug$zeroes<- rep(0,p53.data$n.sites)
-# p53.data.aug$zero<- 0
-
-p53.data.normal<-p53.dataval
-p53.data.normal$n.discovery<- length(p53.data.normal$discovery.sites)
-p53.data.normal$zeroes<- rep(0,p53.data.normal$n.discovery)
-p53.data.normal$MLE<- freq$OR[,1] 
-p53.data.normal$SE<- freq$SE 
-p = 0.00325
-p53.data.normal$q<-qnorm(1-p/2)
-
-bfdata <- p53.dataval
-bfdata$p <- freq$p.value
-```
-
-
-```{r original}
-
-p53.model = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
-      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]
-  }
-  for (k in 1:n.sites) {
-    beta.site[k] ~ dnorm(mu.site, phi.site)
-    beta.p53[k] ~ dnorm(mu.p53, phi.p53)
-    beta.Age[k] ~ dnorm(mu.Age, phi.Age)
-  }
-  
-  beta.BC ~ dnorm(0, 3)
-  
-  mu.site ~ dnorm(0, .1)
-  phi.site <- pow(sigma.site, -2)
-  sigma.site ~ dunif(0,5)
-  
-  mu.p53 ~ dnorm(0, .1)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dunif(0, 5)
-  
-  mu.Age ~ dnorm(0, .1)
-  phi.Age <- pow(sigma.Age, -2)
-  sigma.Age  ~ dunif(0, 5)
-  
-}
-
-```
-
-
-
-```{r latent var}
-p53.newmodel = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
-      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
-  
-  for (l in 1:n.sites) {
-    beta.site[l] ~ dnorm(mu.site, phi.site)
-    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*assoc
-    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
-  }
-  beta.BC ~ dnorm(0, .1)
-  
-  mu.site ~ dnorm(0, .1)
-  phi.site ~ dgamma(1,.05)
-  sigma.site <- pow(phi.site, -.5)
-  
-  #E[prec] 20
-  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53<- mu1.p53*assoc
-  mu1.p53 ~ dt(0,.1, 1)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dt(0,1,1)%_%T(0,)
-  
-  mu.Age ~ dnorm(0, .1)
-  phi.Age ~ dgamma(1, .05)
-  sigma.Age  <- pow(phi.Age, -.5)
-  
-  assoc ~ dbern(pind) 
-  pind ~ dbeta(.5,.5)
-}
-```
-
-
-```{r cond likelihood}
-
-#mixed effect conditional likelihood
-p53.normal = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
-      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
-  
-  for (l in 1:n.sites) {
-    beta.site[l] ~ dnorm(mu.site, phi.site)
-    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
-    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
-  }
-  C<-1000
-  
-  for(m in (n.sites+1):(n.sites+n.discovery)){
-    beta.p53[m] ~ dnorm(mu.p53, phi.p53)
-  }
-  
-  for (k in 1:n.discovery){
-    #zeroes trick for MLE~cond prob
-    tau[k]<- pow(SE[k], -2)
-    L[k]<- dnorm(MLE[k],beta.p53[k+n.sites], tau[k])/
-      (pnorm(-q*SE[k], beta.p53[k+n.sites], tau[k]) +
-         1-pnorm(q*SE[k], beta.p53[k+n.sites], tau[k]))
-    phi[k]<- -log(L[k])+C
-    zeroes[k]~dpois(phi[k])
-  }
-  
-  beta.BC ~ dnorm(0, .1)
-  
-  mu.site ~ dnorm(0, .1)
-  phi.site ~ dgamma(1,.05)
-  sigma.site <- pow(phi.site, -.5)
-  
-  #E[prec] 20
-  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53 ~ dt(0,.1,1)
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dt(0,1,1)%_%T(0,)
-  
-  mu.Age ~ dnorm(0, .1)
-  phi.Age ~ dgamma(1, .05)
-  sigma.Age  <- pow(phi.Age, -.5)
-  #assoc~dbern(pind) *assoc
-  pind ~ dbeta(.5,.5)
-}
-
-```
-
-```{r bf approx}
-
-#eplogp approximation of BF for posterior prob of association
-p53.bf.approx = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
-      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
-  
-  for (l in 1:n.sites) {
-    beta.site[l] ~ dnorm(mu.site, phi.site)
-    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
-    beta.p53[l] <- beta.p53.1[l]*(assoc)
-    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
-  }
-  beta.BC ~ dnorm(0, .1)
-  mu.site ~ dnorm(0, .1)
-  phi.site ~ dgamma(1,.05)
-  sigma.site <- pow(phi.site, -.5)
-  
-  #E[prec] 20
-  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53.1 ~ dt(0,.1,1)
-  mu.p53<-mu.p53.1*assoc
-  phi.p53 <- pow(sigma.p53, -2)
-  sigma.p53 ~ dt(0,1,1)%_%T(0,)
-  
-  mu.Age ~ dnorm(0, .1)
-  phi.Age ~ dgamma(1, .05)
-  sigma.Age  <- pow(phi.Age, -.5)
-  
-  assoc~dbern(post.ind)
-  prior.odds<- (pind)/(1-pind) #a/0
-  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
-  post.ind<-prior.odds*BF/(1+prior.odds*BF)
-  pind ~ dbeta(.9,.9)
-}
-```
-
-
-```{r run models}
-parameters = c("mu1.site", "mu1.p53",  "beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind", "phi1.site","phi1.p53","beta.site", "beta.p53","phi.site","phi.p53")
-
-parameters.normal<- c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" , "pind", "beta.site", "beta.p53", "assoc")
-
-p53.sim = jags(data=p53.data, inits=NULL, parameters.to.save =parameters, model = p53.model)
-p53.simval = jags(data=p53.dataval, inits=NULL, parameters.to.save =parameters, model = p53.model)
-p53.simnew2 = jags(data=p53.data , inits=NULL, parameters.to.save =parameters, model = p53.newmodel) #data aug?
-
-```
-
-```{r}
-p53.simnormal = jags(data=p53.data.normal, inits=NULL, parameters.to.save =parameters.normal, model = p53.normal)
-p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)}, parameters.to.save =parameters, model = p53.bf.approx)
-```
-
-
 
 
 ```{r comparison}
@@ -600,29 +436,6 @@ apply(MU.ALL,2,plotvar)
 ```
 
 
-```{r}
-
-plotvar(exp(MU.ALL[,which(colnames(tp53geno.wsi)==snp.name)]),pointmass=1)
-HPDM(as.matrix(exp(MU.ALL[,which(colnames(tp53geno.wsi)==snp.name)])),pointmass=1)
-mean(exp(MU.ALL[,which(colnames(tp53geno.wsi)==snp.name)]))
-
-
-```
-
-```{r}
-
-plotvar(exp(MU.ALL[,which(colnames(tp53geno.wsi)=="rs2287498n")]),pointmass=1)
-HPDM(as.matrix(exp(MU.ALL[,which(colnames(tp53geno.wsi)=="rs2287498n")])),pointmass=1)
-mean(exp(MU.ALL[,which(colnames(tp53geno.wsi)=="rs2287498n")]))
-```
-
-
-```{r}
-plotvar(exp(p53.simnew$BUGSoutput$sims.list$mu.p53),pointmass=1)
-HPDM(as.matrix(exp(p53.simnew$BUGSoutput$sims.list$mu.p53)),pointmass=1)
-mean(exp(p53.simnew$BUGSoutput$sims.list$mu.p53))
-```
-
 
 - discussion of OR
 
@@ -640,11 +453,7 @@ The bayes factor and conditional likelihood
 
 
 
-```{r}
-snp.name= snps[1]#"rs12951053n" 
-discovery.sitenames= discovery.siteslist[[1]] #c("POL", "MAY", "NCO")
-
-
+```{r run all p53}
 OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir="ps"){
   #data
   
@@ -719,7 +528,7 @@ ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+
   geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = 1))+
   geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = 1))+ 
   geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = 1)) +
-  coord_flip()+theme_minimal() + scale_colour_few() +
+  coord_flip()+theme_minimal() + scale_colour_few()
   
 ```
 
