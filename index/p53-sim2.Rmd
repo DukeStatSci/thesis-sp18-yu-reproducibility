@@ -38,13 +38,15 @@ get.cond.likelihood.data<- function(data, p = 0.00325){
   
   MLE = coefs[discovery.site,1]
   SE = coefs[discovery.site,2]
+  p.value = coefs[discovery.site,4]
   #make new data for model
   exclude <- which(data$site==discovery.site)
   newdata = list(MLE=MLE, SE=SE, n.discovery= 1, zeroes= 0, 
                  discovery.sites=discovery.site,
                  CaseCon= data$CaseCon[-exclude], 
                  site= data$site[-exclude], n.sites = data$n.sites,
-                 q=qnorm(1-p/2))
+                 q=qnorm(1-p/2),
+                 p = coefs[discovery.site,4])
   newdata$J<- length(newdata$CaseCon)
   return(newdata)
   
@@ -77,107 +79,29 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
     count=count+1
   }
   #run jags
-  ones.cauchy <- jags(data=data$simdata, inits=inits, 
-                      parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
-                      model = ones.cauchy.model)
-  ones.normal <- jags(data=data$simdata, inits=inits,
-                      parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
-                      model = ones.normal.model)
-  latent.normal <- jags(data=data$simdata, inits=inits,
-                        parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
-                        model = latent.normal.model)
   latent.cauchy <- jags(data=data$simdata, inits=inits,
                         parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
                         model = latent.cauchy.model)
   cond.likelihood<-NULL
   if(!is.null(cond.data)){
-    cond.likelihood <- jags(data=cond.data ,inits=inits,
-                            parameters.to.save =c("mu.p53"), 
-                            model = cond.likelihood.model)
-    cond.likelihood.re<- jags(data=cond.data ,inits=inits,
+    cond.likelihood<- jags(data=cond.data ,inits=inits,
                               parameters.to.save =c("mu.p53", "sigma.p53"), 
                               model = cond.likelihood.re.model)
+    bf.approx<- jags(data=cond.data, inits=inits,
+                  parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
+                  model = bf.model)
   }
-  
-  fixed <- jags(data=data$simdata, inits=inits, 
-                parameters.to.save =c("pind", "mu.p53","mu.p53.notzero"), 
-                model = fixed.model)
   original<- jags(data=data$simdata, inits=inits,
                   parameters.to.save =c("mu.p53", "sigma.p53"),
                   model = original.model)
   
-  return(list(ones.cauchy = ones.cauchy, ones.normal=ones.normal,
-              latent.normal = latent.normal,latent.cauchy = latent.cauchy,
-              cond.likelihood = cond.likelihood,fixed = fixed, 
-              original= original,cl.re=cond.likelihood.re, beta.p53 = data$beta.p53))
+  return(list(latent.cauchy = latent.cauchy,
+              cond.likelihood = cond.likelihood,
+              bf=bf.approx,
+              original= original,
+              beta.p53 = data$beta.p53))
 }
 
-```
-
-
-```{r parallel}
-# stopCluster(cl)
-cl = makeCluster(8)
-registerDoParallel(cl)
-
-
-mu=0.203;sd= 0.05831085 #from glmer estimates using all data
-assoc<-c(0,1,1,1,1)
-muvec<-c(0,mu,mu,mu,mu)
-sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
-
-I = 10
-source("p53simJAGScode.R")
-system.time({
-  allsim<- foreach(j = 1:5) %:%
-    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
-    }
-})
-save.image()
-
-cl = makeCluster(8)
-registerDoParallel(cl)
-source("p53simJAGScode_uniform.R")
-system.time({
-  allsim.u<- foreach(j = 1:5) %:%
-    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
-    }
-})
-
-cl = makeCluster(8)
-registerDoParallel(cl)
-save.image()
-source("p53simJAGScode_cauchy.R")
-system.time({
-  allsim.c<- foreach(j = 1:5) %:%
-    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
-    }
-})
-save.image()
-
-```
-
-```{r}
-#this one just has more models (re cl, original)
-cl = makeCluster(8)
-registerDoParallel(cl)
-assoc<-c(1,1)
-muvec<-c(mu,mu)
-sdvec<-c(sd,4*sd)
-
-I = 10 #getDoParWorkers()*10
-#I=1
-
-system.time({
-  allsim.30<- foreach(j = 1:2) %:%
-    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 30))
-    }
-})
-save.image()
 ```
 
 
@@ -191,44 +115,52 @@ run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the s
   }
   if(!is.null(cond.data)){
     cond.likelihood<- lapply(pvals, function(p){
-      cond.data<-get.cond.likelihood.data(data$simdata, p)
+      cond.data$q<-qnorm(1-p/2)
       return(jags(data=cond.data ,inits=inits,
-                  parameters.to.save =c("mu.p53", "phi.p53"), 
+                  parameters.to.save =c("mu.p53", "sigma.p53"), 
                   #rerun also with random effect?
-                  model = cond.likelihood.model))
+                  model = cond.likelihood.re.model))
     })
-  }
-  return(list(cond.likelihood, data$beta.p53))
-}
-
-##delete this once things are done
-run.cl<- function(assoc,mu, sd, inits, p){
-  cond.data = NULL;count=0
-  while(is.null(cond.data) & count<1000){
-    data <- sample(assoc, mu, sd)
-    cond.data<-get.cond.likelihood.data(data$simdata, p)
-    count=count+1
-  }
-  if(!is.null(cond.data)){
-    cond.likelihood <- jags(data=cond.data ,inits=inits,
-                            parameters.to.save =c("pind", "mu.p53", "sigma.p53"), 
-                            model = cond.likelihood.model)
   }
   return(cond.likelihood)
 }
 
+
 ```
 
-```{r parallel cl}
-#remove these two once we can run bettercl with regular sd
+
+```{r parallel}
+# stopCluster(cl)
 cl = makeCluster(8)
 registerDoParallel(cl)
-pvals=c(.05,.01,.005,.001, 1e-7)
-I=100
+
+
+mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp
+assoc<-c(0,1,1,1,1)
+muvec<-c(0,mu,mu,mu,mu)
+sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
+
+I = 50
+source("p53simJAGScode_cauchy.R")
 system.time({
-  cl.sim<- foreach(j = 1:length(pvals)) %:%
+  allsim<- foreach(j = 1:5) %:%
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.cl(1,mu,sd, NULL,pvals[j]))
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
+    }
+})
+save.image()
+
+#this one just has more models (re cl, original)
+cl = makeCluster(8)
+registerDoParallel(cl)
+assoc<-c(1,1,1,1)
+muvec<-c(mu,mu,mu,mu)
+sdvec<-c(.5*sd,sd,2*sd,4*sd)
+
+system.time({
+  allsim.30<- foreach(j = 1:length(muvec)) %:%
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 30))
     }
 })
 save.image()
@@ -236,22 +168,19 @@ save.image()
 cl = makeCluster(8)
 registerDoParallel(cl)
 pvals=c(.05,.01,.005,.001, 1e-7)
-I=100
 system.time({
-  cl.sim2<- foreach(j = 1:length(pvals)) %:%
+  cl.sim.better.1<-
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
-      return(run.cl(1,mu,sd*4, NULL,pvals[j]))
+      return(run.cl.better(1,mu,sd, NULL,pvals))
     }
 })
 save.image()
-####
 
 cl = makeCluster(8)
 registerDoParallel(cl)
 pvals=c(.05,.01,.005,.001, 1e-7)
-I=100
 system.time({
-  cl.sim.better<-
+  cl.sim.better.4<-
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
       return(run.cl.better(1,mu,sd*4, NULL,pvals))
     }
@@ -266,9 +195,8 @@ getstatsitems<-c("hasmu","haszero","mean","median",
                  "hassd","sdmean","sdmedian","sdintlen",
                  "haspind","pindmean","pindmedian","pindg.5")
 
-modelnames<- c("Cauchy-Ones Trick","Normal-Ones Trick",
-               "Normal-Latent","Cauchy-Latent",
-               "Cond Likelihood", "Fixed Effect", "Original","CL RE")
+modelnames<- c("Bayesian",
+               "Cond Likelihood","BF Approx", "Original")
 
 getstatsloop<-function(simlist,mu,sd,modelnames){
   I<-length(simlist)
@@ -324,11 +252,11 @@ getstats<-function(jagsoutput, mu, sd){
 
 
 ```{r get stats}
-sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames[1:6])
-sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames[1:6])
-sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames[1:6])
-sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames[1:6])
-sim.4<-getstatsloop(allsim.5[[1]],mu,sd*4,modelnames[1:6])
+sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames)
+sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames)
+sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames)
+sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames)
+sim.4<-getstatsloop(allsim[[5]],mu,sd*4,modelnames)
 
 ```
 
@@ -401,18 +329,13 @@ make_plots<-function(simlist, mu, sd, modelnames){
   ################sd, pind
   sderr<- (make_estimate_error_plot(simlist, 9,10,sd,modelnames,"Absolute Error of Standard Deviation"))
   
-  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Probability of H0 (xi) "))
+  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Probability of H1 (xi) "))
   
   intlen<- data.frame(sapply(simlist, function(x) x[,11]))
   colnames(intlen)<-modelnames
   plot7<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
             geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
                                 title= "SD Intervals"))
-  intlen<- data.frame(sapply(simlist, function(x) x[,15]))
-  colnames(intlen)<-modelnames
-  plot8<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
-            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
-                                title= "pind Intervals"))
   sdcov<- data.frame(sapply(simlist, function(x) x[,8]))
   colnames(sdcov)<-modelnames
   sdcov1<-melt(sdcov)
@@ -420,7 +343,7 @@ make_plots<-function(simlist, mu, sd, modelnames){
   sdcoverage<-table(melt(sdcov1))/dim(simlist[[1]])[1]
   
   return(list(plots = list(muerr$plot, plot3,plot4,sderr$plot,
-                           pinderr$plot,plot7,plot8),
+                           pinderr$plot,plot7),
               tables = list(muerr$table, sderr$table, pinderr$table,
                             mucoverage, sdcoverage)))
 }
@@ -430,27 +353,24 @@ make_plots<-function(simlist, mu, sd, modelnames){
 
 
 ```{r}
-plots0<-make_plots(make_simlist(sim.0), 0,0, modelnames[1:6])
-plots1<-make_plots(make_simlist(sim.1), mu,sd,modelnames[1:6])
-plots2<-make_plots(make_simlist(sim.2), mu,2*sd,modelnames[1:6])
-plotshalf<-make_plots(make_simlist(sim.2), mu,sd/2,modelnames[1:6])
-plots4<-make_plots(make_simlist(sim.4), mu,4*sd,modelnames[1:6])
+plots0<-make_plots(make_simlist(sim.0), 0,0, modelnames)
+plots1<-make_plots(make_simlist(sim.1), mu,sd,modelnames)
+plots2<-make_plots(make_simlist(sim.2), mu,2*sd,modelnames)
+plotshalf<-make_plots(make_simlist(sim.half), mu,sd/2,modelnames)
+plots4<-make_plots(make_simlist(sim.4), mu,4*sd,modelnames)
 
 ```
 
 
 ```{r cl analysis}
-clplots1<-make_plots(lapply(cl.sim, function(x) t(sapply(x, getstats,mu,sd,1))), mu, sd,1,pvals)
-
-clplots2<-make_plots(lapply(cl.sim2, function(x) t(sapply(x, getstats,mu,sd,1))), mu, sd,1,pvals)
-
 #can use the other fn when rerunning so
 #sim.cl.stats.better<-getstatsloop(cl.sim.better,0, 1, pvals) #13 modes?
 
-vec <- sapply(cl.sim.better, function(x) sapply(x, getstats,mu,sd,1))
-sim.cl.stats.better <-array(data=vec,dim= c(length(getstatsitems),length(pvals),I))
+sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
+cl.better.plots1<-make_plots(make_simlist(sim.cl.stats.better1), mu,sd,pvals)
 
-cl.better.plots<-make_plots(make_simlist(sim.cl.stats.better), mu,sd,pvals)
+sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
+cl.better.plots4<-make_plots(make_simlist(sim.cl.stats.better4), mu,sd,pvals)
 ```
 
 #### assorted notes/explanations/stuff- will move around once things are more set
@@ -541,7 +461,7 @@ lapply(plots4$tables[3],kable)
 `r I` datasets were also simulated under the null hypothesis. They were fit with the models described above, and resulted in reasonable estimates. In this case, the proportion of samples with $\mu = 0$ was quite high for all models, and the point estimate of $\xi$ is also less than $0.5$. The conditional effect model has a larger bias than the other models, but this is still very small relative to the scale of $\mu$. The cauchy prior latent variable model had the smallest intervals. Surprisingly, the cauchy ones' trick model had wider intervals than the normal model with the ones' trick (and than both latent variable models), but still had lower coverage. 
 
 ```{r}
-plots0
+plots4
 ```
 
 
@@ -583,7 +503,76 @@ One problem that arises when using the ones trick is that the markov chain does 
 Both the uniform and the truncated cauchy lead to better estimates of the variance than the inverse gamma on simulated datasets with 7 sites and small true variance. The cauchy prior estimates have smaller RMSE than the uniform prior for the mixed models using latent variables, the original normal model, and the random effect (although the difference is small). The uniform produces better posterior mean estimates for the ones trick specifications. However, regardless of the prior used, the latent variable models are still closer to the true values.
 
 ```{r}
+
+modelnames1<- c("Bayesian","Original","Conditional Likelihood")
+simlist1.u<-getstatsloop(allsim.u[[3]][c(4,7,8)],mu, sd, modelnames[c(4,7,8)])
+plots1.u<-make_plots(make_simlist(simlist1.u), mu,sd,modelnames)
+
+newallsim.c<-lapply(allsim.c[[3]], function(x) x[c(4,7,8,9)])
+simlist1.c<-getstatsloop(newallsim.c,mu, sd, modelnames1)
+plots1.c<-make_plots(make_simlist(simlist1.c), mu,sd,modelnames1)
+
+newallsimhalf.c<-lapply(allsim.c[[2]], function(x) x[c(4,7,8,9)])
+simlisthalf.c<-getstatsloop(newallsimhalf.c,mu, sd, modelnames1)
+
+newallsim2.c<-lapply(allsim.c[[4]], function(x) x[c(4,7,8,9)])
+simlist2.c<-getstatsloop(newallsim2.c,mu, sd, modelnames1)
+
+newallsim4.c<-lapply(allsim.c[[5]], function(x) x[c(4,7,8,9)])
+simlist4.c<-getstatsloop(newallsim4.c,mu, sd, modelnames1)
+plots4.c<-make_plots(make_simlist(simlist4.c), mu,sd,modelnames1)
+
+
+newallsim0.c<-lapply(allsim.c[[1]], function(x) x[c(4,7,8,9)])
+simlist0.c<-getstatsloop(newallsim0.c,mu, sd, modelnames1)
+
+
+
+  df<- data.frame(melt(t(abs(simlist0.c[4,,])))[,2:3], simulation=0)
+  simslist<-list(simlisthalf.c,simlist1.c,simlist2.c,simlist4.c)
+  for (i in 1:4){
+     df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
+  }
+  df
+  mseplot = ggplot(data = (df), 
+                            aes(x=Var2, y=value)) +
+                geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() +
+  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
+    scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c(expression(paste(mu, " = 0")),"s/2", "s", "2s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+mseplot
+###
+
+#simulation plots
+museplot<-plots1.c$plots[[1]]+  theme_minimal() +
+  scale_colour_few()+labs(x="Model", title=expression(paste("Absolute Error of ",mu)))
+muintplot<-plots1.c$plots[[2]]+  theme_minimal() + scale_colour_few()+labs(title=expression(paste("Confidence Interval Length of ",mu)))
+
+rmse<-cbind(plots4.c$table[[1]][,2],plots1.c$table[[1]][,2])
+rownames(rmse)<-c("Bayesian", "Original", "Conditional Likelihood")
+colnames(rmse)<-c("diffuse true distribution", "dense true distribution")
+
+mutable<-grid.arrange(tableGrob(rmse))
+
+#mu4table<-grid.arrange(tableGrob(plots4.c$table[[1]]))
+#plots0$plots[[1]] mayb enot
+
+clplots1<-make_plots(lapply(cl.sim, function(x) t(sapply(x, getstats,mu,sd))), mu, sd,pvals)
+
+clintplot<-clplots1$plots[[2]]+  theme_minimal() + 
+  scale_colour_few()+labs(x= expression(paste(alpha, " level")),title=expression(paste("Confidence Interval Length of ",mu, " by ", alpha)))
+
+grid.arrange(clintplot,muintplot,ncol=2)
+
+
+
+-#-############
 #kable(plots1$tables[[5]], caption = "Coverage of Variance")
+kable(plots1.u$tables[[1]], caption = "RMSE of Mean using Uniform Prior")
+kable(plots1.c$tables[[1]], caption = "RMSE of Mean using Truncated Cauchy Prior")
+
+kable(plots1.u$tables[[1]], caption = "RMSE of Variance using Uniform Prior")
+kable(plots1.c$tables[[1]], caption = "RMSE of Variance using Truncated Cauchy Prior")
+
 kable(plots1.u$tables[[5]], caption = "Coverage of Variance using Uniform Prior")
 kable(plots1.c$tables[[5]], caption = "Coverage of Variance using Truncated Cauchy Prior")
 
@@ -594,3 +583,6 @@ kable(plots1.c$tables[[5]], caption = "Coverage of Variance using Truncated Cauc
 
 
 
+### some thoughts on bayes factor p value approx
+
+What this really does is skew the beta prior towards one. **see plot**. This model does well in detecting when there is really no effect because the data is able to pull the value of $\xi$ towards zero. However, if the data does have an effect and the distribution is already skewed, the overall effect is almost the same as having the original model (i.e. assuming the alternative).

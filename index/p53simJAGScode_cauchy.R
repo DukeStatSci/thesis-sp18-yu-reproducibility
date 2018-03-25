@@ -27,8 +27,8 @@ cond.likelihood.re.model = function() {
     #zeroes trick for MLE~cond prob
     tau[k]<- pow(SE[k], -2)
     L[k]<- dnorm(MLE[k],beta.p53[discovery.sites[k]], tau[k])/
-      (pnorm(-q*SE, beta.p53[discovery.sites[k]], tau[k]) +
-         1-pnorm(q*SE, beta.p53[discovery.sites[k]], tau[k]))
+      (pnorm(-q*SE[k], beta.p53[discovery.sites[k]], tau[k]) +
+         1-pnorm(q*SE[k], beta.p53[discovery.sites[k]], tau[k]))
     phi[k]<- -log(L[k])+C
     zeroes[k]~dpois(phi[k])
   }
@@ -157,8 +157,28 @@ original.model = function() {
   }
   
   mu.p53 ~ dnorm(0,1)
-  # phi.p53 ~ dgamma(1, .05)
-  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 ~ dgamma(1, .05)
+  sigma.p53 <- pow(phi.p53, -.5)
+}
+
+bf.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]*mu.p53.notzero  }
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dnorm(0,1)
   phi.p53 <- pow(sigma.p53, -2)
   sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.p53.notzero~dbern(pind)
+  prior.odds<- (1-prior.pind)/prior.pind
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  pind<-prior.odds*BF/(1+prior.odds*BF)
+  prior.pind ~ dbeta(.9,.9)
 }
