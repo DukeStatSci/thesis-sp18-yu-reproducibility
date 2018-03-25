@@ -62,6 +62,7 @@ is.multimodal <- function(x, min.size=0.01)
 
 
 HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, pointmass = 0, plot=FALSE, print=FALSE){
+  if(is.vector(obj)) obj<-as.matrix(obj)
   vals <- apply(obj, 2, sort)
   if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
   nsamp <- nrow(vals)
@@ -156,7 +157,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, pointmass = 0, plot=FALSE,
   }
 }
 
-plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE) {
+plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE,gg=FALSE) {
   zeroes = which(abs(x-pointmass)<e)
   prob0=length(zeroes)/length(x)
   xne0= x
@@ -193,7 +194,7 @@ plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE) {
     yy= approx(kde$x, kde$y, xx,yleft=0, yright=0)$y
     
     #yy = dt(x=(x-m)/s, df=)/s
-    maxyy = max(yy)
+    maxyy = max(yy)/(1-prob0)
   }
   
   ymax = max(prob0, 1 - prob0)
@@ -203,5 +204,12 @@ plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE) {
   }
   lines(c(pointmass, pointmass), c(0, prob0), lty = 1, lwd = 3,col=as.numeric(newplot)+1)
   lines(xx, (1 - prob0) * yy/maxyy, lty = 1, lwd = 1,col=as.numeric(newplot)+1)
+  
+  ##ggplot
+  if(gg==TRUE){
+  return(
+                  data.frame(maxy = maxyy, x = xx, y = yy, xl=pointmass, xu=pointmass,yl=0,yu=prob0))
+  }
+  
   #invisible()
 }

@@ -67,21 +67,18 @@ In this model, the prior distribution of $\mu$ is modeled with a spike and slab 
 
 
 ```{r load data}
-load("tp53.Rdata")
-getdata<- function(snp.name, iter=5000, drop= NULL){
-  
-  #more iterations, coda traceplots, maybe look at the prior still- cauchy prior? ideally would do joint update (check if model is reducible-> chain gets stuck)-> maube google this bc jags probably 
-  #
-  
-  
-  if(!is.null(drop)) {
+getdata<- function(snp.name, iter=5000, drop.sites= NULL){
+  load("tp53.Rdata")
+  if(!is.null(drop.sites)) {
     
-    use = !(tp53epi.wsi$site %in% drop)
+    use = !(tp53epi.wsi$site %in% drop.sites)
   } else {
     use = rep(TRUE, nrow(tp53epi.wsi))
   }
   #this is a new indicator
-  discovery.sites <- which(levels(factor(tp53epi.wsi$site))%in% drop)
+  site.names = levels(factor(tp53epi.wsi[which(!is.na(tp53geno.wsi[,snp.name])),"site"]))
+  discovery.sites <- which(site.names%in% drop.sites)
+  
   p53.snp = tp53geno.wsi[use, snp.name]
   tp53epi.wsi = tp53epi.wsi[use,]
   
@@ -99,6 +96,7 @@ getdata<- function(snp.name, iter=5000, drop= NULL){
   
   p53.data$discovery.sites<-discovery.sites
   p53.data$missing.geno<-missing.geno
+  p53.data$site.names<-site.names
   
   return(p53.data)
   
@@ -107,12 +105,12 @@ getdata<- function(snp.name, iter=5000, drop= NULL){
 ```
 
 ```{r}
-snp.name="rs12951053n"
+snp.name="rs12951053n" 
 discovery.sitenames= c("POL", "MAY", "NCO")
 #regular data
 p53.data<- getdata(snp.name)
 #validation data
-p53.dataval<- getdata(snp.name, drop=discovery.sitenames)
+p53.dataval<- getdata(snp.name, drop.sites=discovery.sitenames)
 
 ```
 
@@ -127,11 +125,10 @@ p53.dataval<- getdata(snp.name, drop=discovery.sitenames)
 
 ### Frequentist Results
 ```{r frequentist analysis function}
-
-OR.freq = function(snp.name, tp53epi.wsi,tp53geno.wsi, psdir="ps", drop=NULL,iter=5000, debug=F) {
-  
-  if (!is.null(drop)) {
-    use = !(tp53epi.wsi$site %in% drop)}
+OR.freq = function(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) {
+  load("tp53.Rdata")
+  if (!is.null(drop.sites)) {
+    use = !(tp53epi.wsi$site %in% drop.sites)}
   else {
     use = rep(TRUE, nrow(tp53epi.wsi))
   }
@@ -146,48 +143,60 @@ OR.freq = function(snp.name, tp53epi.wsi,tp53geno.wsi, psdir="ps", drop=NULL,ite
   
   p53.df = data.frame(p53.data)
   write.csv(p53.df, file=paste(snp.name, ".csv", sep=""))
-  
-  p53.full = glm(CaseCon ~ factor(site) + factor(site)*p53 + factor(site)*Age + BC, data=p53.df, family=binomial, x=T)
-  p53.pooled = glm(CaseCon ~ factor(site) + p53 + factor(site)*Age + BC, data=p53.df, family=binomial)
-  p53.null = glm(CaseCon ~ factor(site) +  factor(site)*Age + BC, data=p53.df, family=binomial)
-  
-  p53.df$Site = factor(p53.df$site)
-  
-  p53.me = glmer(CaseCon ~ BC + p53 + Age + (1|site)  + (0 + p53 | site) + (0 + Age | site), start=c(site=1.0, p53=.1, Age=.01),nAGQ=1 , data=p53.df, family=binomial)
-  
-  test=anova(p53.full, p53.pooled, p53.null, test="Chi")
-  coef = summary(p53.full)$coef
-  ns = length(site.names)
-  OR = coef[c(ns+1, (ns+4):(ns+ns+2)),1]
-  x = p53.full$x
-  p = predict(p53.full, type="response")
-  var = solve(t(x)%*% diag(p*(1-p)) %*%x)[c(ns+1, (ns+4):(ns+ns+2)),c(ns+1, (ns+4):(ns+ns+2))]
-  
-  sqrt(diag(var))
-  
-  eff = matrix(0, ns,ns)
-  eff[,1] = 1
-  for (i in 2:ns) eff[i,i] = 1
-  
-  OR = eff %*% OR
-  OR.SE = sqrt(diag(eff %*% var %*% t(eff)))
-  
-  DS = meta.summaries(OR, OR.SE, method="random", names=site.names, logscale=F)
-  p.value = pnorm(-(abs(DS$summary/DS$se.summary)))*2
-  BF0 = -exp(1)*p.value*log(p.value)
-  return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0, test=test, p53.me=p53.me))
+  if(length(site.names)>1){
+    p53.full = glm(CaseCon ~ factor(site) + factor(site)*p53 + factor(site)*Age + BC, data=p53.df, family=binomial, x=T)
+    p53.pooled = glm(CaseCon ~ factor(site) + p53 + factor(site)*Age + BC, data=p53.df, family=binomial)
+    p53.null = glm(CaseCon ~ factor(site) +  factor(site)*Age + BC, data=p53.df, family=binomial)
+    
+    p53.df$Site = factor(p53.df$site)
+    
+    p53.me = glmer(CaseCon ~ BC + p53 + Age + (1|site)  + (0 + p53 | site) + (0 + Age | site), start=c(site=1.0, p53=.1, Age=.01),nAGQ=1 , data=p53.df, family=binomial)
+    
+    test=anova(p53.full, p53.pooled, p53.null, test="Chi")
+    coef = summary(p53.full)$coef
+    ns = length(site.names)
+    OR = coef[c(ns+1, (ns+4):(ns+ns+2)),1]
+    x = p53.full$x
+    p = predict(p53.full, type="response")
+    var = solve(t(x)%*% diag(p*(1-p)) %*%x)[c(ns+1, (ns+4):(ns+ns+2)),c(ns+1, (ns+4):(ns+ns+2))]
+    
+    sqrt(diag(var))
+    
+    eff = matrix(0, ns,ns)
+    eff[,1] = 1
+    for (i in 2:ns) eff[i,i] = 1
+    
+    OR = eff %*% OR
+    OR.SE = sqrt(diag(eff %*% var %*% t(eff)))
+    
+    DS = meta.summaries(OR, OR.SE, method="random", names=site.names, logscale=F)
+    p.value = pnorm(-(abs(DS$summary/DS$se.summary)))*2
+    BF0 = -exp(1)*p.value*log(p.value)
+    return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0, test=test, p53.me=p53.me))}
+  else{
+    p53.full = glm(CaseCon ~ p53 + Age + BC, data=p53.df, family=binomial, x=T)
+    p53.null = glm(CaseCon ~ Age + BC, data=p53.df, family=binomial)
+    test=anova(p53.full, p53.null, test="Chi")
+    coef = summary(p53.full)$coef
+    ns = length(site.names)
+    OR = as.matrix(coef[2,1])
+    OR.SE = (coef[2,2])
+    p.value = coef[2,4]
+    BF0 = -exp(1)*p.value*log(p.value)
+    return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0))
+  }
 }
 
 ```
 
 ```{r actual freq analysis}
-validation.sitenames = c("AUS" ,"HAW" ,"MAL" ,"NEC" ,"NHS" ,"SEA" ,"STA" ,"UCI","UKO" ,"USC")
+#validation.sitenames = c("AUS" ,"HAW" ,"MAL" ,"NEC" ,"NHS" ,"SEA" ,"STA" ,"UCI","UKO" ,"USC")
 
-freq<-OR.freq(snp.name, tp53epi.wsi,tp53geno.wsi, psdir="ps", drop=validation.sitenames,iter=5000, debug=F) 
+freq<-OR.freq(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) 
 
 d = data.frame(t(freq$OR),coef(summary(freq$p53.me))["p53","Estimate"])
 colnames(d) <- c(freq$DS$names, "Overall")
-kable(t(exp(d)))
+kable(t((d)))
 ```
 
 - put this into a table-- see paper
@@ -202,7 +211,6 @@ freq$p.value
 ```
 
 fdr, BF interpretations
-
 ### model(s)
 
 - rationale for priors
@@ -276,21 +284,6 @@ p53.newmodel = function() {
   }
   beta.BC ~ dnorm(0, .1)
   
-  # mu.site ~ dnorm(0, .1)
-  # phi.site ~ dgamma(1,.05)
-  # sigma.site <- pow(phi.site, -.5)
-  # 
-  # #E[prec] 20
-  # #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  # mu.p53.1 ~ dnorm(0,.1)
-  # mu.p53<-mu.p53.1*assoc
-  # phi.p53 ~ dgamma(1, .05)
-  # #    phi.p53 ~ dgamma(2, .02)
-  # sigma.p53 <- pow(phi.p53, -.5)
-  # 
-  # mu.Age ~ dnorm(0, .1)
-  # phi.Age ~ dgamma(1, .05)
-  # sigma.Age  <- pow(phi.Age, -.5)
   mu.site ~ dnorm(0, .1)
   phi.site ~ dgamma(1,.05)
   sigma.site <- pow(phi.site, -.5)
@@ -298,7 +291,7 @@ p53.newmodel = function() {
   #E[prec] 20
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
   mu.p53<- mu1.p53*assoc
-  mu1.p53 ~ dt(0,1, 1)
+  mu1.p53 ~ dt(0,.1, 1)
   phi.p53 <- pow(sigma.p53, -2)
   sigma.p53 ~ dt(0,1,1)%_%T(0,)
   
@@ -350,7 +343,7 @@ p53.normal = function() {
   
   #E[prec] 20
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53 ~ dnorm(0,.1)
+  mu.p53 ~ dt(0,.1,1)
   phi.p53 <- pow(sigma.p53, -2)
   sigma.p53 ~ dt(0,1,1)%_%T(0,)
   
@@ -385,7 +378,7 @@ p53.bf.approx = function() {
   
   #E[prec] 20
   #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-  mu.p53.1 ~ dnorm(0,.1)
+  mu.p53.1 ~ dt(0,.1,1)
   mu.p53<-mu.p53.1*assoc
   phi.p53 <- pow(sigma.p53, -2)
   sigma.p53 ~ dt(0,1,1)%_%T(0,)
@@ -398,7 +391,7 @@ p53.bf.approx = function() {
   prior.odds<- (pind)/(1-pind) #a/0
   BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
   post.ind<-prior.odds*BF/(1+prior.odds*BF)
-  pind ~ dbeta(.5,.5)
+  pind ~ dbeta(.9,.9)
 }
 ```
 
@@ -410,34 +403,34 @@ parameters.normal<- c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigm
 
 p53.sim = jags(data=p53.data, inits=NULL, parameters.to.save =parameters, model = p53.model)
 p53.simval = jags(data=p53.dataval, inits=NULL, parameters.to.save =parameters, model = p53.model)
-p53.simnew = jags(data=p53.data , inits=NULL, parameters.to.save =parameters, model = p53.newmodel) #data aug?
+p53.simnew2 = jags(data=p53.data , inits=NULL, parameters.to.save =parameters, model = p53.newmodel) #data aug?
 
 ```
 
 ```{r}
 p53.simnormal = jags(data=p53.data.normal, inits=NULL, parameters.to.save =parameters.normal, model = p53.normal)
-p53.bfsim = jags(data=bfdata, inits=NULL, parameters.to.save =parameters, model = p53.bf.approx)
+p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)}, parameters.to.save =parameters, model = p53.bf.approx)
 ```
 
 
 
 
 ```{r comparison}
-getOR<-function(sim){
+getOR<-function(sim, totalsites,discoverysites){
   
   OR = as.data.frame(sim$BUGSoutput$sims.matrix)%>%select( starts_with("beta.p53"), "mu.p53")
   exp(OR)
   #colnames(OR) = c(site.names, "Overall")
   
-  sum.OR = t(apply(exp(OR), 2, function(x) {PI = HPDM(as.matrix(x))
-  return(c(median(x),mean(x), PI[1], PI[2]))} #how to deal w multi, change HPD to have point mass at 1
+  sum.OR = t(apply(exp(OR), 2, function(x) {PI = HPDM(as.matrix(x),pointmass=1)
+  return(c(median(x), PI[1], PI[2], PI[3],PI[4]))} #how to deal w multi, change HPD to have point mass at 1
   ))
-  if (dim(sum.OR)[1]!= p53.data$n.sites+1){
-    sum.OR1<- matrix(NA, p53.data$n.sites+1, dim(sum.OR)[2])
-    sum.OR1[-p53.dataval$discovery.sites,]<- sum.OR
+  if (dim(sum.OR)[1]!= totalsites+1){
+    sum.OR1<- matrix(NA, totalsites+1, dim(sum.OR)[2])
+    sum.OR1[-discoverysites,]<- sum.OR
     sum.OR<- sum.OR1
   } ###
-  colnames(sum.OR)<-c("Median","Mean", "2.5%","97.5%")
+  #colnames(sum.OR)<-c("Median","2.5%","97.5%")
   return(sum.OR)
 }
 
@@ -454,35 +447,24 @@ ORbf<-getOR(p53.bfsim) #MLEs for prior
 ORtable = data.frame(original= OR1, validation = ORval, latentvar= ORnew, cond= ORnormal, bfapprox= ORbf)
 
 kable(ORtable)
-simlist<- list(p53.sim,p53.simval,p53.simnew,p53.simnormal,p53.bfsim)
-modelnames<- c("Original","Validation", "Bayesian", "Cond", "BF")
+simlist<- list(p53.sim,p53.simnew,p53.simnormal)
+modelnames<- c("Original","Bayesian", "Conditional Likelihood")
 plots<-function(simlist){
-  ORlist = lapply(simlist, function(sim){ 
-    OR<-as.matrix(as.data.frame(sim$BUGSoutput$sims.matrix)%>%select( starts_with("beta.p53"), "mu.p53"))
-    if (dim(OR)[2]!= p53.data$n.sites+1){
-      n = dim(OR)[1]
-      OR1<- matrix(NA, n, p53.data$n.sites+1) ##!!!!
-      val.sites<- setdiff(1:(p53.data$n.sites+1), p53.dataval$discovery.sites)
-      OR1[,val.sites]<- OR
-      OR<- OR1
-    }
-    OR.df<- as.data.frame(OR)
-    colnames(OR.df)<- rownames(sum.OR1) ##!!!!
-    return(exp(OR.df))
+  ORlist = sapply(simlist, function(sim){ 
+    OR<-sim$BUGSoutput$sims.list$mu.p53
+    return(exp(OR))
   }
   )
-  plotdat<-NULL
-  for(i in 1:length(ORlist)){
-    plotdat<- rbind(plotdat, data.frame(melt(ORlist[[i]]), model = modelnames[i]))
-  }
-  
-  plt<-ggplot()+geom_boxplot(data = plotdat, outlier.shape = NA,aes(x=variable, y=value, fill=factor(model)))
-#  + scale_y_continuous(limits = c(lower, upper))
+  rownames(ORlist)<-NULL
+  colnames(ORlist)<-modelnames
+  plotdat<-melt(ORlist)
+  plt<-ggplot()+geom_boxplot(data = plotdat, outlier.shape = NA,aes(x=Var2, y=value, group=factor(Var2)))+  theme_minimal() + scale_colour_few()
+  #  + scale_y_continuous(limits = c(lower, upper))
   return(plt)
 }
 
 ggp<-plots(simlist)
-ggp
+ggp #just overall
 
 ```
 
@@ -497,15 +479,18 @@ plotvar(p53.bfsim$BUGSoutput$sims.list$mu.p53)
 
 
 
+
+
 ```{r all together}
-getalldata<- function(iter=5000, drop= NULL){
+getalldata<- function(iter=5000, drop.sites= NULL){
   
   #more iterations, coda traceplots, maybe look at the prior still- cauchy prior? ideally would do joint update (check if model is reducible-> chain gets stuck)-> maube google this bc jags probably 
   #
   
+  load("tp53.Rdata")
   
-  if(!is.null(drop)) {
-    use = !(tp53epi.wsi$site %in% drop)
+  if(!is.null(drop.sites)) {
+    use = !(tp53epi.wsi$site %in% drop.sites)
   } else {
     use = rep(TRUE, nrow(tp53epi.wsi))
   }
@@ -561,7 +546,7 @@ p53.newmodel.all = function() {
     #E[prec] 20
     #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
     mu.p53[k]<- mu1.p53[k]*assoc[k]
-    mu1.p53[k] ~ dt(0,1, 1)
+    mu1.p53[k] ~ dt(0,.1, 1)
     phi.p53[k] <- pow(sigma.p53[k], -2)
     sigma.p53[k] ~ dt(0,1,1)%_%T(0,)
     
@@ -597,6 +582,14 @@ mean(exp(MU.ALL[,which(colnames(tp53geno.wsi)==snp.name)]))
 ```
 
 ```{r}
+
+plotvar(exp(MU.ALL[,which(colnames(tp53geno.wsi)=="rs2287498n")]),pointmass=1)
+HPDM(as.matrix(exp(MU.ALL[,which(colnames(tp53geno.wsi)=="rs2287498n")])),pointmass=1)
+mean(exp(MU.ALL[,which(colnames(tp53geno.wsi)=="rs2287498n")]))
+```
+
+
+```{r}
 plotvar(exp(p53.simnew$BUGSoutput$sims.list$mu.p53),pointmass=1)
 HPDM(as.matrix(exp(p53.simnew$BUGSoutput$sims.list$mu.p53)),pointmass=1)
 mean(exp(p53.simnew$BUGSoutput$sims.list$mu.p53))
@@ -613,4 +606,92 @@ The bayes factor and conditional likelihood
 - plot something like the shrinkage
 - plot CI length comparison 
 - some notes on disjoint CI's, log vs not logged HPD
+
+
+
+
+
+
+```{r}
+snp.name= snps[1]#"rs12951053n" 
+discovery.sitenames= discovery.siteslist[[1]] #c("POL", "MAY", "NCO")
+
+
+OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir="ps"){
+  #data
+  
+  p53.data<- getdata(snp.name, drop.sites=NULL)
+  p53.dataval<- getdata(snp.name, drop.sites=discovery.sitenames)
+  validation.sitenames = setdiff(p53.data$site.names, discovery.sitenames)
+  freq<-OR.freq(snp.name, psdir="ps",
+                drop=validation.sitenames,iter=5000, debug=F) 
+  p53.data.normal<-p53.dataval
+  p53.data.normal$n.discovery<- length(p53.data.normal$discovery.sites)
+  p53.data.normal$zeroes<- rep(0,p53.data.normal$n.discovery)
+  p53.data.normal$MLE<- freq$OR[,1] 
+  p53.data.normal$SE<- freq$SE 
+  p53.data.normal$q<-qnorm(1-p/2)
+  bfdata <- p53.dataval
+  bfdata$p <- freq$p.value
+  
+  #run all 
+  parameters = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind","beta.site", "beta.p53","phi.site","phi.p53")
+  
+  p53.sim = jags(data=p53.data, inits=NULL, parameters.to.save =parameters, model = p53.model)
+  p53.simnew = jags(data=p53.data , inits=NULL, parameters.to.save =parameters, model = p53.newmodel) 
+  p53.simnormal = jags(data=p53.data.normal, inits=NULL, parameters.to.save =parameters.normal, model = p53.normal)
+  p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)}, parameters.to.save =parameters, model = p53.bf.approx)
+  
+  #OR
+  return(list(original= getOR(p53.sim, p53.data$n.sites, p53.data.normal$discovery.sites),
+              bayes=getOR(p53.simnew, p53.data$n.sites, p53.data.normal$discovery.sites),
+              cond=getOR(p53.simnormal, p53.data$n.sites, p53.data.normal$discovery.sites),
+              bf=getOR(p53.bfsim, p53.data$n.sites, p53.data.normal$discovery.sites)))
+}
+
+
+```
+
+
+
+
+```{r}
+
+#test2<-OR.runall("rs2287498n",discovery.sitenames= discovery.sitenames)
+#list of discovery sites
+discovery.siteslist<-list(c("POL"),
+                          c("POL", "MAY", "NCO"),
+                          c("POL"),
+                          c("POL"), 
+                          c("NCO"),
+                          c("POL", "MAY", "NCO"),
+                          c("NCO")
+                          
+) 
+snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
+ORbySNP<- vector("list", length = length(snps))
+for(i in 2:length(snps)){
+  ORbySNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
+  
+}
+
+
+```
+
+
+```{r}
+overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
+
+#overall=data.frame(t(sapply(ORbySNP[[2]], function(x) x[dim(x)[1],])))
+colnames(overall) = c("X","L","U", "L1","U1")
+overall$model = rep(c("original","bayes","conditional","bf"),length(snps))
+overall$snp = rep(snps, each = 4)
+ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+ 
+  geom_hline(yintercept=1, alpha=.3)+
+  geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = 1))+
+  geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = 1))+ 
+  geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = 1)) +
+  coord_flip()+theme_minimal() + scale_colour_few() +
+  
+```
 
