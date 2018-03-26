@@ -164,7 +164,7 @@ original.model = function() {
 bf.model = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <-  beta.p53[site[j]]*mu.p53.notzero  }
+    logit(theta[j]) <-  beta.p53[site[j]] }
   
   for (l in 1:n.sites) {
     beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
@@ -172,7 +172,7 @@ bf.model = function() {
   }
   
   mu.p53<- mu1.p53*mu.p53.notzero
-  mu1.p53 ~ dnorm(0,1)
+  mu1.p53 ~ dt(0,1,1)
   phi.p53 <- pow(sigma.p53, -2)
   sigma.p53 ~ dt(0,1,1)%_%T(0,)
   

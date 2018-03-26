@@ -132,3 +132,254 @@ kable(plots1.c$tables[[5]], caption = "Coverage of Variance using Truncated Cauc
 
 ```
 
+
+
+### Sensitivity of conditional likelihood method to changes in $\alpha$
+
+
+```{r cl analysis}
+#can use the other fn when rerunning so
+#sim.cl.stats.better<-getstatsloop(cl.sim.better,0, 1, pvals) #13 modes?
+
+sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
+cl.better.plots1<-make_plots(make_simlist(sim.cl.stats.better1), mu,sd,pvals)
+
+sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
+cl.better.plots4<-make_plots(make_simlist(sim.cl.stats.better4), mu,sd,pvals)
+```
+
+
+The conditional likelihood method is not robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted  for each level. The random effect model shows little difference across levels, but the global effect model had larger credible intervals with smaller $\alpha$, even though the point estimates were consistent. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results.
+
+One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
+
+The credible intervals in the random effects model do not vary with $\alpha$ either, suggesting that the wider intervals are a product of being unable to estimate the within-site variance.
+
+
+```{r}
+#cl plots
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[4,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[4,,])))[,2:3], simulation=2))
+
+mseplot = ggplot(data = (df), aes(x=factor(Var2), y=value)) +
+  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() + 
+  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
+  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c( "s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+mseplot
+
+rmse<- cbind(sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
+               sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
+rownames(rmse)<-pvals
+colnames(rmse)<-c("s", "4s")
+rmse
+
+
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
+
+intlenplot = ggplot(data = (df), aes(x=factor(Var2), y=value)) +
+  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() + 
+  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
+  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c( "s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+intlenplot
+```
+
+###plotting by simulation (fix mu,sd)
+
+
+
+
+
+```{r plotting fn}
+make_simlist<-function(sim){
+  return(lapply(seq(dim(sim)[2]), function(x) t(sim[ , x, ])))
+}
+
+make_estimate_error_plot<-function(simlist, means,medians, true,modelnames,plottitle = "Absolute Error"){
+  mean.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,means]-true)))
+  colnames(mean.sqerr)<-modelnames
+  
+  median.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,medians]-true)))
+  colnames(median.sqerr)<-modelnames
+  df <- data.frame(apply(mean.sqerr,2,function(x) sqrt(mean(x^2))),
+                   apply(median.sqerr,2,function(x) sqrt(mean(x^2))))
+  colnames(df)<-c("Posterior Mean", "Posterior Median")
+  mean.sqerr$estimator <- rep("mean",dim(mean.sqerr)[1])
+  median.sqerr$estimator <- rep("median",dim(median.sqerr)[1])
+  
+  sqerr<- rbind(mean.sqerr,median.sqerr)
+  return(list(plot = ggplot(data = melt(sqerr), 
+                            aes(x=variable, y=value,color=estimator)) +
+                geom_boxplot()+labs(x= "Model", y="Absolute Value",
+                                    title= plottitle),
+              table = df))
+}
+
+make_plots<-function(simlist, mu, sd, modelnames){
+  #mse
+  muerr<- (make_estimate_error_plot(simlist,3,4,mu,modelnames,"Mu Error Distribution"))
+  
+  #bar plots for coverage, times it's right
+  coverage<- data.frame(sapply(simlist, function(x) x[,1]))
+  colnames(coverage)<-modelnames
+  
+  containszero<- data.frame(sapply(simlist, function(x) x[,2]))
+  both<- coverage*containszero
+  coverage[coverage==1]<-2
+  coverage[containszero==1]<-1
+  coverage[both==1]<-3
+  coverage1<-melt(coverage)
+  levelnames<-c("Neither", "Only Zero","Only Mu","Both")
+  coverage1$value<-factor(levelnames[coverage1$value+1])
+  mucoverage= table(coverage1)/dim(simlist[[1]])[1]
+  
+  # disjoint<- data.frame(sapply(simlist, function(x) x[,5]))
+  # d0 = (containszero==0)*(disjoint)
+  # colnames(d0) = modelnames
+  # print(kable(table(melt(d0))))
+  #interval length
+  intlen<- data.frame(sapply(simlist, function(x) x[,6]))
+  colnames(intlen)<-modelnames
+  
+  plot3<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
+            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
+                                title= "Intervals"))
+  #prob of zero
+  p0<- data.frame(sapply(simlist, function(x) x[,7]))
+  colnames(p0)<-modelnames
+  
+  plot4 <- (ggplot(data = melt(p0), aes(x=variable, y=value)) +
+              geom_boxplot()+labs(x= "Model", y="proportion of mu!=0", 
+                                  title= "Posterior proportion of nonzero mu"))
+  
+  ################sd, pind
+  sderr<- (make_estimate_error_plot(simlist, 9,10,sd,modelnames,"Absolute Error of Standard Deviation"))
+  
+  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Probability of H1 (xi) "))
+  
+  intlen<- data.frame(sapply(simlist, function(x) x[,11]))
+  colnames(intlen)<-modelnames
+  plot7<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
+            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
+                                title= "SD Intervals"))
+  sdcov<- data.frame(sapply(simlist, function(x) x[,8]))
+  colnames(sdcov)<-modelnames
+  sdcov1<-melt(sdcov)
+  sdcov1$value<-ifelse(sdcov1$value==1,  "Contains","Does Not Contain")
+  sdcoverage<-table(melt(sdcov1))/dim(simlist[[1]])[1]
+  
+  return(list(plots = list(muerr$plot, plot3,plot4,sderr$plot,
+                           pinderr$plot,plot7),
+              tables = list(muerr$table, sderr$table, pinderr$table,
+                            mucoverage, sdcoverage)))
+}
+
+```
+
+
+
+```{r}
+plots0<-make_plots(make_simlist(sim.0), 0,0, modelnames)
+plots1<-make_plots(make_simlist(sim.1), mu,sd,modelnames)
+plots2<-make_plots(make_simlist(sim.2), mu,2*sd,modelnames)
+plotshalf<-make_plots(make_simlist(sim.half), mu,sd/2,modelnames)
+plots4<-make_plots(make_simlist(sim.4), mu,4*sd,modelnames)
+
+```
+
+# Data Analysis
+
+
+
+## Joint fully bayesian
+
+
+```{r all together}
+getalldata<- function(iter=5000, drop.sites= NULL){
+  
+  #more iterations, coda traceplots, maybe look at the prior still- cauchy prior? ideally would do joint update (check if model is reducible-> chain gets stuck)-> maube google this bc jags probably 
+  #
+  
+  load("tp53.Rdata")
+  
+  if(!is.null(drop.sites)) {
+    use = !(tp53epi.wsi$site %in% drop.sites)
+  } else {
+    use = rep(TRUE, nrow(tp53epi.wsi))
+  }
+  
+  names = colnames(tp53geno.wsi)
+  maxsite = 0
+  CaseCon<- site<-  BC <-  Age <- SNP <- p53<-NULL
+  for(i in 1:length(names)){
+    snp.name<- names[i]
+    p53.snp = tp53geno.wsi[use, snp.name]
+    tp53epi.wsi = tp53epi.wsi[use,]
+    
+    missing.geno = is.na(p53.snp)
+    site.names = levels(factor(tp53epi.wsi[!missing.geno,"site"]))
+    
+    CaseCon<- c(CaseCon, tp53epi.wsi$casecon[!missing.geno])
+    site<-c(site, as.numeric(factor(tp53epi.wsi$site[!missing.geno]))+
+              maxsite)
+    maxsite <-max(site)
+    BC <- c(BC, as.numeric(tp53epi.wsi$prev.BC[!missing.geno]))
+    Age <- c(Age, tp53epi.wsi$refage[!missing.geno])
+    SNP <-c(SNP,  rep(i, length(unique(tp53epi.wsi$site[!missing.geno]))))
+    p53<-c(p53, p53.snp[!missing.geno])
+  }
+  p53.data<- list(CaseCon = CaseCon,site=site,BC = BC,Age = Age,SNP = SNP,p53 = p53)
+  J = length(p53.data$CaseCon)
+  n.sites = length(unique(p53.data$site))
+  p53.data$J = J
+  p53.data$n.sites = n.sites
+  p53.data$n.snp = length(unique(p53.data$SNP))
+  return(p53.data)
+}
+
+p53.newmodel.all = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC[SNP[site[j]]]*BC[j]    }
+  
+  for (l in 1:n.sites) {
+    beta.site[l] ~ dnorm(mu.site[SNP[l]], phi.site[SNP[l]])
+    beta.p53.1[l] ~ dnorm(mu.p53[SNP[l]], phi.p53[SNP[l]])
+    beta.p53[l] <- beta.p53.1[l]*assoc[SNP[l]]
+    beta.Age[l] ~ dnorm(mu.Age[SNP[l]], phi.Age[SNP[l]])
+  }
+  
+  for (k in 1:n.snp){
+    beta.BC[k] ~ dnorm(0, .1)
+    mu.site[k] ~ dnorm(0, .1)
+    phi.site[k] ~ dgamma(1,.05)
+    sigma.site[k] <- pow(phi.site[k], -.5)
+    
+    #E[prec] 20
+    #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+    mu.p53[k]<- mu1.p53[k]*assoc[k]
+    mu1.p53[k] ~ dt(0,.1, 1)
+    phi.p53[k] <- pow(sigma.p53[k], -2)
+    sigma.p53[k] ~ dt(0,1,1)%_%T(0,)
+    
+    mu.Age[k] ~ dnorm(0, .1)
+    phi.Age[k] ~ dgamma(1, .05)
+    sigma.Age[k]  <- pow(phi.Age[k], -.5)
+    
+    assoc[k] ~ dbern(pind[k]) 
+    pind[k] ~ dbeta(.5,.5)
+  }
+  
+}
+
+
+p53.simnew.all = jags(data=getalldata(), inits=NULL, parameters.to.save =parameters, model = p53.newmodel.all)
+
+```
+
+
+```{r}
+MU.ALL<-as.data.frame(p53.simnew.all$BUGSoutput$sims.matrix)%>%select( starts_with("mu.p53"))
+apply(MU.ALL,2,plotvar)
+```
