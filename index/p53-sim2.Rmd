@@ -10,9 +10,20 @@ library(R2jags)
 library(random)
 library(reshape2)
 library(ggplot2)
+library(ggthemes)
 library(knitr)
 require(gridExtra)
 source("HPD.R")
+source("p53simJAGScode_cauchy.R")
+
+load("p53sim_processeddata.RData")
+mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp
+assoc<-c(0,1,1,1,1)
+muvec<-c(0,mu,mu,mu,mu)
+sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
+I = 50
+pvals=c(.05,.01,.005,.001, 1e-7)
+
 ```
 
 
@@ -124,14 +135,6 @@ run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the s
 cl = makeCluster(8)
 registerDoParallel(cl)
 
-
-mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp
-assoc<-c(0,1,1,1,1)
-muvec<-c(0,mu,mu,mu,mu)
-sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
-
-I = 50
-source("p53simJAGScode_cauchy.R")
 system.time({
   allsim<- foreach(j = 1:5) %:%
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
@@ -157,7 +160,6 @@ save.image()
 
 cl = makeCluster(8)
 registerDoParallel(cl)
-pvals=c(.05,.01,.005,.001, 1e-7)
 system.time({
   cl.sim.better.1<-
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
@@ -168,7 +170,6 @@ save.image()
 
 cl = makeCluster(8)
 registerDoParallel(cl)
-pvals=c(.05,.01,.005,.001, 1e-7)
 system.time({
   cl.sim.better.4<-
     foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
@@ -241,12 +242,17 @@ getstats<-function(jagsoutput, mu, sd){
 ```
 
 
-```{r get stats}
+```{r get stats, eval= FALSE}
 sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames)
 sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames)
 sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames)
 sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames)
 sim.4<-getstatsloop(allsim[[5]],mu,sd*4,modelnames)
+
+sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
+sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
+
+save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better4, file = "p53sim_processeddata.RData")
 
 ```
 
@@ -356,32 +362,17 @@ intlenplot
 ```
 
 
-
 #### Xi
 
 While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively. 
 
 ```{r}
-pindmed
-zeromu
+kable(pindmed)
+kable(zeromu)
 ```
-
-
 
 
 ### Sensitivity of Conditional Likelihood Method to Changes in $\alpha$
-
-
-```{r cl analysis}
-#can use the other fn when rerunning so
-#sim.cl.stats.better<-getstatsloop(cl.sim.better,0, 1, pvals) #13 modes?
-
-sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
-cl.better.plots1<-make_plots(make_simlist(sim.cl.stats.better1), mu,sd,pvals)
-
-sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
-cl.better.plots4<-make_plots(make_simlist(sim.cl.stats.better4), mu,sd,pvals)
-```
 
 
 The conditional likelihood method is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. `r I` datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
