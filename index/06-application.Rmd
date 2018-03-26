@@ -299,12 +299,6 @@ getOR<-function(sim, totalsites,discoverysites){
   return(sum.OR)
 }
 
-OR1<-getOR(p53.sim) #regular
-ORval<-getOR(p53.simval)
-ORnew<-getOR(p53.simnew) #w assoc
-ORnormal<-getOR(p53.simnormal) #MLEs for prior
-ORbf<-getOR(p53.bfsim) #MLEs for prior
-
 ```
 
 ```{r}
@@ -342,98 +336,6 @@ plotvar(p53.bfsim$BUGSoutput$sims.list$mu.p53)
 ```
 
 
-
-
-
-```{r all together}
-getalldata<- function(iter=5000, drop.sites= NULL){
-  
-  #more iterations, coda traceplots, maybe look at the prior still- cauchy prior? ideally would do joint update (check if model is reducible-> chain gets stuck)-> maube google this bc jags probably 
-  #
-  
-  load("tp53.Rdata")
-  
-  if(!is.null(drop.sites)) {
-    use = !(tp53epi.wsi$site %in% drop.sites)
-  } else {
-    use = rep(TRUE, nrow(tp53epi.wsi))
-  }
-  
-  names = colnames(tp53geno.wsi)
-  maxsite = 0
-  CaseCon<- site<-  BC <-  Age <- SNP <- p53<-NULL
-  for(i in 1:length(names)){
-    snp.name<- names[i]
-    p53.snp = tp53geno.wsi[use, snp.name]
-    tp53epi.wsi = tp53epi.wsi[use,]
-    
-    missing.geno = is.na(p53.snp)
-    site.names = levels(factor(tp53epi.wsi[!missing.geno,"site"]))
-    
-    CaseCon<- c(CaseCon, tp53epi.wsi$casecon[!missing.geno])
-    site<-c(site, as.numeric(factor(tp53epi.wsi$site[!missing.geno]))+
-              maxsite)
-    maxsite <-max(site)
-    BC <- c(BC, as.numeric(tp53epi.wsi$prev.BC[!missing.geno]))
-    Age <- c(Age, tp53epi.wsi$refage[!missing.geno])
-    SNP <-c(SNP,  rep(i, length(unique(tp53epi.wsi$site[!missing.geno]))))
-    p53<-c(p53, p53.snp[!missing.geno])
-  }
-  p53.data<- list(CaseCon = CaseCon,site=site,BC = BC,Age = Age,SNP = SNP,p53 = p53)
-  J = length(p53.data$CaseCon)
-  n.sites = length(unique(p53.data$site))
-  p53.data$J = J
-  p53.data$n.sites = n.sites
-  p53.data$n.snp = length(unique(p53.data$SNP))
-  return(p53.data)
-}
-
-p53.newmodel.all = function() {
-  for (j in 1:J) {
-    CaseCon[j] ~ dbern(theta[j])
-    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
-      beta.Age[site[j]]*Age[j] + beta.BC[SNP[site[j]]]*BC[j]    }
-  
-  for (l in 1:n.sites) {
-    beta.site[l] ~ dnorm(mu.site[SNP[l]], phi.site[SNP[l]])
-    beta.p53.1[l] ~ dnorm(mu.p53[SNP[l]], phi.p53[SNP[l]])
-    beta.p53[l] <- beta.p53.1[l]*assoc[SNP[l]]
-    beta.Age[l] ~ dnorm(mu.Age[SNP[l]], phi.Age[SNP[l]])
-  }
-  
-  for (k in 1:n.snp){
-    beta.BC[k] ~ dnorm(0, .1)
-    mu.site[k] ~ dnorm(0, .1)
-    phi.site[k] ~ dgamma(1,.05)
-    sigma.site[k] <- pow(phi.site[k], -.5)
-    
-    #E[prec] 20
-    #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
-    mu.p53[k]<- mu1.p53[k]*assoc[k]
-    mu1.p53[k] ~ dt(0,.1, 1)
-    phi.p53[k] <- pow(sigma.p53[k], -2)
-    sigma.p53[k] ~ dt(0,1,1)%_%T(0,)
-    
-    mu.Age[k] ~ dnorm(0, .1)
-    phi.Age[k] ~ dgamma(1, .05)
-    sigma.Age[k]  <- pow(phi.Age[k], -.5)
-    
-    assoc[k] ~ dbern(pind[k]) 
-    pind[k] ~ dbeta(.5,.5)
-  }
-  
-}
-
-
-p53.simnew.all = jags(data=getalldata(), inits=NULL, parameters.to.save =parameters, model = p53.newmodel.all)
-
-```
-
-
-```{r}
-MU.ALL<-as.data.frame(p53.simnew.all$BUGSoutput$sims.matrix)%>%select( starts_with("mu.p53"))
-apply(MU.ALL,2,plotvar)
-```
 
 
 
