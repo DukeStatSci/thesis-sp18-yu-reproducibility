@@ -1,18 +1,8 @@
 # Hierarchical Simulations
 
-```{r}
-knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(eval = FALSE)
-knitr::opts_chunk$set(cache = FALSE)
-mu = 2
-sd = 1
-I = 100
-```
 
-
-```{r}
+```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(eval = FALSE)
 knitr::opts_chunk$set(cache = FALSE)
 
 library(doParallel)
@@ -85,11 +75,11 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
   cond.likelihood<-NULL
   if(!is.null(cond.data)){
     cond.likelihood<- jags(data=cond.data ,inits=inits,
-                              parameters.to.save =c("mu.p53", "sigma.p53"), 
-                              model = cond.likelihood.re.model)
+                           parameters.to.save =c("mu.p53", "sigma.p53"), 
+                           model = cond.likelihood.re.model)
     bf.approx<- jags(data=cond.data, inits=inits,
-                  parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
-                  model = bf.model)
+                     parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
+                     model = bf.model)
   }
   original<- jags(data=data$simdata, inits=inits,
                   parameters.to.save =c("mu.p53", "sigma.p53"),
@@ -129,7 +119,7 @@ run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the s
 ```
 
 
-```{r parallel}
+```{r parallel, eval= FALSE}
 # stopCluster(cl)
 cl = makeCluster(8)
 registerDoParallel(cl)
@@ -219,8 +209,8 @@ getstats<-function(jagsoutput, mu, sd){
   }
   sd.samples<-sd.cred<-NA
   if(!is.null(jagsoutput$BUGSoutput$sims.list$sigma.p53)){
-  sd.samples <- (jagsoutput$BUGSoutput$sims.list$sigma.p53)
-  sd.cred<- HPDM(sd.samples)
+    sd.samples <- (jagsoutput$BUGSoutput$sims.list$sigma.p53)
+    sd.cred<- HPDM(sd.samples)
   }
   
   pind.samples<-pind.cred<-NA
@@ -262,104 +252,124 @@ sim.4<-getstatsloop(allsim[[5]],mu,sd*4,modelnames)
 
 
 
+### Simulations
+
+The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section**link**: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
+
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of `r I` simulated datasets was created each time.
 
 
-```{r plotting fn}
-make_simlist<-function(sim){
-  return(lapply(seq(dim(sim)[2]), function(x) t(sim[ , x, ])))
-}
+`r I` datasets were also simulated under the null hypothesis. They were fit with the models described above, and resulted in reasonable estimates. 
 
-make_estimate_error_plot<-function(simlist, means,medians, true,modelnames,plottitle = "Absolute Error"){
-  mean.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,means]-true)))
-  colnames(mean.sqerr)<-modelnames
-  
-  median.sqerr<- data.frame(sapply(simlist, function(x) abs(x[,medians]-true)))
-  colnames(median.sqerr)<-modelnames
-  df <- data.frame(apply(mean.sqerr,2,function(x) sqrt(mean(x^2))),
-                   apply(median.sqerr,2,function(x) sqrt(mean(x^2))))
-  colnames(df)<-c("Posterior Mean", "Posterior Median")
-  mean.sqerr$estimator <- rep("mean",dim(mean.sqerr)[1])
-  median.sqerr$estimator <- rep("median",dim(median.sqerr)[1])
-  
-  sqerr<- rbind(mean.sqerr,median.sqerr)
-  return(list(plot = ggplot(data = melt(sqerr), 
-                            aes(x=variable, y=value,color=estimator)) +
-                geom_boxplot()+labs(x= "Model", y="Absolute Value",
-                                    title= plottitle),
-              table = df))
-}
+### Finding "Discovery" Sites 
 
-make_plots<-function(simlist, mu, sd, modelnames){
-  #mse
-  muerr<- (make_estimate_error_plot(simlist,3,4,mu,modelnames,"Mu Error Distribution"))
-  
-  #bar plots for coverage, times it's right
-  coverage<- data.frame(sapply(simlist, function(x) x[,1]))
-  colnames(coverage)<-modelnames
-  
-  containszero<- data.frame(sapply(simlist, function(x) x[,2]))
-  both<- coverage*containszero
-  coverage[coverage==1]<-2
-  coverage[containszero==1]<-1
-  coverage[both==1]<-3
-  coverage1<-melt(coverage)
-  levelnames<-c("Neither", "Only Zero","Only Mu","Both")
-  coverage1$value<-factor(levelnames[coverage1$value+1])
-  mucoverage= table(coverage1)/dim(simlist[[1]])[1]
+In this simulation study, a logistic regression with fixed effects for sites was conducted to find the site with the smallest p-value less than $\alpha$. If no sites matched this description, the data was resampled until at least one site was viable. The maximum likelihood estimate of this effect and its variance were added as data for the conditional likelihood model, and the p-value was added to the bayes factor approximation model.  The observations for this site were then taken out of the data.
 
-  # disjoint<- data.frame(sapply(simlist, function(x) x[,5]))
-  # d0 = (containszero==0)*(disjoint)
-  # colnames(d0) = modelnames
-  # print(kable(table(melt(d0))))
-  #interval length
-  intlen<- data.frame(sapply(simlist, function(x) x[,6]))
-  colnames(intlen)<-modelnames
-  
-  plot3<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
-            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
-                                title= "Intervals"))
-  #prob of zero
-  p0<- data.frame(sapply(simlist, function(x) x[,7]))
-  colnames(p0)<-modelnames
-  
-  plot4 <- (ggplot(data = melt(p0), aes(x=variable, y=value)) +
-              geom_boxplot()+labs(x= "Model", y="proportion of mu!=0", 
-                                  title= "Posterior proportion of nonzero mu"))
-  
-  ################sd, pind
-  sderr<- (make_estimate_error_plot(simlist, 9,10,sd,modelnames,"Absolute Error of Standard Deviation"))
-  
-  pinderr<- (make_estimate_error_plot(simlist, 13,14,0,modelnames, "Probability of H1 (xi) "))
-  
-  intlen<- data.frame(sapply(simlist, function(x) x[,11]))
-  colnames(intlen)<-modelnames
-  plot7<-(ggplot(data = melt(intlen), aes(x=variable, y=value)) +
-            geom_boxplot()+labs(x= "Model", y="Credible Interval Length", 
-                                title= "SD Intervals"))
-  sdcov<- data.frame(sapply(simlist, function(x) x[,8]))
-  colnames(sdcov)<-modelnames
-  sdcov1<-melt(sdcov)
-  sdcov1$value<-ifelse(sdcov1$value==1,  "Contains","Does Not Contain")
-  sdcoverage<-table(melt(sdcov1))/dim(simlist[[1]])[1]
-  
-  return(list(plots = list(muerr$plot, plot3,plot4,sderr$plot,
-                           pinderr$plot,plot7),
-              tables = list(muerr$table, sderr$table, pinderr$table,
-                            mucoverage, sdcoverage)))
-}
+## Results
 
-```
-
+### Sensitivity
 
 
 ```{r}
-plots0<-make_plots(make_simlist(sim.0), 0,0, modelnames)
-plots1<-make_plots(make_simlist(sim.1), mu,sd,modelnames)
-plots2<-make_plots(make_simlist(sim.2), mu,2*sd,modelnames)
-plotshalf<-make_plots(make_simlist(sim.half), mu,sd/2,modelnames)
-plots4<-make_plots(make_simlist(sim.4), mu,4*sd,modelnames)
+df<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
+simslist<-list(sim.half,sim.1,sim.2,sim.4)
+for (i in 1:4){
+  df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
+}
+mseplot = ggplot(data = (df), aes(x=Var2, y=value)) +
+  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() +
+  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
+  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c(expression(paste(mu, " = 0")),"s/2", "s", "2s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+
+
+rmse<- cbind(sapply(1:4, function(x) sqrt(mean((sim.0[4,x,])^2))),
+             sapply(simslist, function(sim) 
+               sapply(1:4, function(x) sqrt(mean((sim[4,x,]-mu)^2)))))
+rownames(rmse)<-modelnames
+colnames(rmse)<-c("mu=0","s/2", "s", "2s", "4s")
+
+
+pindmed<- cbind(sapply(c(1,3), function(x) sqrt(mean((sim.0[14,x,])^2))),
+                sapply(simslist, function(sim) 
+                  sapply(c(1,3), function(x) sqrt(mean((sim[14,x,])^2)))))
+rownames(pindmed)<-modelnames[c(1,3)]
+colnames(pindmed)<-c("mu=0","s/2", "s", "2s", "4s")
+
+zeromu<- cbind(sapply(c(1,3), function(x) sqrt(mean((sim.0[7,x,])^2))),
+               sapply(simslist, function(sim) 
+                 sapply(c(1,3), function(x) sqrt(mean((sim[7,x,])^2)))))
+rownames(zeromu)<-modelnames[c(1,3)]
+colnames(zeromu)<-c("mu=0","s/2", "s", "2s", "4s")
+
+
+df<- data.frame(melt(t(abs(sim.0[6,,])))[,2:3], simulation=0)
+simslist<-list(sim.half,sim.1,sim.2,sim.4)
+for (i in 1:4){
+  df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][6,,])))[,2:3], simulation=i))
+}
+
+intlenplot = ggplot(data = (df), aes(x=Var2, y=value)) +
+  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() +
+  labs(x="Model",y="Credible Interval Length", title=expression(paste("Interval Length of ",mu)))+
+  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c(expression(paste(mu, " = 0")),"s/2", "s", "2s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+
+hasboth<- cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+                sapply(simslist, function(sim) 
+                  sapply(1:4, function(x) mean(sim[1,x,]*sim[2,x,]))))
+rownames(hasboth)<-modelnames
+colnames(hasboth)<-c("mu=0","s/2", "s", "2s", "4s")
+
+hasm<-  sapply(simslist, function(sim) 
+  sapply(1:4, function(x) mean(sim[1,x,]*(1-sim[2,x,]))))
+rownames(hasm)<-modelnames
+colnames(hasm)<-c("s/2", "s", "2s", "4s")
+
+has0notmu<-  sapply(simslist, function(sim) 
+  sapply(1:4, function(x) mean(sim[2,x,]*(1-sim[1,x,]))))
+rownames(has0notmu)<-modelnames
+colnames(has0notmu)<-c("s/2", "s", "2s", "4s")
 
 ```
+
+#### Mu
+
+##### RMSE
+
+As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). At small variances (s/2, s,  2s), the original and bayesian models outperform the others, but at 4s the conditional likelihood model has the lowest RMSE. 
+
+```{r}
+mseplot
+kable(rmse, caption=expression(paste("RMSE of ",mu)))
+```
+##### Coverage
+
+The BF approximation model is the most conservative, with the intervals covering 0 more times than any other model for all values of $\sigma$. All models have very high coverage in general.
+
+The Bayesian model had the shortest intervals. 
+
+```{r}
+kable(hasm)
+kable(has0notmu)
+kable(hasboth)
+kable(hasboth[,2:5]+hasm)
+intlenplot
+```
+
+
+
+#### Xi
+
+While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively. 
+
+```{r}
+pindmed
+zeromu
+```
+
+
+
+
+### Sensitivity of Conditional Likelihood Method to Changes in $\alpha$
 
 
 ```{r cl analysis}
@@ -373,69 +383,41 @@ sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals)
 cl.better.plots4<-make_plots(make_simlist(sim.cl.stats.better4), mu,sd,pvals)
 ```
 
-### Simulations
 
-The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section**link**: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
+The conditional likelihood method is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. `r I` datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
 
-To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations.
-
-A total of `r I` simulations were run.
-
-### Finding "Discovery" Sites 
-
-In this simulation study, a logistic regression with fixed effects for sites was conducted to find the site with the smallest p-value less than $\alpha$. If no sites matched this description, the data was resampled until at least one site was viable. The maximum likelihood estimate of this effect and its variance were added as data for the conditional likelihood model, and the p-value was added to the bayes factor approximation model.  The observations for this site were then taken out of the data.
-
-##### Some Analysis
-
-### General things
-
-
-### Sensitivity of conditional likelihood method to changes in $\alpha$
-
-The conditional likelihood method is not robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model for each level was then fitted. The results from these show that, while the posterior mean estimate was the same for different $\alpha$, the credible intervals got larger as $\alpha$ decreased. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results, but this can be explained by the fact that the models take into account the selection mechanism. This means that, if an estimate has p-value much lower than $\alpha$, the model will be more confident that it came from a nonzero distribution than if it is close to $\alpha$.
-
-One thing to note is that this only holds for distributions of $\beta$ that have small enough variance that there are no (or very few) sites are less than or equal to zero. Running the exact same simulation with the data coming from a more spread out distribution for $\mu$, we find that there is no difference between models. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
-
-```{r}
-lapply(cl.better.plots1$tables, kable)
-lapply(clplots1$tables, kable)
-
-
-```
-
-
-### Sensitivity
-
-To test the robustness of the models (and their mixing ability), the simulations were run with a range of standard deviations:  $\frac{\sigma}{2},\sigma, 2\sigma,4\sigma$. The rest of the parameters remained the same.
-As expected, the models performed more poorly as $\sigma$ increased. However, while one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for any of the implementations, which had consistent posterior estimates of $\xi$. This means that this model is robust, since it does not need a highly concentrated distribution to detect that there is a true effect. Another thing to consider is that under the null hypothesis (i.e. that there is no association), the variance across sites would actually be close to zero, since they would all have an effect of 0.
 
 
 ```{r}
-lapply(plotshalf$tables[c(1,3,4)],kable) #these don't have the sigma^2 samples
-lapply(plots1$tables[c(1,3,4)],kable)
-lapply(plots2$tables[c(1,3,4)],kable)
-lapply(plots4$tables[c(1,3,4)],kable)
+#cl plots
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[4,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[4,,])))[,2:3], simulation=2))
 
-lapply(plotshalf$tables[3],kable) #these don't have the sigma^2 samples
-lapply(plots1$tables[3],kable)
-lapply(plots2$tables[3],kable)
-lapply(plots4$tables[3],kable)
+mseplot = ggplot(data = (df), aes(x=factor(Var2), y=value)) +
+  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() + 
+  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
+  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c( "s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+
+rmse<- cbind(sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
+               sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
+rownames(rmse)<-pvals
+colnames(rmse)<-c("s", "4s")
+
+
+
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
+
+intlenplot = ggplot(data = (df), aes(x=factor(Var2), y=value)) +
+  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() + 
+  labs(x="Model",y="Credible Interval Length", title=expression(paste("Credible Interval of ",mu)))+
+  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c( "s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+kable(rmse)
+mseplot
+intlenplot
 ```
 
+This model shows little difference across levels because the conditional likelihood prior is being applied to the specific site, not to the global mean, which has the same distribution as it would if the likelihood of $\beta$ was unconditional.
 
+A simpler model with no random effects ($MLE_i \sim N(\mu, SE_i)$) and small variance resulted in larger credible intervals for smaller $\alpha$, even though the point estimates were consistent. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results, but makes sense based on the shape of the prior on $\mu$. There is no difference between credible intervals of this same model when the simulations have higher variance. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
 
-
-### Probability of H0 v H1
-
-`r I` datasets were also simulated under the null hypothesis. They were fit with the models described above, and resulted in reasonable estimates. In this case, the proportion of samples with $\mu = 0$ was quite high for all models, and the point estimate of $\xi$ is also less than $0.5$. The conditional effect model has a larger bias than the other models, but this is still very small relative to the scale of $\mu$. The cauchy prior latent variable model had the smallest intervals. Surprisingly, the cauchy ones' trick model had wider intervals than the normal model with the ones' trick (and than both latent variable models), but still had lower coverage. 
-
-```{r}
-plots4
-```
-
-
-
-
-### some thoughts on bayes factor p value approx
-
-What this really does is skew the beta prior towards one. **see plot**. This model does well in detecting when there is really no effect because the data is able to pull the value of $\xi$ towards zero. However, if the data does have an effect and the distribution is already skewed, the overall effect is almost the same as having the original model (i.e. assuming the alternative).
