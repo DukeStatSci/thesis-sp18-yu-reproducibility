@@ -21,7 +21,7 @@ mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp
 assoc<-c(0,1,1,1,1)
 muvec<-c(0,mu,mu,mu,mu)
 sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
-I = 50
+I = 100
 pvals=c(.05,.01,.005,.001, 1e-7)
 
 ```
@@ -282,10 +282,10 @@ simslist<-list(sim.half,sim.1,sim.2,sim.4)
 for (i in 1:4){
   df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
 }
-mseplot = ggplot(data = (df), aes(x=Var2, y=value)) +
-  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() +
-  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
-  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c(expression(paste(mu, " = 0")),"s/2", "s", "2s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
+  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
 
 rmse<- cbind(sapply(1:4, function(x) sqrt(mean((sim.0[4,x,])^2))),
@@ -314,10 +314,12 @@ for (i in 1:4){
   df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][6,,])))[,2:3], simulation=i))
 }
 
-intlenplot = ggplot(data = (df), aes(x=Var2, y=value)) +
-  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() +
-  labs(x="Model",y="Credible Interval Length", title=expression(paste("Interval Length of ",mu)))+
-  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c(expression(paste(mu, " = 0")),"s/2", "s", "2s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
+  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
 
 hasboth<- cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
                 sapply(simslist, function(sim) 
@@ -384,10 +386,11 @@ The conditional likelihood method is robust to changes in the level $\alpha$. To
 df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[4,,])))[,2:3], simulation=1),
            data.frame(melt(t(abs(sim.cl.stats.better4[4,,])))[,2:3], simulation=2))
 
-mseplot = ggplot(data = (df), aes(x=factor(Var2), y=value)) +
-  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() + 
-  labs(x="Model",y="Absolute Error", title=expression(paste("Absolute Error of ",mu)))+
-  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c( "s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
+  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
 
 rmse<- cbind(sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
                sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
@@ -399,10 +402,11 @@ colnames(rmse)<-c("s", "4s")
 df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
            data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
 
-intlenplot = ggplot(data = (df), aes(x=factor(Var2), y=value)) +
-  geom_boxplot(aes(color=factor(simulation)))+  theme_minimal() + 
-  labs(x="Model",y="Credible Interval Length", title=expression(paste("Credible Interval of ",mu)))+
-  scale_colour_few(name=expression(paste(sigma^2, " used in simulation")), labels=c( "s", "4s"))+  theme( legend.justification=c(1,1), legend.position=c(1,1))
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
+  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
 kable(rmse)
 mseplot
 intlenplot
