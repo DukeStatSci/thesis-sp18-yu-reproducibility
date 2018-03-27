@@ -10,11 +10,11 @@ committeemembertwo: 'Surya Tokdar'
 dus: 'Mine Cetinkaya-Rundel'
 department: 'Department of Statistical Science'
 degree: 'Bachelor of Science in Statistical Science'
-title: 'My Final College Paper' ###
+title: 'Bayesian Reproducibility' 
 knit: "bookdown::render_book"
 site: bookdown::bookdown_site
 output: 
-  #thesisdowndss::thesis_pdf: default
+  # thesisdowndss::thesis_pdf: default
   thesisdowndss::thesis_gitbook: default
 #  thesisdowndss::thesis_word: default
 #  thesisdowndss::thesis_epub: default

@@ -3,6 +3,9 @@
 ## Normal Example
 
 ### Data Generation
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
 
 To test the hypothesis $H_0: mu = 0$ versus  $H_1: mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $mu_i = 0$ in the null scenario and $mu_i \sim N(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.
 
@@ -102,7 +105,7 @@ HPD <-function(post, prob  = .95){
 
 ### Results
 
-```{r cache=TRUE}
+```{r eval=FALSE}
 
 all <- function(H, N, n.samp, interval,alpha){
   mu <- ifelse(H==0, 0, rnorm(1, 0, 1)) ### normally distributed mu
@@ -163,6 +166,7 @@ colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" ,
         "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
         "bayes.est","bayes.median.est","bayes.mode.est",
         "cond.mean.est","cond.mode.est")
+save(results, file="normalsim.RData")
 
 ```
 
@@ -173,7 +177,8 @@ colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" ,
 require(reshape2)
 require(knitr)
 require(ggplot2)
-#load("normalresults.RData")
+library(ggthemes)
+load("normalsim.RData")
 #results <- fullresults
 fullresults<-results
 results<-na.omit(results)
@@ -184,7 +189,7 @@ estimators <- data.frame(bayes = abs(results$bayes.est-results$mu),
               cond.mean = abs(results$cond.mean.est-results$mu),
               cond.mode = abs(results$cond.mode.est-results$mu))
 
-ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|", title= "Bias Distribution by Estimator")
+ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|", title= "Bias Distribution by Estimator")+theme_minimal() + scale_colour_few()
 
 kable(c(bayes = sqrt(sum(estimators$bayes^2)), bayes.median= sqrt(sum(estimators$bayes.median^2)), bayes.mode = sqrt(sum(estimators$bayes.mode^2)),cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2))), col.names = "RMSE")
 
@@ -197,7 +202,7 @@ The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error
 
 ```{r cache=TRUE}
 ##plot of credible interval sizes
-ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))+labs(x="Length of (Conditional) Confidence Interval",y="Length of (Bayesian) Credible Interval", title="Interval Size Comparison",color="|Ybar|")
+ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))+labs(x="Length of (Conditional) Confidence Interval",y="Length of (Bayesian) Credible Interval", title="Interval Size Comparison",color="|Ybar|")+theme_minimal() 
 
 ```
 

@@ -1,4 +1,12 @@
+# Supplementary Material
+
 ### additional simulation models
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(cache = FALSE)
+knitr::opts_chunk$set(eval = FALSE)
+
+```
 
 1. The probability of association $\xi$ can give rise to a latent variable drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$. That is,  $\pi(\mu|\iota) = (1-\iota ) N(\mu, 0, \epsilon)+ \iota N(\mu,0 ,1)$, and $P(\iota = 1 ) = \xi$. This is the latent variable model with normal prior. Then $\xi \sim Beta(1/2, 1/2), \sigma \sim invGamma(1, .05), \beta_j \sim N(\mu, \sigma^2), Y_{ij} \sim logit^{-1}(\beta_j)$.
 
@@ -383,3 +391,6 @@ p53.simnew.all = jags(data=getalldata(), inits=NULL, parameters.to.save =paramet
 MU.ALL<-as.data.frame(p53.simnew.all$BUGSoutput$sims.matrix)%>%select( starts_with("mu.p53"))
 apply(MU.ALL,2,plotvar)
 ```
+
+
+

@@ -1,8 +1,18 @@
-# Application
+# Analysis of TP53 Data
+
+Each model adjusts for study site, reference age, and personal history of breast cancer. History of breast cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. 
+
+$P(Y_{ij}=1) = logit^{-1}(\beta^{site}_{ j}+ \beta^{p53}_{j}*p53_{ij}+ \beta^{age}_{j}*age_{ij}+\beta^{BC}* BC_{ij})$\\
+$\beta^{site}_{ j}\sim N(\mu^{site}, \sigma^{2site})$\\
+$\beta^{age}_{j}\sim N(\mu^{age}, \sigma^{2age})$\\
+$\beta^{BC}, \mu^{age},\mu^{site}\sim N(0,0.1)$\\
+$\sigma^{age},\sigma^{site} \sim invGamma(1, 0.05)$\\
+
+The p53 variable's site-specific log OR priors were defined using the models described previously.
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(cache = FALSE)
+knitr::opts_chunk$set(cache = TRUE)
 
 library(rmeta)
 library(lme4)
@@ -19,178 +29,6 @@ source("p53finalJAGScode.R")
 load("p53OR.RData")
 load("tp53.RData")
 ```
-
-## Genome Study
-
-### Introduction
-
-The aim is to study the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. Its role in carcinogenesis has been confirmed in various studies (for more detailed information, see **[p53 paper]**).
-
-### Data
-
-#### Discovery Sites
-
-Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS), the Mayo Clinic Case-Control Study (MAYO), and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites.
-
-
-#### Replication Sites
-
-Ten other sites contributed data: the Australian Ovarian Cancer Study (AOCS) and the Australian Cancer Study (ACS) presented together as AUS, the Family Registry for Ovarian Cancer (FROC, presented as STA), the Hawaiian Ovarian Cancer Study (HAW), the Malignant Ovarian Cancer Study Denmark (MALOVA), the New England Case-Control Study (NEC), the Nurses' Health Study (NHS), SEARCH Cambridge (SEA), the Los Angeles County Case-Control Study of Ovarian Cancer (LAC-CCOC, presented here as USC), the University of California at Irvine study (UCI), and the United Kingdom Ovarian Cancer Population Study (UKOPS, presented here as UKO).
-
-
-The combined data set (discovery and replication) comprised 5,206 white, non-Hispanic invasive epithelial ovarian cancer cases, of which 2,829 were classified as serous invasive ovarian cancer, and 8,790 white non-Hispanic controls. Analysis was restricted to white, non-Hispanic invasive serous ovarian cancer cases and white, non-Hispanic controls.
-
-### Motivation
-
-Traditionally, genome-wide-significant associations often fail or have much smaller effects in replication tests because of the winner's curse and using discovery data twice (when testing for significance, and calculating the effect size). To account for this discrepancy, previous studies perform two analyses: one with all the data together, and one only using the validation site data. However, this approach not only throws away all the discovery data, which could be a large portion of the total dataset, reducing power, but also assumes that the significance found in the discovery data is certain, which is especially problematic in genome-wide association studies, which perform multiple testing to find associations.
-
-We propose three different Bayesian approaches: 
-
-1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP(???).
-
-2. A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size.
-
-3. A bayes factor based model that uses the bayes factor from the discovery sites (which is more reliable than the p-value, as discussed previously) to quantify the uncertainty of the significant result.
-
-While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, alpha) are available. 
-
-
-### Fully Bayesian Model
-
-In this model, the probability of association $\xi$ can give rise to a latent variable $\iota$ drawn from a bernoulli, which is then used to parametrize the distribution of $\mu_{p53}$ and $\beta_{p53 j}$. If $\iota= 0$, $\mu_{p53}=0$ and $\beta_{p53 j} = 0$ for all sites $j$. Otherwise, $\beta_{p53 j}$ are normally distributed around (nonzero) $\mu_{p53}$.
-
-```{r}
-cond.likelihood<- function(ybar, mu, SE, q=1.96){
-  dnorm(ybar, mu, SE)/
-    (pnorm(-q*SE, mu, SE) +
-       1-pnorm(q*SE, mu, SE))
-}
-
-p = 0.00325
-LOR = log(1.65)
-q = -qnorm(p/2)
-# 1.21-2.25
-SE =  (log(2.25 ) - LOR)/1.96
-#exp(LOR + c(-1, 1)*1.96*SE)
-BF = 1/(-exp(1)*p*log(p))
-mu <- seq(-.2,1.25,.01)
-
-ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
-  geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
-  labs(title= "Mixture Model with Point Mass at 0",x=expression(theta),y="density")+
-  theme_minimal() + scale_colour_few()
-```
-
-Each model adjusts for study site, reference age, and personal history of breast cancer. History of breast cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. The p53 variable's site-specific log ORs were normally distributed with mean $\mu_{p53}$ and variance $\sigma^2_{p53}$ if  $\mu_{p53}$ was nonzero, otherwise they defaulted to 0. The prior for  $\mu_{p53}$ was a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma_{p53}$ was a truncated Cauchy(0,1), with support only on the positive real line. This choice of priors is based on simulation results.  The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 or 1 more heavily than the values between them. 
-
-The full model is as follows:
-$$P(Y_{ij}=1) = logit^{-1}(\beta_{site j}+ \beta_{p53 j}*p53_{ij}+ \beta_{age j}*age_{ij}+\beta_{BC}* BC_{ij})$$
-
-$$\beta_{site j}\sim N(\mu_{site}, \sigma^2_{site})$$
-$$\beta_{age j}\sim N(\mu_{age}, \sigma^2_{age})$$
-
-$$\beta_{p53 j}|\iota = 1 \sim N(\mu_{p53}, \sigma^2_{p53})$$
-
-
-$$\mu_{p53}|\iota=1\sim Cauchy(0,0.1)$$
-$$\mu_{p53}, \beta_{p53 j}|\iota = 0  \sim N(0,0)$$
-
-$$\sigma_{p53}\sim Cauchy(0,1)$$
-**how do I specify that it's truncated?**
-
-$$\iota \sim Bernoulli(\xi)$$
-$$\xi \sim Beta(1/2, 1/2)$$
-$$\beta_{BC}, \mu_{age},\mu_{site}\sim N(0,0.1)$$
-$$\sigma_{age},\sigma_{site} \sim invGamma(1, 0.05)$$
-
-There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. **do I need to give more details here**
-
-The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. **will put joint in supplement** 
-
-
-### Conditional Likelihood
-
-In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. 
-
-Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let this distribution be denoted as $CL(\beta_i,SE_i, q_i)$.
-
-```{r}
-CLdata<-data.frame(mu, cond.likelihood(LOR, mu, SE, q = -qnorm(0.005/2)), 
-                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.05/2)),
-                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.01/2)),
-                   dnorm(LOR, mu, SE))
-colnames(CLdata)<- c("mu", "CL.005","CL.05","CL.01","uncond")
-melted <- melt(CLdata, id.vars=c("mu"))
-ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)) +
-  labs(title = "Conditional vs. Unconditional Likelihood", 
-       x = expression(theta), y = "Likelihood")+  theme_minimal()+ 
-  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
-  scale_colour_few(name="", labels=c(expression(paste(alpha," = .005")), 
-                                     expression(paste(alpha," = .05")), 
-                                     expression(paste(alpha," = .01")),
-                                     "unconditional"))
-
-
-```
-
-
-We used the random effect conditional likelihood model as a "prior" for $\beta_{p53  j}, j\in discovery$, and then use this as the prior $P(\beta_{p53} | discovery)$ for the model with the validation data. The rest of the covariates' effects were specified as random or fixed effects in the same was as in the Bayesian model.
-
-The updated model for p53 effects is:
-
-$$\beta_{p53 j} \sim N(\mu_{p53}, \sigma^2_{p53}) , j \in validation$$
-$$MLE_{p53 j} \sim CL(\beta_{p53 j},SE_{p53 j}, q_j) , j \in discovery$$
-
-$$\mu_{p53}\sim Cauchy(0,0.1)$$
-$$\sigma_{p53}\sim Cauchy(0,1)$$
-**how do I specify that it's truncated?**
-
-Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
-
-
-### Bayes Factor Model
-
-The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu_{p53}$), but in estimating the distribution of the probability of the effect itself ($\xi = P(H_1)$). To make this model easily generalizable, we use the upper bound on the Bayes Factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}$, where $p$ is the p-value from the discovery data.**cite this** This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the posterior probability of true association $\xi$ given the discovery as a transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$. The posterior $\xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF}{1+o*BF}$. Then $\xi'$ can be used in the overall model with the validation data.
-
-```{r}
-pind.dens<-function(post.ind,p){
-  BF<- 1/(-exp(1)*p*log(p)) 
-  prior.odds<-post.ind/(1-post.ind)/BF
-  pind<- prior.odds/(1+prior.odds) #a/0
-  #eplogp is BF h0/h1
-  return(pind)
-  }
-postind.dens<-function(pind, p=.0035){
-  prior.odds<- (pind)/(1-pind) #a/0
-  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
-  post.ind<-prior.odds*BF/(1+prior.odds*BF)
-  return(post.ind)
-}
-pind<- seq(.001, .999,by=.001)
-
-BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
-                         postind.dens(pind, .005),postind.dens(pind, 1e-5),
-                   dbeta(pind,.5,.5))
-colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","theta")
-ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
-  geom_line(aes(x=value, group=variable,color=variable))+
-  labs(title = "Posterior Distribution of Probability of Effect\n with Bayes Factor Approximation", 
-       x = expression(theta), y = "Density")+  theme_minimal()+ 
-  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
-  scale_colour_few(name="p-value")
-```
-
-In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$, the probability of $\xi'\leq 0.5$ is `r #qbeta(pind.dens(0.5,1e-7),.5,.5)`. Due to this, we use a flatter prior: $\xi\sim Beta(.9,.9)$. Then $\xi'\leq 0.5$ is `r #qbeta(pind.dens(0.5,1e-7),.9,.9)`.
-
-### Methods
-
-All models were fit using R2jags. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
-
-Each model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.
-
-All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. Unlike quantile-based intervals, these can account for multimodal distributions and give more reasonable answers.
-
-Point estimates were calculated used the posterior median, so that the estimates would be invariant to transformations (e.g. log).
 
 
 ```{r load data}
@@ -379,6 +217,7 @@ for(i in 2:length(snps)){
   allSNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
   
 }
+save.image()
 
 ORbySNP<- lapply(allSNP, function(snplist)
   sapply(snplist[1:(length(snplist)-2)],function(x)
@@ -387,27 +226,36 @@ ORbySNP<- lapply(allSNP, function(snplist)
 
 
 ```{r}
-snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
+snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))[c(1,2,3,4,6)] #only the ones needed
+ORbySNP<-ORbySNP[c(1,2,3,4,6)]
 
 overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
 
 #overall=data.frame(t(sapply(ORbySNP[[2]], function(x) x[dim(x)[1],])))
 colnames(overall) = c("X","L","U", "L1","U1")
-overall$model = rep(c("original","bayes","conditional","bf"),length(snps))
+overall$model = rep(c("original","bayesian","conditional","bf approx"),length(snps))
+overall$model<- factor(overall$model, levels= c("bf approx", "conditional","bayesian","original"))
 overall$snp = rep(snps, each = 4)
 ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+ 
   geom_hline(yintercept=1, alpha=.3)+
-  geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = 1))+
-  geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = 1))+ 
-  geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = 1)) +
-  coord_flip()+theme_minimal() + scale_colour_few()
+  geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = .7))+
+  geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = .7))+ 
+  geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = .7)) +
+  coord_flip()+theme_minimal() + scale_colour_few()+labs(y="Odds Ratio", title= "OR and 95% CI for p53 SNPs")
   
 
 ```
 
+
+
+The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (`r overall$snp[which(overall$X!=1 &overall$model=="bayesian")]`) that was detected as significant in the MISA analysis. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.
+
+
+The original model has the longest credible intervals for all SNPs except `r overall$snp[which(overall$X!=1 &overall$model=="bayesian")]`, for which both the Bayesian and Bayes Factor models have large credible intervals, indicating more uncertainty than the original model.
+
+Below are the full tables of OR by site and SNP.
+
 ```{r, results="asis"}
-
-
 all.sitenames<-lapply(snps, function(x) getdata(x)$site.names)
 
 formatCI<- function(ORvec){
