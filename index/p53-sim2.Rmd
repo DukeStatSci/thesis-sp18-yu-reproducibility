@@ -178,6 +178,16 @@ system.time({
 })
 save.image()
 
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.0<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(0,0,sd, NULL,pvals[1:4]))
+    }
+})
+save.image()
+
 ```
 
 ```{r summary stats}
@@ -251,8 +261,9 @@ sim.4<-getstatsloop(allsim[[5]],mu,sd*4,modelnames)
 
 sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
 sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
+sim.cl.stats.better0<-getstatsloop(cl.sim.better.0 ,0,1, pvals) 
 
-save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better4, file = "p53sim_processeddata.RData")
+save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better4,sim.cl.stats.better0, file = "p53sim_processeddata.RData")
 
 ```
 
