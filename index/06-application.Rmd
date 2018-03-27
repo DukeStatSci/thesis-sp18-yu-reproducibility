@@ -1,8 +1,7 @@
 # Application
 
-```{r}
+```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(eval = FALSE)
 knitr::opts_chunk$set(cache = FALSE)
 
 library(rmeta)
@@ -13,9 +12,12 @@ library(knitr)
 library(dplyr)
 library(ggplot2)
 library(reshape2)
+library(ggthemes)
 
 source("HPD.R")
 source("p53finalJAGScode.R")
+load("p53OR.RData")
+load("tp53.RData")
 ```
 
 ## Genome Study
@@ -58,6 +60,21 @@ While the first approach is truly Bayesian and requires all the data, the second
 In this model, the probability of association $\xi$ can give rise to a latent variable $\iota$ drawn from a bernoulli, which is then used to parametrize the distribution of $\mu_{p53}$ and $\beta_{p53 j}$. If $\iota= 0$, $\mu_{p53}=0$ and $\beta_{p53 j} = 0$ for all sites $j$. Otherwise, $\beta_{p53 j}$ are normally distributed around (nonzero) $\mu_{p53}$.
 
 ```{r}
+cond.likelihood<- function(ybar, mu, SE, q=1.96){
+  dnorm(ybar, mu, SE)/
+    (pnorm(-q*SE, mu, SE) +
+       1-pnorm(q*SE, mu, SE))
+}
+
+p = 0.00325
+LOR = log(1.65)
+q = -qnorm(p/2)
+# 1.21-2.25
+SE =  (log(2.25 ) - LOR)/1.96
+#exp(LOR + c(-1, 1)*1.96*SE)
+BF = 1/(-exp(1)*p*log(p))
+mu <- seq(-.2,1.25,.01)
+
 ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
   geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
   labs(title= "Mixture Model with Point Mass at 0",x=expression(theta),y="density")+
@@ -301,58 +318,6 @@ getOR<-function(sim, totalsites,discoverysites){
 
 ```
 
-```{r}
-#ORtable = data.frame(original= OR1["mu.p53",], validation = ORval["mu.p53",], latentvar= ORnew["mu.p53",], cond= ORnormal["mu.p53",], bfapprox= ORbf["mu.p53",])
-ORtable = data.frame(original= OR1, validation = ORval, latentvar= ORnew, cond= ORnormal, bfapprox= ORbf)
-
-kable(ORtable)
-simlist<- list(p53.sim,p53.simnew,p53.simnormal)
-modelnames<- c("Original","Bayesian", "Conditional Likelihood")
-plots<-function(simlist){
-  ORlist = sapply(simlist, function(sim){ 
-    OR<-sim$BUGSoutput$sims.list$mu.p53
-    return(exp(OR))
-  }
-  )
-  rownames(ORlist)<-NULL
-  colnames(ORlist)<-modelnames
-  plotdat<-melt(ORlist)
-  plt<-ggplot()+geom_boxplot(data = plotdat, outlier.shape = NA,aes(x=Var2, y=value, group=factor(Var2)))+  theme_minimal() + scale_colour_few()
-  #  + scale_y_continuous(limits = c(lower, upper))
-  return(plt)
-}
-
-ggp<-plots(simlist)
-ggp #just overall
-
-```
-
-
-```{r}
-
-plotvar(p53.simnew$BUGSoutput$sims.list$mu.p53)
-plotvar(p53.simnormal$BUGSoutput$sims.list$mu.p53)
-plotvar(p53.bfsim$BUGSoutput$sims.list$mu.p53)
-```
-
-
-
-
-
-- discussion of OR
-
-The bayes factor and conditional likelihood 
-
-
-- at least one example of a posterior?
-- plot CI comparisons
-- plot something like the shrinkage
-- plot CI length comparison 
-- some notes on disjoint CI's, log vs not logged HPD
-
-
-
-
 
 
 ```{r run all p53}
@@ -382,10 +347,12 @@ OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir=
   p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)}, parameters.to.save =parameters, model = p53.bf.approx)
   
   #OR
-  return(list(original= getOR(p53.sim, p53.data$n.sites, p53.data.normal$discovery.sites),
-              bayes=getOR(p53.simnew, p53.data$n.sites, p53.data.normal$discovery.sites),
-              cond=getOR(p53.simnormal, p53.data$n.sites, p53.data.normal$discovery.sites),
-              bf=getOR(p53.bfsim, p53.data$n.sites, p53.data.normal$discovery.sites)))
+  return(list(original= (p53.sim),
+              bayes= (p53.simnew),
+              cond= (p53.simnormal),
+              bf= (p53.bfsim),
+              n.sites = p53.data$n.sites,
+              n.discovery = p53.data.normal$discovery.sites))
 }
 
 
@@ -394,10 +361,7 @@ OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir=
 
 
 
-```{r}
-
-#test2<-OR.runall("rs2287498n",discovery.sitenames= discovery.sitenames)
-#list of discovery sites
+```{r, eval= FALSE}
 discovery.siteslist<-list(c("POL"),
                           c("POL", "MAY", "NCO"),
                           c("POL"),
@@ -407,18 +371,24 @@ discovery.siteslist<-list(c("POL"),
                           c("NCO")
                           
 ) 
+
 snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
-ORbySNP<- vector("list", length = length(snps))
+
+allSNP<- vector("list", length = length(snps))
 for(i in 2:length(snps)){
-  ORbySNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
+  allSNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
   
 }
 
-
+ORbySNP<- lapply(allSNP, function(snplist)
+  sapply(snplist[1:(length(snplist)-2)],function(x)
+    getOR(x,(length(snplist)-1),(length(snplist)))))
 ```
 
 
 ```{r}
+snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
+
 overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
 
 #overall=data.frame(t(sapply(ORbySNP[[2]], function(x) x[dim(x)[1],])))
@@ -432,5 +402,39 @@ ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+
   geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = 1)) +
   coord_flip()+theme_minimal() + scale_colour_few()
   
+
 ```
+
+```{r, results="asis"}
+
+
+all.sitenames<-lapply(snps, function(x) getdata(x)$site.names)
+
+formatCI<- function(ORvec){
+  if(is.na(ORvec[2])) ret<-"-"
+  else ret<-paste(ORvec[2],"-",ORvec[3])
+  if (!is.na(ORvec[4])){
+    ret<-paste(ret, ", ", ORvec[4],"-",ORvec[5])
+  }
+  return(ret)
+}
+makeORtable<-function(OR, sitenames){
+  est<-sapply(OR, function(x) paste(round(x[,1], 3)))
+  CI<-sapply(OR, function(x) apply(round(x, 3),1, formatCI))
+  ret<-matrix(NA, nrow = dim(est)[1],ncol=8)
+  ret[,-c(2,4,6,8)]<-est
+  ret[,c(2,4,6,8)]<-CI
+  colnames(ret)<- c("original estimate","original CI",
+                    "bayesian estimate","bayesian CI",
+                    "CL estimate","CL CI",
+                    "BF estimate","BF CI")
+  rownames(ret)<- c(sitenames, "Overall")
+  return(ret)
+}
+
+for(i in 1:length(snps)){
+  print(kable(makeORtable(ORbySNP[[i]], all.sitenames[[i]]), caption=snps[i]))
+}
+```
+
 
