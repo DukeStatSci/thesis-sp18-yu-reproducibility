@@ -3,7 +3,7 @@
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(cache = FALSE)
+knitr::opts_chunk$set(cache = TRUE)
 
 library(doParallel)
 library(R2jags)
@@ -268,10 +268,13 @@ save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better
 ```
 
 
+## Data Generation Procedure
 
-### Simulations
+The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
 
-The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section**link**: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
+$P(Y_{ij}=1) = logit^{-1}(\beta_{j})$\\
+$\beta_{j}|H_1 \sim N(\mu, \sigma^{2})$\\
+$\beta_{j}|H_0 = 0$\\
 
 To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of `r I` simulated datasets was created each time.
 
@@ -288,12 +291,12 @@ In this simulation study, a logistic regression with fixed effects for sites was
 
 
 ```{r}
-df<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
+df1<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
 simslist<-list(sim.half,sim.1,sim.2,sim.4)
 for (i in 1:4){
-  df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
+  df1<-rbind(df1,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
 }
-mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+mseplot = ggplot(data = (df1), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
   geom_boxplot(aes(color=Var2))+  theme_minimal() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
   scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
@@ -354,7 +357,10 @@ colnames(has0notmu)<-c("s/2", "s", "2s", "4s")
 
 ##### RMSE
 
-As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). At small variances (s/2, s,  2s), the original and bayesian models outperform the others, but at 4s the conditional likelihood model has the lowest RMSE. 
+As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option).
+At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data.
+
+
 
 ```{r}
 mseplot
@@ -367,10 +373,10 @@ The BF approximation model is the most conservative, with the intervals covering
 The Bayesian model had the shortest intervals. 
 
 ```{r}
-kable(hasm)
-kable(has0notmu)
-kable(hasboth)
-kable(hasboth[,2:5]+hasm)
+kable(hasm, caption=expression(paste("Proportion containing ", mu, " but not 0")))
+kable(has0notmu,caption=expression(paste("Proportion containing 0 but not ", mu)))
+kable(hasboth,caption=expression(paste("Proportion containing both ", mu, " and 0")))
+kable(hasboth[,2:5]+hasm,caption=expression(paste("Proportion containing ", mu)))
 intlenplot
 ```
 
@@ -380,8 +386,8 @@ intlenplot
 While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively. 
 
 ```{r}
-kable(pindmed)
-kable(zeromu)
+kable(pindmed,caption=expression(paste("Average of Posterior Median ",xi)))
+kable(zeromu,caption=expression(paste("Average of Mean of ", iota)))
 ```
 
 
@@ -397,15 +403,16 @@ The conditional likelihood method is robust to changes in the level $\alpha$. To
 df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[4,,])))[,2:3], simulation=1),
            data.frame(melt(t(abs(sim.cl.stats.better4[4,,])))[,2:3], simulation=2))
 
-mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
-  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "s", "4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
-  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
 
 rmse<- cbind(sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
                sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
 rownames(rmse)<-pvals
+
 colnames(rmse)<-c("s", "4s")
 
 
@@ -413,12 +420,12 @@ colnames(rmse)<-c("s", "4s")
 df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
            data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
 
-intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
-  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("s","4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
-  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
-kable(rmse)
+kable(rmse,caption=expression(paste("RMSE of ", mu)))
 mseplot
 intlenplot
 ```

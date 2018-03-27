@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="1-abstract.html">
+<link rel="prev" href="7-analysis-of-tp53-data.html">
+<link rel="next" href="references.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -118,22 +118,35 @@
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Bayesian Reproducibility</h1>
-<h4 class="author"><em>Huijia Yu</em></h4>
-<h4 class="date"><em>May 2018</em></h4>
+<div id="conclusions-and-future-work" class="section level1">
+<h1><span class="header-section-number">Chapter 8</span> Conclusions and Future Work</h1>
+<div id="conclusion" class="section level2">
+<h2><span class="header-section-number">8.1</span> Conclusion</h2>
+<p>We propose three models to deal with the winner’s curse and reduce the selection effect in repeated studies. The fully Bayesian model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative. The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The bayes factor approximation method uses an upper bound on the bayes factor that is only dependent on the p-value to calculate a “best-case scenario” posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor.</p>
+<p>One clear advantage of the fully Bayesian model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable.</p>
+<p>The conditional likelihood and Bayes Factor approximation methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The bayes factor model has a quasi-testing feature since it accounts for the probability of a true association. As for the conditional likelihood method, although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites. Under a hierarchical model, the global effect is actually unaffected by the <span class="math inline">\(\alpha\)</span> level. This is extremely useful because discoveries that do not have low enough p-values for a stringent test can still be used without affecting the results.</p>
 </div>
-<div id="introduction" class="section level1 unnumbered">
-<h1>Introduction</h1>
+<div id="future-work" class="section level2">
+<h2><span class="header-section-number">8.2</span> Future Work</h2>
+<p>These frameworks can also be applied to non-normal data and more complicated models, especially for joint analysis. <strong>???</strong></p>
 
+<!--
+The bib chunk below must go last in this document according to how R Markdown renders.  More info is at http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html
+-->
+
+<!-- 
+If you'd like to change the name of the bibliography to something else,
+delete "References" and replace it.
+-->
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="1-abstract.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="7-analysis-of-tp53-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

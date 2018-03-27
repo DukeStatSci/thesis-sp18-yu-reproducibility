@@ -1,1 +1,6 @@
 # Abstract
+
+P-values have been the reason behind lack of reproducibility in scientific discoveries and especially in replicated studies and multiple testing. This problem is especially prevalent in Genome-Wide Association Studies (GWAS), where estimated effects have upward bias and often fail to replicate in validation studies. This phenomenon is known as the winner’s curse. 
+
+We propose three approaches to adress this: a fully Bayesian model, a conditional likelihood prior for discovery site data, and a bayes factor approximation to the probability of association. The performance of these methods is tested on simulations and on a real dataset. All three proposed methods provide improvements over naive models.
+
