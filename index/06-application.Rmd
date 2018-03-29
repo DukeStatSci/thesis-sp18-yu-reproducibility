@@ -2,11 +2,12 @@
 
 Each model adjusts for study site, reference age, and personal history of breast cancer. History of breast cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. 
 
-$P(Y_{ij}=1) = logit^{-1}(\beta^{site}_{ j}+ \beta^{p53}_{j}*p53_{ij}+ \beta^{age}_{j}*age_{ij}+\beta^{BC}* BC_{ij})$\\
-$\beta^{site}_{ j}\sim N(\mu^{site}, \sigma^{2site})$\\
-$\beta^{age}_{j}\sim N(\mu^{age}, \sigma^{2age})$\\
-$\beta^{BC}, \mu^{age},\mu^{site}\sim N(0,0.1)$\\
-$\sigma^{age},\sigma^{site} \sim invGamma(1, 0.05)$\\
+$$P(Y_{ij}=1) = logit^{-1}(\beta^{site}_{ j}+ \beta^{p53}_{j}*p53_{ij}+ \beta^{age}_{j}*age_{ij}+\beta^{BC}* BC_{ij})$$
+
+$$\beta^{site}_{ j}\sim N(\mu^{site}, \sigma^{2site})$$
+$$\beta^{age}_{j}\sim N(\mu^{age}, \sigma^{2age})$$
+$$\beta^{BC}, \mu^{age},\mu^{site}\sim N(0,0.1)$$
+$$\sigma^{age},\sigma^{site} \sim invGamma(1, 0.05)$$
 
 The p53 variable's site-specific log OR priors were defined using the models described previously.
 
@@ -213,15 +214,15 @@ discovery.siteslist<-list(c("POL"),
 snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
 
 allSNP<- vector("list", length = length(snps))
-for(i in 2:length(snps)){
+for(i in 1:length(snps)){
   allSNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
   
 }
 save.image()
 
-ORbySNP<- lapply(allSNP, function(snplist)
-  sapply(snplist[1:(length(snplist)-2)],function(x)
-    getOR(x,(length(snplist)-1),(length(snplist)))))
+ORbySNP2<- lapply(allSNP, function(snplist)
+  lapply(snplist[1:(length(snplist)-2)],function(x)
+    getOR(x,snplist[[(length(snplist)-1)]],snplist[[(length(snplist))]])))
 ```
 
 
@@ -254,6 +255,11 @@ The new models shrunk estimates towards 0 for all SNPs. The BF approximation mod
 The original model has the longest credible intervals for all SNPs except `r overall$snp[which(overall$X!=1 &overall$model=="bayesian")]`, for which both the Bayesian and Bayes Factor models have large credible intervals, indicating more uncertainty than the original model.
 
 Below are the full tables of OR by site and SNP.
+
+> Should I add some plots of posteriors of mu or the beta's?
+> Should I have some summary of the other covariates (age, site, etc)?
+> Would it be better to put these tables elsewhere?
+
 
 ```{r, results="asis"}
 all.sitenames<-lapply(snps, function(x) getdata(x)$site.names)

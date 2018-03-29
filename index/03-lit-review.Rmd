@@ -1,5 +1,6 @@
 # Literature Review  {#lit-review}
 
+> should this have more structure (as in separate headers for each "type" of analysis)?
 
 P-values have been the reason behind lack of reproducibility in scientific discoveries, causing concern and leading to proposals of new ways to define significance. Benjamin et. al have shown that the Bayes factor equivalents for commonly used p-values only correspond to "weak" evidence in the Bayes factor characterization. [@benjamin2017redefine] They suggest reducing the p-value threshold in studies with less power, but acknowledge that hypothesis testing with thresholding is still an issue. Another approach is suggested by Selke et al , who propose two calibrations of the p-value: as the lower bound of the Bayes factor under any alternative hypothesis, and as a posterior probability of the type 1 error in a Bayesian framework [@sellke2001calibration].
 

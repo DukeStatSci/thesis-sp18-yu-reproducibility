@@ -2,6 +2,8 @@
 
 ## Conclusion
 
+>what is an appropriate length for conclusions?
+
 We propose three models to deal with the winner's curse and reduce the selection effect in repeated studies. The fully Bayesian model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative. 
 The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis.
 The bayes factor approximation method uses an upper bound on the bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor.
@@ -12,4 +14,7 @@ The conditional likelihood and Bayes Factor approximation methods can be used in
 
 ## Future Work
 
-These frameworks can also be applied to non-normal data and more complicated models, especially for joint analysis. **???**
+These frameworks can also be applied to non-normal data and more complicated models, especially for joint analysis that can account for interactions between the p53 SNP's and other factors. 
+
+> not sure how specific/detailed this section should be
+

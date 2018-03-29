@@ -1,15 +1,16 @@
-# Simulation Study
+# Normal Simulation Study
 
-## Normal Example
+> would it be better to have the models section before this? i.e. lit review-> data motivation->models->normal simulation->hierarchical simulation->data analysis-> conclusion 
 
-### Data Generation
+
+## Data Generation
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
 To test the hypothesis $H_0: mu = 0$ versus  $H_1: mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $mu_i = 0$ in the null scenario and $mu_i \sim N(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.
 
-### Conditional Likelihood
+## Conditional Likelihood
 
 ```{r cache=TRUE}
 
@@ -48,7 +49,7 @@ Let $B$ indicate that the data is significant at the level $\alpha$. The conditi
 
 Since this likelihood is difficult to integrate analytically, the confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi(\mu) = 1$, and obtaining the HPD (highest posterior density) region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.
 
-### Posterior Distribution
+## Posterior Distribution
 
 ```{r cache=TRUE}
 getposterior <- function(Y,n.samp, pi = .5){
@@ -79,7 +80,9 @@ $P(\mu|Y, H_0) = \delta_0(\mu)$, $P(\mu|Y, H_1) \sim N(\frac{n}{n+1}\bar Y, \fra
 
 Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate HPD credible intervals. 
 
-While true HPD intervals can be disjoint, the intervals calculated for this experiment are actually the shortest continuous segments covering $.95$. This corresponds to the HPD interval under the assumption that the distribution is not severely multimodal, and is what most packages in R use to estimate HPD intervals. However, since this posterior is actually a mixture model, a large enough posterior probability for $H_1$ could lead to a difference between the true HPD credible interval and the calculated one. <this will be addressed in the future etc>
+> I don't think I need this paragraph about HPD since it is addressed in the later parts, but maybe I should move the proper methods section up before this
+
+While true HPD intervals can be disjoint, the intervals calculated for this experiment are actually the shortest continuous segments covering $.95$. This corresponds to the HPD interval under the assumption that the distribution is not severely multimodal, and is what most packages in R use to estimate HPD intervals. However, since this posterior is actually a mixture model, a large enough posterior probability for $H_1$ could lead to a difference between the true HPD credible interval and the calculated one.
 
 ```{r cache=TRUE}
 
@@ -103,7 +106,7 @@ HPD <-function(post, prob  = .95){
 
 ```
 
-### Results
+## Results
 
 ```{r eval=FALSE}
 
@@ -170,7 +173,7 @@ save(results, file="normalsim.RData")
 
 ```
 
-#### Estimators
+### Estimators
 
 ```{r cache=TRUE}
 ##plot of estimators or mse
@@ -197,7 +200,7 @@ kable(c(bayes = sqrt(sum(estimators$bayes^2)), bayes.median= sqrt(sum(estimators
 
 The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error) for $\mu$ out of the frequentist estimators, while the bayesian median and mode (which end up being the same) the smallest bias in the bayesian framework. The RMSE for the bayesian estimator (mean of the posterior) is the lowest, followed by the conditional mean and mode.
 
-#### Credible and Confidence Intervals
+### Credible and Confidence Intervals
 
 
 ```{r cache=TRUE}
@@ -210,7 +213,7 @@ The lines mark the $y = x$ line, and the length of naive confidence intervals (w
 
 The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood confidence intervals are almost always larger than the credible intervals, but still mostly smaller than the naive ones. 
 
-#### Coverage
+### Coverage
 
 The marginal coverage of the (frequentist conditional likelihood) confidence interval C, $P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)$ will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0. 
 
@@ -237,7 +240,7 @@ kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov)
 
 ```
 
-#### Hypothesis Rejection(??)
+### Hypothesis Rejection
 
 Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
 
@@ -253,11 +256,6 @@ kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[
 ```
 
 Despite never rejecting the null, the conditional likelihood and the bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
-
-
-**## Double Exponential Simulation with Adjusted P-Values**
-
-
 
 
 

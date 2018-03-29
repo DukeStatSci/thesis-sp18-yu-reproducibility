@@ -4,3 +4,4 @@ P-values have been the reason behind lack of reproducibility in scientific disco
 
 We propose three approaches to adress this: a fully Bayesian model, a conditional likelihood prior for discovery site data, and a bayes factor approximation to the probability of association. The performance of these methods is tested on simulations and on a real dataset. All three proposed methods provide improvements over naive models.
 
+> should this be longer/give more detail of results?

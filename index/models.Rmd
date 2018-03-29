@@ -1,5 +1,6 @@
 # TP53
 
+>better title?
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -14,16 +15,16 @@ library(ggthemes)
 
 Traditionally, genome-wide-significant associations often fail or have much smaller effects in replication tests because of the winner's curse. To account for this discrepancy, previous studies perform two analyses: one with all the data together, and one only using the validation site data. However, this approach is based on the underlying assumption that the association found in discovery sites is true, which is problematic for multiple testing applications such as genome-wide association studies. Furthermore, if there is a true effect, leaving out the discovery data, which could be a large portion of the total dataset, reduces power.
 
-One example of the winner’s curse in action is the analysis of the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. 
+One example of the winner’s curse in action is the analysis of the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. Although initial studies found an association, follow-up studies have been unable to replicate this finding.
 
 ## Data
 
-#### Discovery Sites
+### Discovery Sites
 
 Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS), the Mayo Clinic Case-Control Study (MAYO), and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites.
 
 
-#### Replication Sites
+### Replication Sites
 
 Ten other sites contributed data: the Australian Ovarian Cancer Study (AOCS) and the Australian Cancer Study (ACS) presented together as AUS, the Family Registry for Ovarian Cancer (FROC, presented as STA), the Hawaiian Ovarian Cancer Study (HAW), the Malignant Ovarian Cancer Study Denmark (MALOVA), the New England Case-Control Study (NEC), the Nurses' Health Study (NHS), SEARCH Cambridge (SEA), the Los Angeles County Case-Control Study of Ovarian Cancer (LAC-CCOC, presented here as USC), the University of California at Irvine study (UCI), and the United Kingdom Ovarian Cancer Population Study (UKOPS, presented here as UKO).
 
@@ -34,6 +35,9 @@ The combined data set (discovery and replication) comprised 5,206 white, non-His
 Mixed effect SNP-at-a-time analysis of 5 SNPs that were chosen for replication resulted in associations between 2 SNPs and serous invasive cancer [@Schildkraut2349]. Only one of these was strongly supported to be associated in a follow-up analysis using Multi-level Inference for SNP Association (MISA), which employs Bayesian Model Averaging and Bayes Factors for selection [@schildkraut2010association].
 
 However, most recent studies have not found evidence of association between any TP53 SNPs and cancer [@phelan2017identification].
+
+> is this enough/too much information about the data?
+
 
 # Models 
 
@@ -49,6 +53,8 @@ While the first approach is truly Bayesian and requires all the data, the second
 
 
 ## Fully Bayesian Model
+
+>Would it be better to name the models (i.e. M1, M2, M3) in this section, that way it's clear in the simulation and p53 analysis which one is which?
 
 In this model, the probability of association $\xi$ can give rise to a latent variable $\iota$ drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$ and $\beta_{j}$. If $\iota= 0$, $\mu=0$ and $\beta_{j} = 0$ for all sites $j$. Otherwise, $\beta_{j}$ are normally distributed around (nonzero) $\mu$.
 
@@ -77,6 +83,7 @@ ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2
 Site effects $\beta_j$ were normally distributed with mean $\mu$ and variance $\sigma^2$ if  $\mu$ was nonzero, otherwise they defaulted to 0. The prior for  $\mu$ was a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma$ was a truncated Cauchy(0,1), with support only on the positive real line. This choice of priors is based on simulation results.  The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 or 1 more heavily than the values between them. 
 
 The complete model is as follows:
+
 $\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2p53})$\\
 $\mu|\iota=1\sim Cauchy(0,0.1)$\\
 $\mu, \beta_{j}|\iota = 0  =0$\\
@@ -85,16 +92,17 @@ $\iota \sim Bernoulli(\xi)$\\
 $\xi \sim Beta(1/2, 1/2)$\\
 
 
-
 There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
 
-The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. **will put joint in supplement** 
+The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
 
 ## Conditional Likelihood
 
 In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. 
 
-Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let this distribution be denoted as $CL(\beta_i,SE_i, q_i)$.
+Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i | MLE_i \text{ is significant}) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $MLE_i$  be denoted as $CL(\beta_i,SE_i, q_i)$.
+
+> would it be appropriate to call CL a distribution? Is it relevant to add some comments about the skew towards 0 as alpha decreases
 
 ```{r}
 CLdata<-data.frame(mu, cond.likelihood(LOR, mu, SE, q = -qnorm(0.005/2)), 
@@ -127,6 +135,7 @@ $\sigma\sim Cauchy(0,1), \sigma\geq 0$\\
 
 Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
 
+> should I go into more detail about this assumption and how conditioning sort of accounts for it
 
 ## Bayes Factor Model
 
@@ -164,10 +173,14 @@ In this case, the discovery data is not used at all to estimate the effect sizes
 
 ## Methods
 
+>is this the right place for this section?
+
 All models were fit using R2jags. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
 
 Each model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.
 
 All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. Unlike quantile-based intervals, these can account for multimodal distributions and give more reasonable answers.
+
+> this HPD part can be more detailed? should I put a figure?
 
 Point estimates were calculated used the posterior median, so that the estimates would be invariant to transformations (e.g. log).

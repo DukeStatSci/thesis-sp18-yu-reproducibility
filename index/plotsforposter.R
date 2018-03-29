@@ -43,12 +43,12 @@ pind<- seq(.001, .999,by=.001)
 BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
                          postind.dens(pind, .005),postind.dens(pind, .0005),
                    dbeta(pind,.5,.5))
-colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = .0005","theta")
-ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
+colnames(BFapproxdata)<-c("p = .5 (prior)", "p = .05", "p = .01", "p = .005", "p = .0005","theta")
+bfplot<- ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
   geom_line(aes(x=value, group=variable,color=variable))+
-  labs(title = "Posterior Distribution of Probability of Effect\n with Bayes Factor Approximation", 
-       x = expression(theta), y = "Density")+  theme_minimal()+ 
-  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  labs(title = expression(paste("Posterior Distribution of ",xi,"\n with Bayes Factor Approximation")), 
+       x = expression(xi), y = "Density")+  theme_minimal()+ 
+ 
   scale_colour_few(name="p-value")
 
 #ggsave(filename="clplot.png", plot=clplot)
@@ -61,10 +61,11 @@ ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
 
 bplot<-ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
   geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
-  labs(title= "Mixture Model with Point Mass at 0",x=expression(theta),y="density")+  theme_minimal() + scale_colour_few()
+  labs(title= expression(paste("Prior of ", theta , " using Mixture Model")),x=expression(theta),y="Density")+
+  theme_minimal() + scale_colour_few()
 
 
-ggsave(filename="twoplots.png",plot=grid.arrange(bplot,clplot))
+ggsave(filename="threeplots.png",plot=grid.arrange(bplot,clplot,bfplot,nrow=3))
 
 
 
@@ -72,13 +73,16 @@ ggsave(filename="twoplots.png",plot=grid.arrange(bplot,clplot))
  #mu confint
 ciplot<-ggp+labs(title=expression(paste("Quantile-Based Confidence Intervals of ",mu[p53])),
        x="Model",y= "Odds Ratio")
-post1<-data.frame(plotvar(exp(p53.simnew$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Bayesian")
-post2<-data.frame(plotvar(exp(p53.simnormal$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Conditional Likelihood")
-post3<-data.frame(plotvar(exp(p53.sim$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Original")
-postdf<- rbind(post1,post2,post3)
+
+post1<-data.frame(plotvar(exp(temp[[2]]$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Bayesian")
+post2<-data.frame(plotvar(exp(temp[[3]]$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Conditional Likelihood")
+post3<-data.frame(plotvar(exp(temp[[1]]$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Original")
+post4<-data.frame(plotvar(exp(temp[[4]]$BUGSoutput$sims.list$mu.p53),pointmass=1,gg=TRUE), model="Bayes Factor Approx")
+
+postdf<- rbind(post4,post2,post1,post3)
 postplot<-ggplot(data.frame(postdf), aes(group=model))+
   geom_line(aes(x,y/maxy, color=model))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu, color=model))+
-  labs(x="Odds Ratio",y="Density",title=expression(paste("Posterior Density of ", mu[p53])))+  theme_minimal()+ 
+  labs(x="Odds Ratio",y="Density",title="Posterior Density of OR for rs1042522n")+  theme_minimal()+ 
   theme(legend.justification=c(1,1), legend.position=c(1,1)) + scale_colour_few()
 
 ggsave(filename="dataplots.png",plot=grid.arrange(ciplot,postplot,))
