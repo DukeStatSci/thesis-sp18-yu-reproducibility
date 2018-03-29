@@ -400,27 +400,30 @@ The conditional likelihood method is robust to changes in the level $\alpha$. To
 
 ```{r}
 #cl plots
-df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[4,,])))[,2:3], simulation=1),
-           data.frame(melt(t(abs(sim.cl.stats.better4[4,,])))[,2:3], simulation=2))
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[4,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.better1[4,,]-mu)))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[4,,]-mu)))[,2:3], simulation=2))
 
-mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "s", "4s")), y=value)) +
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "0", "s", "4s")), y=value)) +
   geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
   scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
 
-rmse<- cbind(sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
+rmse<- cbind(c(sapply(1:4, function(x) sqrt(mean((sim.cl.stats.better0[4,x,])^2))), NA),
+             sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
                sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
 rownames(rmse)<-pvals
 
-colnames(rmse)<-c("s", "4s")
+colnames(rmse)<-c("0","s", "4s")
 
 
 
-df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[6,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
            data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
 
-intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("s","4s")), y=value)) +
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")), y=value)) +
   geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
   scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))

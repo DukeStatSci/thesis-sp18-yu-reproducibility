@@ -32,7 +32,7 @@
   
   
 <link rel="prev" href="1-abstract.html">
-<link rel="next" href="3-simulation-study.html">
+<link rel="next" href="3-normal-simulation-study.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -66,16 +66,22 @@
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Introduction</a></li>
 <li class="chapter" data-level="1" data-path="1-abstract.html"><a href="1-abstract.html"><i class="fa fa-check"></i><b>1</b> Abstract</a></li>
 <li class="chapter" data-level="2" data-path="2-lit-review.html"><a href="2-lit-review.html"><i class="fa fa-check"></i><b>2</b> Literature Review</a></li>
-<li class="chapter" data-level="3" data-path="3-simulation-study.html"><a href="3-simulation-study.html"><i class="fa fa-check"></i><b>3</b> Simulation Study</a><ul>
-<li class="chapter" data-level="3.1" data-path="3-simulation-study.html"><a href="3-simulation-study.html#normal-example"><i class="fa fa-check"></i><b>3.1</b> Normal Example</a><ul>
-<li class="chapter" data-level="3.1.1" data-path="3-simulation-study.html"><a href="3-simulation-study.html#data-generation"><i class="fa fa-check"></i><b>3.1.1</b> Data Generation</a></li>
-<li class="chapter" data-level="3.1.2" data-path="3-simulation-study.html"><a href="3-simulation-study.html#conditional-likelihood"><i class="fa fa-check"></i><b>3.1.2</b> Conditional Likelihood</a></li>
-<li class="chapter" data-level="3.1.3" data-path="3-simulation-study.html"><a href="3-simulation-study.html#posterior-distribution"><i class="fa fa-check"></i><b>3.1.3</b> Posterior Distribution</a></li>
-<li class="chapter" data-level="3.1.4" data-path="3-simulation-study.html"><a href="3-simulation-study.html#results"><i class="fa fa-check"></i><b>3.1.4</b> Results</a></li>
+<li class="chapter" data-level="3" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html"><i class="fa fa-check"></i><b>3</b> Normal Simulation Study</a><ul>
+<li class="chapter" data-level="3.1" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#data-generation"><i class="fa fa-check"></i><b>3.1</b> Data Generation</a></li>
+<li class="chapter" data-level="3.2" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#conditional-likelihood"><i class="fa fa-check"></i><b>3.2</b> Conditional Likelihood</a></li>
+<li class="chapter" data-level="3.3" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#posterior-distribution"><i class="fa fa-check"></i><b>3.3</b> Posterior Distribution</a></li>
+<li class="chapter" data-level="3.4" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#results"><i class="fa fa-check"></i><b>3.4</b> Results</a><ul>
+<li class="chapter" data-level="3.4.1" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#estimators"><i class="fa fa-check"></i><b>3.4.1</b> Estimators</a></li>
+<li class="chapter" data-level="3.4.2" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#credible-and-confidence-intervals"><i class="fa fa-check"></i><b>3.4.2</b> Credible and Confidence Intervals</a></li>
+<li class="chapter" data-level="3.4.3" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#coverage"><i class="fa fa-check"></i><b>3.4.3</b> Coverage</a></li>
+<li class="chapter" data-level="3.4.4" data-path="3-normal-simulation-study.html"><a href="3-normal-simulation-study.html#hypothesis-rejection"><i class="fa fa-check"></i><b>3.4.4</b> Hypothesis Rejection</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="4-tp53.html"><a href="4-tp53.html"><i class="fa fa-check"></i><b>4</b> TP53</a><ul>
-<li class="chapter" data-level="4.1" data-path="4-tp53.html"><a href="4-tp53.html#data"><i class="fa fa-check"></i><b>4.1</b> Data</a></li>
+<li class="chapter" data-level="4.1" data-path="4-tp53.html"><a href="4-tp53.html#data"><i class="fa fa-check"></i><b>4.1</b> Data</a><ul>
+<li class="chapter" data-level="4.1.1" data-path="4-tp53.html"><a href="4-tp53.html#discovery-sites"><i class="fa fa-check"></i><b>4.1.1</b> Discovery Sites</a></li>
+<li class="chapter" data-level="4.1.2" data-path="4-tp53.html"><a href="4-tp53.html#replication-sites"><i class="fa fa-check"></i><b>4.1.2</b> Replication Sites</a></li>
+</ul></li>
 <li class="chapter" data-level="4.2" data-path="4-tp53.html"><a href="4-tp53.html#previous-studies"><i class="fa fa-check"></i><b>4.2</b> Previous Studies</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-models.html"><a href="5-models.html"><i class="fa fa-check"></i><b>5</b> Models</a><ul>
@@ -120,6 +126,9 @@
             <section class="normal" id="section-">
 <div id="lit-review" class="section level1">
 <h1><span class="header-section-number">Chapter 2</span> Literature Review</h1>
+<blockquote>
+<p>should this have more structure (as in separate headers for each “type” of analysis)?</p>
+</blockquote>
 <p>P-values have been the reason behind lack of reproducibility in scientific discoveries, causing concern and leading to proposals of new ways to define significance. Benjamin et. al have shown that the Bayes factor equivalents for commonly used p-values only correspond to “weak” evidence in the Bayes factor characterization. <span class="citation">(Benjamin et al., 2017)</span> They suggest reducing the p-value threshold in studies with less power, but acknowledge that hypothesis testing with thresholding is still an issue. Another approach is suggested by Selke et al , who propose two calibrations of the p-value: as the lower bound of the Bayes factor under any alternative hypothesis, and as a posterior probability of the type 1 error in a Bayesian framework <span class="citation">(Sellke, Bayarri, &amp; Berger, 2001)</span>.</p>
 <p>This problem has become a major issue in replicated studies, an effect known as the “winner’s curse” <span class="citation">(Zöllner &amp; Pritchard, 2007)</span> or the Beavis effect <span class="citation">(S. Xu, 2003)</span>. Zollner and Pritchard first define this in the context of genome-wide association scans (GWAS), which use stringent thresholds for significance, resulting in inflated effect sizes after selection, especially since these are calculated with the same data. Thus, replication studies underestimate the sample size necessary and do not have enough power to detect an effect. Zollner and Pritchard suggest a conditional-likelihood based method to address this issue. They propose a computational algorithm to maximize over the the likelihood of the parameters conditional on the significance association at level <span class="math inline">\(\alpha\)</span>, which results in less biased coefficient estimates (albeit with larger variance) and sample size estimates centered at the true value.<span class="citation">(Zöllner &amp; Pritchard, 2007)</span></p>
 <p>Zhong and Prentice also propose a similar method, but use a different parametrization and an asymptotic approximation instead of a computational one to find the estimators, which is more computationally efficient <span class="citation">(Zhong &amp; Prentice, 2008)</span>. Ghosh et al. also define an approximate conditional likelihood, and propose two more estimators (other than the MLE): the mean of the (normalized) conditional likelihood, which can be interpreted as a posterior mean of the parameters under a flat prior, and a “compromise” estimator which is the average of the mean and MLE <span class="citation">(Ghosh, Zou, &amp; Wright, 2008)</span>. The combination estimator proves to have the most stable MSE accross the range of true values for the parameters. Their approach only requires summary statistics, so they further apply it to published datasets. The results are similar for the three conditional likelihood approaches, which have been applied to other studies such as Palmer and Peter <citation>.</p>
@@ -139,7 +148,7 @@ how do I cite things properly????
         </div>
       </div>
 <a href="1-abstract.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="3-simulation-study.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="3-normal-simulation-study.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
