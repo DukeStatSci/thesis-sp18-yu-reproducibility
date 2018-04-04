@@ -287,8 +287,6 @@ In this simulation study, a logistic regression with fixed effects for sites was
 
 ## Results
 
-### Sensitivity
-
 
 ```{r}
 df1<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
@@ -349,9 +347,9 @@ rownames(has0)<-modelnames
 colnames(has0)<-c("mu=0","s/2", "s", "2s", "4s")
 ```
 
-#### $\mu$
+### $\mu$
 
-##### RMSE
+#### RMSE
 
 As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.
 
@@ -365,7 +363,7 @@ mseplot
 kable(rmse, caption="RMSE of $\\mu$")
 ```
 
-##### Coverage
+#### Coverage
 
 The conditional likelihood and BF approximation models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
 
@@ -384,7 +382,7 @@ intlenplot
 ```
 
 
-#### $\xi$
+### $\xi$
 
 While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
 
@@ -399,7 +397,7 @@ kable(zeromu,caption="Average of Mean of $\\iota$")
 ```
 
 
-### Sensitivity of Conditional Likelihood Method to Changes in $\alpha$
+## Sensitivity of Conditional Likelihood Method to Changes in $\alpha$
 
 ### With Random Effects
 
@@ -445,7 +443,7 @@ intlenplot
 This model shows little difference across levels.
 
 
-#### No Random Effects
+### No Random Effects
 
 A simpler model than the one proposed has no random effects: $\beta_j\sim \textsf{N}(\mu, \sigma^2)$ and $MLE_i \sim \textsf{N}(\mu, SE_i)$. 
 

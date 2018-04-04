@@ -124,9 +124,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.1.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#finding-discovery-sites"><i class="fa fa-check"></i><b>4.1.1</b> Finding “Discovery” Sites</a></li>
 </ul></li>
 <li class="chapter" data-level="4.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#results-1"><i class="fa fa-check"></i><b>4.2</b> Results</a><ul>
-<li class="chapter" data-level="4.2.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#sensitivity"><i class="fa fa-check"></i><b>4.2.1</b> Sensitivity</a></li>
-<li class="chapter" data-level="4.2.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#sensitivity-of-conditional-likelihood-method-to-changes-in-alpha"><i class="fa fa-check"></i><b>4.2.2</b> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></a></li>
-<li class="chapter" data-level="4.2.3" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#with-random-effects"><i class="fa fa-check"></i><b>4.2.3</b> With Random Effects</a></li>
+<li class="chapter" data-level="4.2.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#mu"><i class="fa fa-check"></i><b>4.2.1</b> <span class="math inline">\(\mu\)</span></a></li>
+<li class="chapter" data-level="4.2.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#xi"><i class="fa fa-check"></i><b>4.2.2</b> <span class="math inline">\(\xi\)</span></a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#sensitivity-of-conditional-likelihood-method-to-changes-in-alpha"><i class="fa fa-check"></i><b>4.3</b> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></a><ul>
+<li class="chapter" data-level="4.3.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#with-random-effects"><i class="fa fa-check"></i><b>4.3.1</b> With Random Effects</a></li>
+<li class="chapter" data-level="4.3.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#no-random-effects"><i class="fa fa-check"></i><b>4.3.2</b> No Random Effects</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-analysis-of-tp53.html"><a href="5-analysis-of-tp53.html"><i class="fa fa-check"></i><b>5</b> Analysis of TP53</a><ul>
@@ -179,12 +182,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="results-1" class="section level2">
 <h2><span class="header-section-number">4.2</span> Results</h2>
-<div id="sensitivity" class="section level3">
-<h3><span class="header-section-number">4.2.1</span> Sensitivity</h3>
-<div id="mu" class="section level4">
-<h4><span class="header-section-number">4.2.1.1</span> <span class="math inline">\(\mu\)</span></h4>
-<div id="rmse" class="section level5">
-<h5><span class="header-section-number">4.2.1.1.1</span> RMSE</h5>
+<div id="mu" class="section level3">
+<h3><span class="header-section-number">4.2.1</span> <span class="math inline">\(\mu\)</span></h3>
+<div id="rmse" class="section level4">
+<h4><span class="header-section-number">4.2.1.1</span> RMSE</h4>
 <p>As expected, the models performed more poorly as <span class="math inline">\(\sigma\)</span> increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.</p>
 <p>At small variances (s/2, s, 2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to <span class="math inline">\(\frac{6}{7}\)</span> of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.</p>
 <p><img src="thesis_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
@@ -236,8 +237,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </tbody>
 </table>
 </div>
-<div id="coverage-1" class="section level5">
-<h5><span class="header-section-number">4.2.1.1.2</span> Coverage</h5>
+<div id="coverage-1" class="section level4">
+<h4><span class="header-section-number">4.2.1.2</span> Coverage</h4>
 <p>The conditional likelihood and BF approximation models are the most conservative, with the intervals covering 0 more times than the others for large values of <span class="math inline">\(\sigma\)</span>. All models have very high coverage in general.</p>
 <p>The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with <span class="math inline">\(\sigma=4s\)</span>, because <span class="math inline">\(4s&gt;\mu\)</span>, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations.</p>
 
@@ -245,8 +246,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p><img src="thesis_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="xi" class="section level4">
-<h4><span class="header-section-number">4.2.1.2</span> <span class="math inline">\(\xi\)</span></h4>
+<div id="xi" class="section level3">
+<h3><span class="header-section-number">4.2.2</span> <span class="math inline">\(\xi\)</span></h3>
 <p>While one would expect the probability of being associated (<span class="math inline">\(\xi\)</span>) to also increase with <span class="math inline">\(\sigma\)</span>, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of <span class="math inline">\(\xi\)</span>. Similarly, the proportion of nonzero <span class="math inline">\(\mu\)</span> samples from the posterior (this is the same as the proportion of times the latent variable <span class="math inline">\(i = 1\)</span>), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.</p>
 <p>The Bayes Factor approximation model has much larger median <span class="math inline">\(\xi\)</span> and <span class="math inline">\(\iota\)</span> because the mass of the distribution of <span class="math inline">\(\xi\)</span> is shifted towards 1. Thus, even though the median of <span class="math inline">\(\iota\)</span> is quite low (and rhe median of <span class="math inline">\(\mu\)</span> is 0), the median of <span class="math inline">\(\xi\)</span> is greater than <span class="math inline">\(0.5\)</span>.</p>
 <table>
@@ -313,11 +314,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </table>
 </div>
 </div>
-<div id="sensitivity-of-conditional-likelihood-method-to-changes-in-alpha" class="section level3">
-<h3><span class="header-section-number">4.2.2</span> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></h3>
-</div>
+<div id="sensitivity-of-conditional-likelihood-method-to-changes-in-alpha" class="section level2">
+<h2><span class="header-section-number">4.3</span> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></h2>
 <div id="with-random-effects" class="section level3">
-<h3><span class="header-section-number">4.2.3</span> With Random Effects</h3>
+<h3><span class="header-section-number">4.3.1</span> With Random Effects</h3>
 <p>The conditional likelihood method with random effects is robust to changes in the level <span class="math inline">\(\alpha\)</span>. To test this, we consider 5 different levels: <span class="math inline">\(0.05, 0.01, 0.005, 0.001, 10^{-7}\)</span>. 100 datasets were sampled, for which at least one location was significant at the smallest <span class="math inline">\(\alpha\)</span> level. The conditional likelihood model with random effects and without was then fitted for each level.</p>
 <table>
 <caption><span id="tab:unnamed-chunk-24">Table 4.4: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
@@ -364,8 +364,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </table>
 <p><img src="thesis_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /><img src="thesis_files/figure-html/unnamed-chunk-24-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>This model shows little difference across levels.</p>
-<div id="no-random-effects" class="section level4">
-<h4><span class="header-section-number">4.2.3.1</span> No Random Effects</h4>
+</div>
+<div id="no-random-effects" class="section level3">
+<h3><span class="header-section-number">4.3.2</span> No Random Effects</h3>
 <p>A simpler model than the one proposed has no random effects: <span class="math inline">\(\beta_j\sim \textsf{N}(\mu, \sigma^2)\)</span> and <span class="math inline">\(MLE_i \sim \textsf{N}(\mu, SE_i)\)</span>.</p>
 <table>
 <caption><span id="tab:unnamed-chunk-25">Table 4.5: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
@@ -413,7 +414,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p><img src="thesis_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /><img src="thesis_files/figure-html/unnamed-chunk-25-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Removing the uncertainty for site-specific means leads to a reduction in the length of the credible intervals for <span class="math inline">\(\mu\)</span>. The interval length in the random effect model was larger for simulations with large variance between sites (<span class="math inline">\(\sigma^2 = 4s\)</span>) than for simulations with small variance (<span class="math inline">\(\sigma^2 = s\)</span>), which appropriately captures the uncertainty of the estimate for <span class="math inline">\(\mu\)</span>. However, the model with no random effects creates credible intervals that are the same length for simulations with <span class="math inline">\(\sigma^2 = 4s\)</span> and <span class="math inline">\(\sigma^2 = s\)</span>. The RMSE is very similar for the two models for each <span class="math inline">\(\sigma^2\)</span>, and neither model’s credible interval length or median estimate changes with <span class="math inline">\(\alpha\)</span>.</p>
 
-</div>
 </div>
 </div>
 </div>

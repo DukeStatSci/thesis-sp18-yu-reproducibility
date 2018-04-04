@@ -124,9 +124,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.1.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#finding-discovery-sites"><i class="fa fa-check"></i><b>4.1.1</b> Finding “Discovery” Sites</a></li>
 </ul></li>
 <li class="chapter" data-level="4.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#results-1"><i class="fa fa-check"></i><b>4.2</b> Results</a><ul>
-<li class="chapter" data-level="4.2.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#sensitivity"><i class="fa fa-check"></i><b>4.2.1</b> Sensitivity</a></li>
-<li class="chapter" data-level="4.2.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#sensitivity-of-conditional-likelihood-method-to-changes-in-alpha"><i class="fa fa-check"></i><b>4.2.2</b> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></a></li>
-<li class="chapter" data-level="4.2.3" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#with-random-effects"><i class="fa fa-check"></i><b>4.2.3</b> With Random Effects</a></li>
+<li class="chapter" data-level="4.2.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#mu"><i class="fa fa-check"></i><b>4.2.1</b> <span class="math inline">\(\mu\)</span></a></li>
+<li class="chapter" data-level="4.2.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#xi"><i class="fa fa-check"></i><b>4.2.2</b> <span class="math inline">\(\xi\)</span></a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#sensitivity-of-conditional-likelihood-method-to-changes-in-alpha"><i class="fa fa-check"></i><b>4.3</b> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></a><ul>
+<li class="chapter" data-level="4.3.1" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#with-random-effects"><i class="fa fa-check"></i><b>4.3.1</b> With Random Effects</a></li>
+<li class="chapter" data-level="4.3.2" data-path="4-hierarchical-simulations.html"><a href="4-hierarchical-simulations.html#no-random-effects"><i class="fa fa-check"></i><b>4.3.2</b> No Random Effects</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-analysis-of-tp53.html"><a href="5-analysis-of-tp53.html"><i class="fa fa-check"></i><b>5</b> Analysis of TP53</a><ul>
@@ -191,9 +194,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (rs2287498n) that was detected as significant in the MISA analysis <span class="citation">(Joellen M Schildkraut et al., 2010)</span>. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.</p>
 <p>The original model has the longest credible intervals for all SNPs except rs2287498n, for which both the Bayesian and Bayes Factor models have large credible intervals, indicating more uncertainty than the original model.</p>
 <p>Below are the full tables of OR by site and SNP.</p>
-<blockquote>
-<p>Should I add some plots of posteriors of mu or the beta’s? Should I have some summary of the other covariates (age, site, etc)? Would it be better to put these tables elsewhere?</p>
-</blockquote>
 <table>
 <caption><span id="tab:unnamed-chunk-29">Table 5.1: </span>rs9894946n</caption>
 <thead>
