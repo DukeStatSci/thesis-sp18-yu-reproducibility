@@ -14,7 +14,7 @@ title: 'Bayesian Reproducibility'
 knit: "bookdown::render_book"
 site: bookdown::bookdown_site
 output: 
-  # thesisdowndss::thesis_pdf: default
+   # thesisdowndss::thesis_pdf: default
   thesisdowndss::thesis_gitbook: default
 #  thesisdowndss::thesis_word: default
 #  thesisdowndss::thesis_epub: default
@@ -86,5 +86,3 @@ P-values have been the reason behind lack of reproducibility in scientific disco
 One example of the winner’s curse in action is the analysis of the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. Mixed effect SNP-at-a-time analysis of 5 SNPs that were chosen for replication resulted in associations between 2 SNPs and serous invasive cancer [@Schildkraut2349]. Only one of these was strongly supported to be associated in a follow-up analysis using Multi-level Inference for SNP Association (MISA), which employs Bayesian Model Averaging and Bayes Factors for selection [@schildkraut2010association]. However, most recent studies have not found evidence of association between any TP53 SNPs and cancer [@phelan2017identification].
 
 After a review of existing literature dealing with this issue, we propose three approaches to adress this: a fully Bayesian model, a conditional likelihood prior for discovery site data, and a bayes factor approximation to the probability of association. The performance of these methods is tested on normal simulations, and then on hierarchical simulations split into discovery and validation "sites". All three proposed methods provide improvements over naive models. Finally, the models are used to reanalyze the p53 SNPs; none of the SNPs were found to be significant under any model.
-
-

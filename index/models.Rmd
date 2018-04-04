@@ -22,7 +22,7 @@ While the first approach is truly Bayesian and requires all the data, the second
 
 ## Fully Bayesian Model
 
-Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. The test for significance is  $H_0: \mu = 0$   $H_1: \mu \neq 0$, where $\mu$ is the mean effect size. Then, $P(\mu |H_0) = \delta_0(\mu)$ and $ P(\mu |H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable $\iota$ drawn from a bernoulli($\xi$), which is then used to parametrize the distribution of $\mu$.  If $\iota= 0$, $\mu=0$. 
+Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. The test for significance is  $H_0: \mu = 0$,   $H_1: \mu \neq 0$, where $\mu$ is the mean effect size. Then, $P( \mu|H_0) = \delta_0 ( \mu )$,  and $P( \mu|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable $\iota$ drawn from a bernoulli($\xi$), which is then used to parametrize the distribution of $\mu$.  If $\iota= 0$, $\mu=0$. 
 
 ```{r}
 cond.likelihood<- function(ybar, mu, SE, q=1.96){
@@ -51,12 +51,12 @@ For a hierarchical framework, site means $\beta_{j}|\iota=1 \sim N(\mu, \sigma^2
 
 The complete model is as follows:
 
-$$\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2}) \\
-\mu|\iota=1\sim Cauchy(0,0.1)\\
+$$\beta_{j}|\iota = 1 \sim \textsf{N}(\mu, \sigma^{2}) \\
+\mu|\iota=1\sim \textsf{Cauchy}(0,0.1)\\
 \mu, \beta_{j}|\iota = 0  =0\\
-\sigma\sim Cauchy(0,1), \sigma\geq 0\\
-\iota \sim Bernoulli(\xi)\\
-\xi \sim Beta(1/2, 1/2)$$
+\sigma\sim \textsf{Cauchy}(0,1), \sigma\geq 0\\
+\iota \sim \textsf{Bernoulli}(\xi)\\
+\xi \sim \textsf{Beta}(1/2, 1/2)$$
 
 
 There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
@@ -65,7 +65,7 @@ There is no difference between discovery and validation sites in the Bayesian fr
 
 In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed.
 
-Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{\text{significant Y}} P(t| \mu) dt }$. Conditioning on finding a significant estimate, $P(MLE_i | B) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $MLE_i$  be denoted as $CL(\beta_i,SE_i, q_i)$.
+Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{\textsf{significant Y}} P(t| \mu) dt }$. Conditioning on finding a significant estimate, $P(MLE_i | B) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $MLE_i$  be denoted as $\textsf{CL}(\beta_i,SE_i, q_i)$.
 
 
 ```{r}
@@ -89,13 +89,13 @@ ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)
 
 We can see that as $\alpha$ decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0.
 
-In the hierarchical setting, we used the random effect conditional likelihood model as a "prior" for $\beta_{ j}, j\in discovery$, and then use this as the prior $P(\beta | discovery)$ for the model with the validation data.
+In the hierarchical setting, we used the random effect conditional likelihood model as a "prior" for $\beta_{ j}, j\in \text{discovery}$, and then use this as the prior $P(\beta | \text{discovery})$ for the model with the validation data.
 
 The updated model is:
 
-$$\beta_{j} \sim N(\mu, \sigma^{2p53}) , j \in validation\\
-MLE_{j} \sim CL(\beta_{j},SE_{j}, q_j) , j \in discovery\\
-\sigma\sim Cauchy(0,1), \sigma\geq 0$$
+$$\beta_{j} \sim \textsf{N}(\mu, \sigma^{2p53}) , j \in \text{validation}\\
+MLE_{j} \sim \textsf{CL}(\beta_{j},SE_{j}, q_j) , j \in \text{discovery}\\
+\sigma\sim \textsf{Cauchy}(0,1), \sigma\geq 0$$
 
 Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
 
@@ -133,7 +133,7 @@ ggplot(data=melt(BFapproxdata,id.vars = "xi"), aes(y=xi))+
   scale_colour_few(name="p-value")
 ```
 
-In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$ , $P( \xi' \leq 0.5) =$  $`r  signif(qbeta(pind.dens(0.5,1e-7),.5,.5),3)`$ . Due to this, we use a flatter prior: $\xi \sim Beta(.9,.9)$ . Then $P( \xi' \leq 0.5) =$ $`r signif(qbeta(pind.dens(0.5,1e-7),.9,.9),3)`$.
+In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim \textsf{Beta}(.5,.5)$ , $P( \xi' \leq 0.5) =$  $`r  signif(qbeta(pind.dens(0.5,1e-7),.5,.5),3)`$ . Due to this, we use a flatter prior: $\xi \sim \textsf{Beta}(.9,.9)$ . Then $P( \xi' \leq 0.5) =$ $`r signif(qbeta(pind.dens(0.5,1e-7),.9,.9),3)`$.
 
 This is extremely sensitive to the choice of prior as well as to the p-value. While the skew is appropriate for this particular prior, it would not necessarily make sense with a flat or informative prior.
 

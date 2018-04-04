@@ -270,13 +270,13 @@ save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better
 
 ## Data Generation Procedure
 
-The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim N(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
+The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim \textsf{N}(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. The observed data $Y_{ij}$ is binary, and has $P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}$. The $j$ index corresponds to the "group" to which the observation belongs.
 
-$P(Y_{ij}=1) = logit^{-1}(\beta_{j})$\\
-$\beta_{j}|H_1 \sim N(\mu, \sigma^{2})$\\
-$\beta_{j}|H_0 = 0$\\
+$$P(Y_{ij}=1) = \textsf{logit}^{-1}(\beta_{j})\\
+\beta_{j}|H_1 \sim \textsf{N}(\mu, \sigma^{2})\\
+\beta_{j}|H_0 = 0$$
 
-To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r sd^2`$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of `r I` simulated datasets was created each time.
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =`r mu` , \sigma^2 = `r round(sd^2, 3)`$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of `r I` simulated datasets was created each time.
 
 
 `r I` datasets were also simulated under the null hypothesis. They were fit with the models described above, and resulted in reasonable estimates. 
@@ -335,66 +335,75 @@ intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s",
 
 
 
-hasboth<- cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
-                sapply(simslist, function(sim) 
-                  sapply(1:4, function(x) mean(sim[1,x,]*sim[2,x,]))))
-rownames(hasboth)<-modelnames
-colnames(hasboth)<-c("mu=0","s/2", "s", "2s", "4s")
 
-hasm<-  sapply(simslist, function(sim) 
-  sapply(1:4, function(x) mean(sim[1,x,]*(1-sim[2,x,]))))
+hasm<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+              sapply(simslist, function(sim) 
+  sapply(1:4, function(x) mean(sim[1,x,]))))
 rownames(hasm)<-modelnames
-colnames(hasm)<-c("s/2", "s", "2s", "4s")
+colnames(hasm)<-c("mu=0","s/2", "s", "2s", "4s")
 
-has0notmu<-  sapply(simslist, function(sim) 
-  sapply(1:4, function(x) mean(sim[2,x,]*(1-sim[1,x,]))))
-rownames(has0notmu)<-modelnames
-colnames(has0notmu)<-c("s/2", "s", "2s", "4s")
-
+has0<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+              sapply(simslist, function(sim) 
+  sapply(1:4, function(x) mean(sim[2,x,]))))
+rownames(has0)<-modelnames
+colnames(has0)<-c("mu=0","s/2", "s", "2s", "4s")
 ```
 
-#### Mu
+#### $\mu$
 
 ##### RMSE
 
-As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option).
-At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data.
+As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.
+
+
+At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.
 
 
 
 ```{r}
 mseplot
-kable(rmse, caption=expression(paste("RMSE of ",mu)))
+kable(rmse, caption="RMSE of $\\mu$")
 ```
+
 ##### Coverage
 
-The BF approximation model is the most conservative, with the intervals covering 0 more times than any other model for all values of $\sigma$. All models have very high coverage in general.
+The conditional likelihood and BF approximation models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
 
-The Bayesian model had the shortest intervals. 
+The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with $\sigma=4s$, because $4s>\mu$, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations. 
 
 ```{r}
-kable(hasm, caption=expression(paste("Proportion containing ", mu, " but not 0")))
-kable(has0notmu,caption=expression(paste("Proportion containing 0 but not ", mu)))
-kable(hasboth,caption=expression(paste("Proportion containing both ", mu, " and 0")))
-kable(hasboth[,2:5]+hasm,caption=expression(paste("Proportion containing ", mu)))
+kable(hasm, ,format='latex',caption="Proportion of Credible Intervals containing $\\mu$")
+```
+
+```{r}
+kable(has0, ,format='latex',caption="Proportion of Credible Intervals containing 0")
+```
+
+```{r}
 intlenplot
 ```
 
 
-#### Xi
+#### $\xi$
 
-While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively. 
+While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
+
+The Bayes Factor approximation model has much larger median $\xi$ and $\iota$ because the mass of the distribution of $\xi$ is shifted towards 1. Thus, even though the median of $\iota$ is quite low (and rhe median of $\mu$ is 0), the median of $\xi$ is greater than $0.5$.
 
 ```{r}
-kable(pindmed,caption=expression(paste("Average of Posterior Median ",xi)))
-kable(zeromu,caption=expression(paste("Average of Mean of ", iota)))
+kable(pindmed,caption="Average of Posterior Median $\\xi$")
+```
+
+```{r}
+kable(zeromu,caption="Average of Mean of $\\iota$")
 ```
 
 
 ### Sensitivity of Conditional Likelihood Method to Changes in $\alpha$
 
+### With Random Effects
 
-The conditional likelihood method is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. `r I` datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
+The conditional likelihood method with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. `r I` datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
 
 
 
@@ -428,12 +437,54 @@ intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
   scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
-kable(rmse,caption=expression(paste("RMSE of ", mu)))
+kable(rmse,caption="RMSE of $\\mu$")
 mseplot
 intlenplot
 ```
 
-This model shows little difference across levels because the conditional likelihood prior is being applied to the specific site, not to the global mean, which has the same distribution as it would if the likelihood of $\beta$ was unconditional.
+This model shows little difference across levels.
 
-A simpler model with no random effects ($MLE_i \sim N(\mu, SE_i)$) and small variance resulted in larger credible intervals for smaller $\alpha$, even though the point estimates were consistent. This may seem counterintuitive, since we would expect that the lower $\alpha$ would yield more "precise" results, but makes sense based on the shape of the prior on $\mu$. There is no difference between credible intervals of this same model when the simulations have higher variance. This is because the single significant site is overpowered by the rest of them, which are highly likely to not be significant because they are too spread out.
 
+#### No Random Effects
+
+A simpler model than the one proposed has no random effects: $\beta_j\sim \textsf{N}(\mu, \sigma^2)$ and $MLE_i \sim \textsf{N}(\mu, SE_i)$. 
+
+
+
+```{r}
+#cl plots
+load("p53sim_processeddata_extra.RData")
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.global.better0[4,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.global.better1[4,,]-mu)))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.global.better4[4,,]-mu)))[,2:3], simulation=2))
+
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "0", "s", "4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
+  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
+rmse<- cbind(c(sapply(1:4, function(x) sqrt(mean((sim.cl.stats.global.better0[4,x,])^2))), NA),
+             sapply(1:5, function(x) sqrt(mean((sim.cl.stats.global.better1[4,x,]-mu)^2))),
+               sapply(1:5, function(x) sqrt(mean((sim.cl.stats.global.better4[4,x,]-mu)^2))))
+rownames(rmse)<-pvals
+
+colnames(rmse)<-c("0","s", "4s")
+
+
+
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.global.better0[6,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.global.better1[6,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.global.better4[6,,])))[,2:3], simulation=2))
+
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
+  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+kable(rmse,caption="RMSE of $\\mu$")
+mseplot
+intlenplot
+```
+
+Removing the uncertainty for site-specific means leads to a reduction in the length of the credible intervals for $\mu$. The interval length in the random effect model was larger for simulations with large variance between sites ($\sigma^2 = 4s$) than for simulations with small variance ($\sigma^2 = s$), which appropriately captures the uncertainty of the estimate for $\mu$. However, the model with no random effects creates credible intervals that are the same length for simulations with $\sigma^2 = 4s$ and $\sigma^2 = s$. The RMSE is very similar for the two models for each $\sigma^2$, and neither model's credible interval length or median estimate changes with $\alpha$. 

@@ -166,17 +166,17 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1><span class="header-section-number">Chapter 3</span> Normal Simulation Study</h1>
 <div id="data-generation" class="section level2">
 <h2><span class="header-section-number">3.1</span> Data Generation</h2>
-<p>To test the hypothesis <span class="math inline">\(H_0: \mu = 0\)</span> versus <span class="math inline">\(H_1: \mu \neq 0\)</span>, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis <span class="math inline">\(H_i\)</span>, let <span class="math inline">\(\mu_i = 0\)</span> in the null scenario and <span class="math inline">\(\mu_i \sim N(0,1)\)</span> in the alternative. The data <span class="math inline">\(Y_i\)</span> is generated from a normal distribution with mean <span class="math inline">\(\mu_i\)</span> and known variance 1, with sample size 100. If <span class="math inline">\(Y_i\)</span> is not significant at <span class="math inline">\(alpha = .05\)</span>, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.</p>
+<p>To test the hypothesis <span class="math inline">\(H_0: \mu = 0\)</span> versus <span class="math inline">\(H_1: \mu \neq 0\)</span>, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis <span class="math inline">\(H_i\)</span>, let <span class="math inline">\(\mu_i = 0\)</span> in the null scenario and <span class="math inline">\(\mu_i \sim \textsf{N}(0,1)\)</span> in the alternative. The data <span class="math inline">\(Y_i\)</span> is generated from a normal distribution with mean <span class="math inline">\(\mu_i\)</span> and known variance 1, with sample size 100. If <span class="math inline">\(Y_i\)</span> is not significant at <span class="math inline">\(\alpha = .05\)</span>, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.</p>
 </div>
 <div id="conditional-likelihood-1" class="section level2">
 <h2><span class="header-section-number">3.2</span> Conditional Likelihood</h2>
-<p>In this case, the sufficient statistic can be used to simplify the conditional likelihood: since <span class="math inline">\(\bar Y \sim N(\mu, \sigma^2/n)\)</span>, the conditional likelihood for the simulated data is equivalent to <span class="math inline">\(L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}\)</span>.</p>
+<p>In this case, the sufficient statistic can be used to simplify the conditional likelihood: since <span class="math inline">\(\bar Y \sim \textsf{N}(\mu, \sigma^2/n)\)</span>, the conditional likelihood for the simulated data is equivalent to <span class="math inline">\(L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}\)</span>.</p>
 <p>Since this likelihood is difficult to integrate analytically, the confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior <span class="math inline">\(\pi(\mu) = 1\)</span>, and obtaining the HPD region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.</p>
 </div>
 <div id="posterior-distribution" class="section level2">
 <h2><span class="header-section-number">3.3</span> Posterior Distribution</h2>
 <p>In the Bayesian case, the prior was set to the mixture model <span class="math inline">\(\pi(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)\)</span>. In this case, <span class="math inline">\(\xi = 0.5\)</span> is a constant. Note that this is also the true data generating model.</p>
-<p>The marginal posterior distribution is <span class="math inline">\(P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1)\)</span>. The separate posteriors for <span class="math inline">\(\mu\)</span> are: <span class="math inline">\(P(\mu|Y, H_0) = \delta_0(\mu)\)</span>, <span class="math inline">\(P(\mu|Y, H_1) \sim N(\frac{n}{n+1}\bar Y, \frac{1}{n+1})\)</span>. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, <span class="math inline">\(\pi = \frac{(1-\xi)}{\xi}\)</span>: <span class="math inline">\(P(H_1| Y ) = \frac{\pi BF}{1+\pi BF}\)</span>. For this example, the prior odds are 1 (because the probability of <span class="math inline">\(H_1 = \xi = 0.5\)</span>). The bayes factor <span class="math inline">\(BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1} exp(\frac{n^2}{2(n+1)}(\bar Y)^2)\)</span>. This result comes from the fact that the marginal likelihood <span class="math inline">\(L(\bar Y | H_1) \sim N(0, \frac{n}{n+1})\)</span>.</p>
+<p>The marginal posterior distribution is <span class="math inline">\(P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1)\)</span>. The separate posteriors for <span class="math inline">\(\mu\)</span> are: <span class="math inline">\(P(\mu|Y, H_0) = \delta_0(\mu)\)</span>, <span class="math inline">\(P(\mu|Y, H_1) \sim \textsf{N}(\frac{n}{n+1}\bar Y, \frac{1}{n+1})\)</span>. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, <span class="math inline">\(\pi = \frac{(1-\xi)}{\xi}\)</span>: <span class="math inline">\(P(H_1| Y ) = \frac{\pi BF}{1+\pi BF}\)</span>. For this example, the prior odds are 1 (because the probability of <span class="math inline">\(H_1 = \xi = 0.5\)</span>). The bayes factor <span class="math inline">\(BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1}* e^{\frac{n^2}{2(n+1)}(\bar Y)^2}\)</span>. This result comes from the fact that the marginal likelihood <span class="math inline">\(L(\bar Y | H_1) \sim \textsf{N}(0, \frac{n}{n+1})\)</span>.</p>
 <p>Putting these pieces together results in the marginal posterior for <span class="math inline">\(\mu\)</span>, which can be used to generate samples to calculate credible intervals.</p>
 </div>
 <div id="results" class="section level2">
@@ -290,7 +290,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </tbody>
 </table>
 <table>
-<caption><span id="tab:unnamed-chunk-13">Table 3.2: </span>Conditional Likelihood Method</caption>
+<caption><span id="tab:unnamed-chunk-14">Table 3.3: </span>Conditional Likelihood Method</caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -309,7 +309,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </tbody>
 </table>
 <table>
-<caption><span id="tab:unnamed-chunk-13">Table 3.2: </span>Bayesian Mixture Model</caption>
+<caption><span id="tab:unnamed-chunk-15">Table 3.4: </span>Bayesian Mixture Model</caption>
 <thead>
 <tr class="header">
 <th></th>

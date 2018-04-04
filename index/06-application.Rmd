@@ -17,12 +17,12 @@ The combined data set (discovery and replication) comprised 5,206 white, non-His
 
 Each model adjusts for study site, reference age, and personal history of breast cancer. History of breast cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. 
 
-$$P(Y_{ij}=1) = logit^{-1}(\beta^{site}_{ j}+ \beta^{p53}_{j}*p53_{ij}+ \beta^{age}_{j}*age_{ij}+\beta^{BC}* BC_{ij})$$
+$$P(Y_{ij}=1) = \textsf{logit}^{-1}(\beta^{site}_{ j}+ \beta^{p53}_{j}*p53_{ij}+ \beta^{age}_{j}*age_{ij}+\beta^{BC}* BC_{ij})$$
 
-$$\beta^{site}_{ j}\sim N(\mu^{site}, \sigma^{2site})$$
-$$\beta^{age}_{j}\sim N(\mu^{age}, \sigma^{2age})$$
-$$\beta^{BC}, \mu^{age},\mu^{site}\sim N(0,0.1)$$
-$$\sigma^{age},\sigma^{site} \sim invGamma(1, 0.05)$$
+$$\beta^{site}_{ j}\sim \textsf{N}(\mu^{site}, \sigma^{2site})$$
+$$\beta^{age}_{j}\sim \textsf{N}(\mu^{age}, \sigma^{2age})$$
+$$\beta^{BC}, \mu^{age},\mu^{site}\sim \textsf{N}(0,0.1)$$
+$$\sigma^{age},\sigma^{site} \sim \textsf{invGamma}(1, 0.05)$$
 
 The p53 variable's site-specific log OR priors were defined using the models described previously.
 
@@ -310,5 +310,3 @@ for(i in 1:length(snps)){
   print(kable(makeORtable(ORbySNP[[i]], all.sitenames[[i]]), caption=snps[i]))
 }
 ```
-
-

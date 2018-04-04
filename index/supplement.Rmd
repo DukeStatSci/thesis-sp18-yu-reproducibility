@@ -315,6 +315,3 @@ mu.all.summary<-t(mu.all.summary)
 
 kable(ret, caption="Joint Analysis Estimates of $\\mu_{p53}$")
 ```
-
-
-

@@ -166,11 +166,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1><span class="header-section-number">Chapter 4</span> Hierarchical Simulations</h1>
 <div id="data-generation-procedure" class="section level2">
 <h2><span class="header-section-number">4.1</span> Data Generation Procedure</h2>
-<p>The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section: if truly associated, <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma^2\)</span> have (fixed) nonzero values;<span class="math inline">\(\beta_j \sim N(\mu, \sigma^2)\)</span>. Otherwise, <span class="math inline">\(\mu=\beta_j = 0, \forall j\)</span>. The observed data <span class="math inline">\(Y_{ij}\)</span> is binary, and has <span class="math inline">\(P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}\)</span>. The <span class="math inline">\(j\)</span> index corresponds to the “group” to which the observation belongs.</p>
-<p><span class="math display">\[P(Y_{ij}=1) = logit^{-1}(\beta_{j})\\
-\beta_{j}|H_1 \sim N(\mu, \sigma^{2})\\
+<p>The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the data section: if truly associated, <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma^2\)</span> have (fixed) nonzero values;<span class="math inline">\(\beta_j \sim \textsf{N}(\mu, \sigma^2)\)</span>. Otherwise, <span class="math inline">\(\mu=\beta_j = 0, \forall j\)</span>. The observed data <span class="math inline">\(Y_{ij}\)</span> is binary, and has <span class="math inline">\(P(Y_{ij}=1| \beta_j) = \frac{e^{\beta_j}}{1+e^{\beta_j}}\)</span>. The <span class="math inline">\(j\)</span> index corresponds to the “group” to which the observation belongs.</p>
+<p><span class="math display">\[P(Y_{ij}=1) = \textsf{logit}^{-1}(\beta_{j})\\
+\beta_{j}|H_1 \sim \textsf{N}(\mu, \sigma^{2})\\
 \beta_{j}|H_0 = 0\]</span></p>
-<p>To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of <span class="math inline">\(\mu =0.203 , \sigma^2 = 0.0034002\)</span>. The value of <span class="math inline">\(\mu\)</span> remained fixed through all the simulations, but different values of <span class="math inline">\(\sigma\)</span> were used to test the sensitivity of the models: <span class="math inline">\(\sigma\)</span>, <span class="math inline">\(\sigma/2\)</span>, <span class="math inline">\(2\sigma\)</span>, and <span class="math inline">\(4\sigma\)</span>. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of 100 simulated datasets was created each time.</p>
+<p>To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of <span class="math inline">\(\mu =0.203 , \sigma^2 = 0.003\)</span>. The value of <span class="math inline">\(\mu\)</span> remained fixed through all the simulations, but different values of <span class="math inline">\(\sigma\)</span> were used to test the sensitivity of the models: <span class="math inline">\(\sigma\)</span>, <span class="math inline">\(\sigma/2\)</span>, <span class="math inline">\(2\sigma\)</span>, and <span class="math inline">\(4\sigma\)</span>. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of 100 simulated datasets was created each time.</p>
 <p>100 datasets were also simulated under the null hypothesis. They were fit with the models described above, and resulted in reasonable estimates.</p>
 <div id="finding-discovery-sites" class="section level3">
 <h3><span class="header-section-number">4.1.1</span> Finding “Discovery” Sites</h3>
@@ -187,9 +187,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h5><span class="header-section-number">4.2.1.1.1</span> RMSE</h5>
 <p>As expected, the models performed more poorly as <span class="math inline">\(\sigma\)</span> increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.</p>
 <p>At small variances (s/2, s, 2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to <span class="math inline">\(\frac{6}{7}\)</span> of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.</p>
-<p><img src="thesis_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 <table>
-<caption><span id="tab:unnamed-chunk-16">Table 4.1: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
+<caption><span id="tab:unnamed-chunk-18">Table 4.1: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -242,7 +242,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with <span class="math inline">\(\sigma=4s\)</span>, because <span class="math inline">\(4s&gt;\mu\)</span>, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations.</p>
 
 
-<p><img src="thesis_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="xi" class="section level4">
@@ -250,7 +250,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>While one would expect the probability of being associated (<span class="math inline">\(\xi\)</span>) to also increase with <span class="math inline">\(\sigma\)</span>, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of <span class="math inline">\(\xi\)</span>. Similarly, the proportion of nonzero <span class="math inline">\(\mu\)</span> samples from the posterior (this is the same as the proportion of times the latent variable <span class="math inline">\(i = 1\)</span>), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.</p>
 <p>The Bayes Factor approximation model has much larger median <span class="math inline">\(\xi\)</span> and <span class="math inline">\(\iota\)</span> because the mass of the distribution of <span class="math inline">\(\xi\)</span> is shifted towards 1. Thus, even though the median of <span class="math inline">\(\iota\)</span> is quite low (and rhe median of <span class="math inline">\(\mu\)</span> is 0), the median of <span class="math inline">\(\xi\)</span> is greater than <span class="math inline">\(0.5\)</span>.</p>
 <table>
-<caption><span id="tab:unnamed-chunk-18">Table 4.2: </span>Average of Posterior Median <span class="math inline">\(\xi\)</span></caption>
+<caption><span id="tab:unnamed-chunk-22">Table 4.2: </span>Average of Posterior Median <span class="math inline">\(\xi\)</span></caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -281,7 +281,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </tbody>
 </table>
 <table>
-<caption><span id="tab:unnamed-chunk-18">Table 4.2: </span>Average of Mean of <span class="math inline">\(\iota\)</span></caption>
+<caption><span id="tab:unnamed-chunk-23">Table 4.3: </span>Average of Mean of <span class="math inline">\(\iota\)</span></caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -320,7 +320,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h3><span class="header-section-number">4.2.3</span> With Random Effects</h3>
 <p>The conditional likelihood method with random effects is robust to changes in the level <span class="math inline">\(\alpha\)</span>. To test this, we consider 5 different levels: <span class="math inline">\(0.05, 0.01, 0.005, 0.001, 10^{-7}\)</span>. 100 datasets were sampled, for which at least one location was significant at the smallest <span class="math inline">\(\alpha\)</span> level. The conditional likelihood model with random effects and without was then fitted for each level.</p>
 <table>
-<caption><span id="tab:unnamed-chunk-19">Table 4.3: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
+<caption><span id="tab:unnamed-chunk-24">Table 4.4: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -362,13 +362,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </tr>
 </tbody>
 </table>
-<p><img src="thesis_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /><img src="thesis_files/figure-html/unnamed-chunk-19-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /><img src="thesis_files/figure-html/unnamed-chunk-24-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>This model shows little difference across levels.</p>
 <div id="no-random-effects" class="section level4">
 <h4><span class="header-section-number">4.2.3.1</span> No Random Effects</h4>
-<p>A simpler model than the one proposed has no random effects: <span class="math inline">\(\beta_j\sim N(\mu, \sigma^2)\)</span> and <span class="math inline">\(MLE_i \sim N(\mu, SE_i)\)</span>.</p>
+<p>A simpler model than the one proposed has no random effects: <span class="math inline">\(\beta_j\sim \textsf{N}(\mu, \sigma^2)\)</span> and <span class="math inline">\(MLE_i \sim \textsf{N}(\mu, SE_i)\)</span>.</p>
 <table>
-<caption>(#tab:fixed effect cl)RMSE of <span class="math inline">\(\mu\)</span></caption>
+<caption><span id="tab:unnamed-chunk-25">Table 4.5: </span>RMSE of <span class="math inline">\(\mu\)</span></caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -410,7 +410,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </tr>
 </tbody>
 </table>
-<p><img src="thesis_files/figure-html/fixed%20effect%20cl-1.png" width="672" style="display: block; margin: auto;" /><img src="thesis_files/figure-html/fixed%20effect%20cl-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /><img src="thesis_files/figure-html/unnamed-chunk-25-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Removing the uncertainty for site-specific means leads to a reduction in the length of the credible intervals for <span class="math inline">\(\mu\)</span>. The interval length in the random effect model was larger for simulations with large variance between sites (<span class="math inline">\(\sigma^2 = 4s\)</span>) than for simulations with small variance (<span class="math inline">\(\sigma^2 = s\)</span>), which appropriately captures the uncertainty of the estimate for <span class="math inline">\(\mu\)</span>. However, the model with no random effects creates credible intervals that are the same length for simulations with <span class="math inline">\(\sigma^2 = 4s\)</span> and <span class="math inline">\(\sigma^2 = s\)</span>. The RMSE is very similar for the two models for each <span class="math inline">\(\sigma^2\)</span>, and neither model’s credible interval length or median estimate changes with <span class="math inline">\(\alpha\)</span>.</p>
 
 </div>
