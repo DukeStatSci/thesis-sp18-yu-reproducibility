@@ -63,7 +63,7 @@
 <ul class="summary">
 <li><a href="./"></a></li>
 <li class="divider"></li>
-<li class="chapter" data-level="1" data-path="1-introduction.html"><a href="1-introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> thesisdowndss::thesis_word: default</a></li>
 <li class="chapter" data-level="2" data-path="2-lit-review.html"><a href="2-lit-review.html"><i class="fa fa-check"></i><b>2</b> Literature Review</a></li>
 <li class="chapter" data-level="3" data-path="3-models.html"><a href="3-models.html"><i class="fa fa-check"></i><b>3</b> Models</a><ul>
 <li class="chapter" data-level="3.1" data-path="3-models.html"><a href="3-models.html#fully-bayesian-model"><i class="fa fa-check"></i><b>3.1</b> Fully Bayesian Model</a></li>
@@ -89,6 +89,7 @@
 <li class="chapter" data-level="5.2" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#results-1"><i class="fa fa-check"></i><b>5.2</b> Results</a><ul>
 <li class="chapter" data-level="5.2.1" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#sensitivity"><i class="fa fa-check"></i><b>5.2.1</b> Sensitivity</a></li>
 <li class="chapter" data-level="5.2.2" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#sensitivity-of-conditional-likelihood-method-to-changes-in-alpha"><i class="fa fa-check"></i><b>5.2.2</b> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></a></li>
+<li class="chapter" data-level="5.2.3" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#with-random-effects"><i class="fa fa-check"></i><b>5.2.3</b> With Random Effects</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html"><i class="fa fa-check"></i><b>6</b> Analysis of TP53</a><ul>
@@ -100,6 +101,10 @@
 <li class="chapter" data-level="6.3" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html#results-2"><i class="fa fa-check"></i><b>6.3</b> Results</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="7-conclusion.html"><a href="7-conclusion.html"><i class="fa fa-check"></i><b>7</b> Conclusion</a></li>
+<li class="chapter" data-level="8" data-path="8-supplementary-material.html"><a href="8-supplementary-material.html"><i class="fa fa-check"></i><b>8</b> Supplementary Material</a><ul>
+<li class="chapter" data-level="8.1" data-path="8-supplementary-material.html"><a href="8-supplementary-material.html#jags-models"><i class="fa fa-check"></i><b>8.1</b> JAGS Models</a></li>
+<li class="chapter" data-level="8.2" data-path="8-supplementary-material.html"><a href="8-supplementary-material.html#joint-analysis-of-tp53-snps"><i class="fa fa-check"></i><b>8.2</b> Joint Analysis of TP53 SNPs</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
@@ -124,7 +129,7 @@
 <h1><span class="header-section-number">Chapter 4</span> Normal Simulation Study</h1>
 <div id="data-generation" class="section level2">
 <h2><span class="header-section-number">4.1</span> Data Generation</h2>
-<p>To test the hypothesis <span class="math inline">\(H_0: mu = 0\)</span> versus <span class="math inline">\(H_1: mu \neq 0\)</span>, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis <span class="math inline">\(H_i\)</span>, let <span class="math inline">\(mu_i = 0\)</span> in the null scenario and <span class="math inline">\(mu_i \sim N(0,1)\)</span> in the alternative. The data <span class="math inline">\(Y_i\)</span> is generated from a normal distribution with mean <span class="math inline">\(mu_i\)</span> and known variance 1, with sample size 100. If <span class="math inline">\(Y_i\)</span> is not significant at <span class="math inline">\(alpha = .05\)</span>, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.</p>
+<p>To test the hypothesis <span class="math inline">\(H_0: \mu = 0\)</span> versus <span class="math inline">\(H_1: \mu \neq 0\)</span>, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis <span class="math inline">\(H_i\)</span>, let <span class="math inline">\(\mu_i = 0\)</span> in the null scenario and <span class="math inline">\(\mu_i \sim N(0,1)\)</span> in the alternative. The data <span class="math inline">\(Y_i\)</span> is generated from a normal distribution with mean <span class="math inline">\(\mu_i\)</span> and known variance 1, with sample size 100. If <span class="math inline">\(Y_i\)</span> is not significant at <span class="math inline">\(alpha = .05\)</span>, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.</p>
 </div>
 <div id="conditional-likelihood-1" class="section level2">
 <h2><span class="header-section-number">4.2</span> Conditional Likelihood</h2>
@@ -142,7 +147,7 @@
 <div id="estimators" class="section level3">
 <h3><span class="header-section-number">4.4.1</span> Estimators</h3>
 <pre><code>No id variables; using all as measure variables</code></pre>
-<p><img src="thesis_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 <table>
 <thead>
 <tr class="header">
@@ -181,7 +186,7 @@
 </div>
 <div id="credible-and-confidence-intervals" class="section level3">
 <h3><span class="header-section-number">4.4.2</span> Credible and Confidence Intervals</h3>
-<p><img src="thesis_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>The lines mark the <span class="math inline">\(y = x\)</span> line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes.</p>
 <p>The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood confidence intervals are almost always larger than the credible intervals, but still mostly smaller than the naive ones.</p>
 </div>
@@ -191,7 +196,7 @@
 <p>However, conditioning on the alternative hypothesis does not lead to an empirical coverage of 95%.</p>
 <p>We can see that both methods are still significantly better than the naive one.</p>
 <table>
-<caption><span id="tab:unnamed-chunk-12">Table 4.1: </span>Empirical Coverage for 95% Confidence/Credible Intervals</caption>
+<caption><span id="tab:unnamed-chunk-8">Table 4.1: </span>Empirical Coverage for 95% Confidence/Credible Intervals</caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -226,7 +231,7 @@
 <h3><span class="header-section-number">4.4.4</span> Hypothesis Rejection</h3>
 <p>Due to the nature of p-values, an <span class="math inline">\(\alpha = 0.05\)</span> corresponds to a posterior probability <span class="math inline">\(P(H_1 | Y )\)</span> of only <span class="math inline">\(0.4\)</span> for <span class="math inline">\(N = 100\)</span>. This means that the 95% credible interval for <span class="math inline">\(\mu| Y\)</span> will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for <span class="math inline">\(\alpha\)</span> leads to no rejections.</p>
 <table>
-<caption><span id="tab:unnamed-chunk-13">Table 4.2: </span>Naive method</caption>
+<caption><span id="tab:unnamed-chunk-9">Table 4.2: </span>Naive method</caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -248,7 +253,7 @@
 </tbody>
 </table>
 <table>
-<caption><span id="tab:unnamed-chunk-13">Table 4.2: </span>Conditional Likelihood Method</caption>
+<caption><span id="tab:unnamed-chunk-9">Table 4.2: </span>Conditional Likelihood Method</caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -267,7 +272,7 @@
 </tbody>
 </table>
 <table>
-<caption><span id="tab:unnamed-chunk-13">Table 4.2: </span>Bayesian Mixture Model</caption>
+<caption><span id="tab:unnamed-chunk-9">Table 4.2: </span>Bayesian Mixture Model</caption>
 <thead>
 <tr class="header">
 <th></th>

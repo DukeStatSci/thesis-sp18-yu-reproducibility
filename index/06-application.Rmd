@@ -30,6 +30,7 @@ The fully Bayesian model was fit jointly as well as marginally. Since the result
 
 
 ## Results
+
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(cache = TRUE)
@@ -268,7 +269,7 @@ ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+
 
 
 
-The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (`r overall$snp[which(overall$X!=1 &overall$model=="bayesian")]`) that was detected as significant in the MISA analysis. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.
+The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (`r overall$snp[which(overall$X!=1 &overall$model=="bayesian")]`) that was detected as significant in the MISA analysis [@schildkraut2010association]. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.
 
 
 The original model has the longest credible intervals for all SNPs except `r overall$snp[which(overall$X!=1 &overall$model=="bayesian")]`, for which both the Bayesian and Bayes Factor models have large credible intervals, indicating more uncertainty than the original model.

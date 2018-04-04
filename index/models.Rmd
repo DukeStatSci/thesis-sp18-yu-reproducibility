@@ -42,7 +42,7 @@ mu <- seq(-.2,1.25,.01)
 
 ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
   geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
-  labs(title= "Mixture Model with Point Mass at 0",x=expression(theta),y="density")+
+  labs(title= "Mixture Model with Point Mass at 0",x=expression(mu),y="density")+
   theme_minimal() + scale_colour_few()
 ```
 
@@ -51,12 +51,12 @@ For a hierarchical framework, site means $\beta_{j}|\iota=1 \sim N(\mu, \sigma^2
 
 The complete model is as follows:
 
-$\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2})$\\
-$\mu|\iota=1\sim Cauchy(0,0.1)$\\
-$\mu, \beta_{j}|\iota = 0  =0$\\
-$\sigma\sim Cauchy(0,1), \sigma\geq 0$\\
-$\iota \sim Bernoulli(\xi)$\\
-$\xi \sim Beta(1/2, 1/2)$\\
+$$\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2}) \\
+\mu|\iota=1\sim Cauchy(0,0.1)\\
+\mu, \beta_{j}|\iota = 0  =0\\
+\sigma\sim Cauchy(0,1), \sigma\geq 0\\
+\iota \sim Bernoulli(\xi)\\
+\xi \sim Beta(1/2, 1/2)$$
 
 
 There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
@@ -77,7 +77,7 @@ colnames(CLdata)<- c("mu", "CL.005","CL.05","CL.01","uncond")
 melted <- melt(CLdata, id.vars=c("mu"))
 ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)) +
   labs(title = "Conditional vs. Unconditional Likelihood", 
-       x = expression(theta), y = "Likelihood")+  theme_minimal()+ 
+       x = expression(mu), y = "Likelihood")+  theme_minimal()+ 
   theme(legend.justification=c(1,1), legend.position=c(1,1)) +
   scale_colour_few(name="", labels=c(expression(paste(alpha," = .005")), 
                                      expression(paste(alpha," = .05")), 
@@ -93,10 +93,9 @@ In the hierarchical setting, we used the random effect conditional likelihood mo
 
 The updated model is:
 
-$\beta_{j} \sim N(\mu, \sigma^{2p53}) , j \in validation$\\
-$MLE_{j} \sim CL(\beta_{j},SE_{j}, q_j) , j \in discovery$\\
-$\sigma\sim Cauchy(0,1), \sigma\geq 0$\\
-
+$$\beta_{j} \sim N(\mu, \sigma^{2p53}) , j \in validation\\
+MLE_{j} \sim CL(\beta_{j},SE_{j}, q_j) , j \in discovery\\
+\sigma\sim Cauchy(0,1), \sigma\geq 0$$
 
 Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
 
@@ -125,22 +124,24 @@ pind<- seq(.001, .999,by=.001)
 BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
                          postind.dens(pind, .005),postind.dens(pind, 1e-5),
                    dbeta(pind,.5,.5))
-colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","theta")
-ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
+colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","xi")
+ggplot(data=melt(BFapproxdata,id.vars = "xi"), aes(y=xi))+
   geom_line(aes(x=value, group=variable,color=variable))+
   labs(title = "Distribution of Transformed Probability of Effect\n with Bayes Factor Approximation", 
-       x = expression(theta), y = "Density")+  theme_minimal()+ 
+       x = expression(xi), y = "Density")+  theme_minimal()+ 
   theme(legend.justification=c(1,1), legend.position=c(1,1)) +
   scale_colour_few(name="p-value")
 ```
 
-In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$ , $P( \xi' \leq 0.5) =$  $`r qbeta(pind.dens(0.5,1e-7),.5,.5)`$ . Due to this, we use a flatter prior: $\xi \sim Beta(.9,.9)$ . Then $P( \xi' \leq 0.5) =$ $`r qbeta(pind.dens(0.5,1e-7),.9,.9)`$. This is extremely sensitive to the choice of prior as well as to the p-value. 
+In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$ , $P( \xi' \leq 0.5) =$  $`r  signif(qbeta(pind.dens(0.5,1e-7),.5,.5),3)`$ . Due to this, we use a flatter prior: $\xi \sim Beta(.9,.9)$ . Then $P( \xi' \leq 0.5) =$ $`r signif(qbeta(pind.dens(0.5,1e-7),.9,.9),3)`$.
+
+This is extremely sensitive to the choice of prior as well as to the p-value. While the skew is appropriate for this particular prior, it would not necessarily make sense with a flat or informative prior.
 
 ## Methods
 
 Models were fit using R2jags and in the simpler cases, with original Metropolis Hastings algorithms. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
 
-Each JAGS model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.
+Each JAGS model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples. JAGS model functions for the hierarchical simulations can be found in the supplement.
 
 All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. HPD intervals are guaranteed to be the shortest intervals for that scale (they are not scale-invariant), and can give more reasonable answers for multimodal distributions than quantile-based intervals because they can be disjoint.
 

@@ -7,7 +7,7 @@
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-To test the hypothesis $H_0: mu = 0$ versus  $H_1: mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $mu_i = 0$ in the null scenario and $mu_i \sim N(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.
+To test the hypothesis $H_0: \mu = 0$ versus  $H_1: \mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $\mu_i = 0$ in the null scenario and $\mu_i \sim N(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $\mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.
 
 ## Conditional Likelihood
 
