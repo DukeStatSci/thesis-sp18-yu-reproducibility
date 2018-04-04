@@ -1,8 +1,4 @@
-# Conclusions and Future Work
-
-## Conclusion
-
->what is an appropriate length for conclusions?
+# Conclusion
 
 We propose three models to deal with the winner's curse and reduce the selection effect in repeated studies. The fully Bayesian model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative. 
 The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis.
@@ -12,9 +8,5 @@ One clear advantage of the fully Bayesian model is that it can perform testing a
 
 The conditional likelihood and Bayes Factor approximation methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The bayes factor model has a quasi-testing feature since it accounts for the probability of a true association. As for the conditional likelihood method, although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have low enough p-values for a stringent test can still be used without affecting the results. 
 
-## Future Work
 
-These frameworks can also be applied to non-normal data and more complicated models, especially for joint analysis that can account for interactions between the p53 SNP's and other factors. 
-
-> not sure how specific/detailed this section should be
 

@@ -1,6 +1,5 @@
 # Normal Simulation Study
 
-> would it be better to have the models section before this? i.e. lit review-> data motivation->models->normal simulation->hierarchical simulation->data analysis-> conclusion 
 
 
 ## Data Generation
@@ -45,9 +44,9 @@ cond.posterior<- function(Y, n.samp){
 }
 ```
 
-Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{\text{significant Y}} P(t| \mu) dt }$.<references here?> In this case, the sufficient statistic can be used to simplify: since $\bar Y \sim N(\mu, \sigma^2/n)$, the conditional likelihood for the simulated data is equivalent to $L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}$.
+In this case, the sufficient statistic can be used to simplify the conditional likelihood: since $\bar Y \sim N(\mu, \sigma^2/n)$, the conditional likelihood for the simulated data is equivalent to $L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}$.
 
-Since this likelihood is difficult to integrate analytically, the confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi(\mu) = 1$, and obtaining the HPD (highest posterior density) region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.
+Since this likelihood is difficult to integrate analytically, the confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi(\mu) = 1$, and obtaining the HPD region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.
 
 ## Posterior Distribution
 
@@ -72,17 +71,14 @@ getposterior <- function(Y,n.samp, pi = .5){
 ```
 
 
-Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. In the Bayesian case, the prior was set to a spike and slab prior, with the "spike" being a point mass at 0: $\pi(\mu|H=H_0) = \delta_0(\mu)$, and the "slab" part corresponding to a unit information prior:  $\pi(\mu|H=H_1) \sim N(0, 1)$. The full prior is a mixture model $\pi(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
+In the Bayesian case, the prior was set to the mixture model $\pi(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
 
 The marginal posterior distribution is $P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1)$.  The separate posteriors for $\mu$ are:
 $P(\mu|Y, H_0) = \delta_0(\mu)$, $P(\mu|Y, H_1) \sim N(\frac{n}{n+1}\bar Y, \frac{1}{n+1})$. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, $\pi = \frac{(1-\xi)}{\xi}$: $P(H_1| Y ) = \frac{\pi BF}{1+\pi BF}$. For this example, the prior odds are 1 (because the probability of $H_1 = \xi = 0.5$). The bayes factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1} exp(\frac{n^2}{2(n+1)}(\bar Y)^2)$. This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim N(0, \frac{n}{n+1})$.
 
 
-Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate HPD credible intervals. 
+Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate credible intervals. 
 
-> I don't think I need this paragraph about HPD since it is addressed in the later parts, but maybe I should move the proper methods section up before this
-
-While true HPD intervals can be disjoint, the intervals calculated for this experiment are actually the shortest continuous segments covering $.95$. This corresponds to the HPD interval under the assumption that the distribution is not severely multimodal, and is what most packages in R use to estimate HPD intervals. However, since this posterior is actually a mixture model, a large enough posterior probability for $H_1$ could lead to a difference between the true HPD credible interval and the calculated one.
 
 ```{r cache=TRUE}
 

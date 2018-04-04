@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Bayesian Reproducibility</title>
+  <meta name="description" content="Bayesian Reproducibility">
+  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+
+  <meta property="og:title" content="Bayesian Reproducibility" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Bayesian Reproducibility" />
+  
+  
+  
+
+<meta name="author" content="Huijia Yu">
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="2-lit-review.html">
+<link rel="next" href="4-normal-simulation-study.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./"></a></li>
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="1-introduction.html"><a href="1-introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
+<li class="chapter" data-level="2" data-path="2-lit-review.html"><a href="2-lit-review.html"><i class="fa fa-check"></i><b>2</b> Literature Review</a></li>
+<li class="chapter" data-level="3" data-path="3-models.html"><a href="3-models.html"><i class="fa fa-check"></i><b>3</b> Models</a><ul>
+<li class="chapter" data-level="3.1" data-path="3-models.html"><a href="3-models.html#fully-bayesian-model"><i class="fa fa-check"></i><b>3.1</b> Fully Bayesian Model</a></li>
+<li class="chapter" data-level="3.2" data-path="3-models.html"><a href="3-models.html#conditional-likelihood"><i class="fa fa-check"></i><b>3.2</b> Conditional Likelihood</a></li>
+<li class="chapter" data-level="3.3" data-path="3-models.html"><a href="3-models.html#bayes-factor-model"><i class="fa fa-check"></i><b>3.3</b> Bayes Factor Model</a></li>
+<li class="chapter" data-level="3.4" data-path="3-models.html"><a href="3-models.html#methods"><i class="fa fa-check"></i><b>3.4</b> Methods</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html"><i class="fa fa-check"></i><b>4</b> Normal Simulation Study</a><ul>
+<li class="chapter" data-level="4.1" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#data-generation"><i class="fa fa-check"></i><b>4.1</b> Data Generation</a></li>
+<li class="chapter" data-level="4.2" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#conditional-likelihood-1"><i class="fa fa-check"></i><b>4.2</b> Conditional Likelihood</a></li>
+<li class="chapter" data-level="4.3" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#posterior-distribution"><i class="fa fa-check"></i><b>4.3</b> Posterior Distribution</a></li>
+<li class="chapter" data-level="4.4" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#estimators"><i class="fa fa-check"></i><b>4.4.1</b> Estimators</a></li>
+<li class="chapter" data-level="4.4.2" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#credible-and-confidence-intervals"><i class="fa fa-check"></i><b>4.4.2</b> Credible and Confidence Intervals</a></li>
+<li class="chapter" data-level="4.4.3" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#coverage"><i class="fa fa-check"></i><b>4.4.3</b> Coverage</a></li>
+<li class="chapter" data-level="4.4.4" data-path="4-normal-simulation-study.html"><a href="4-normal-simulation-study.html#hypothesis-rejection"><i class="fa fa-check"></i><b>4.4.4</b> Hypothesis Rejection</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html"><i class="fa fa-check"></i><b>5</b> Hierarchical Simulations</a><ul>
+<li class="chapter" data-level="5.1" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#data-generation-procedure"><i class="fa fa-check"></i><b>5.1</b> Data Generation Procedure</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#finding-discovery-sites"><i class="fa fa-check"></i><b>5.1.1</b> Finding “Discovery” Sites</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#results-1"><i class="fa fa-check"></i><b>5.2</b> Results</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#sensitivity"><i class="fa fa-check"></i><b>5.2.1</b> Sensitivity</a></li>
+<li class="chapter" data-level="5.2.2" data-path="5-hierarchical-simulations.html"><a href="5-hierarchical-simulations.html#sensitivity-of-conditional-likelihood-method-to-changes-in-alpha"><i class="fa fa-check"></i><b>5.2.2</b> Sensitivity of Conditional Likelihood Method to Changes in <span class="math inline">\(\alpha\)</span></a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html"><i class="fa fa-check"></i><b>6</b> Analysis of TP53</a><ul>
+<li class="chapter" data-level="6.1" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html#data"><i class="fa fa-check"></i><b>6.1</b> Data</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html#discovery-sites"><i class="fa fa-check"></i><b>6.1.1</b> Discovery Sites</a></li>
+<li class="chapter" data-level="6.1.2" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html#replication-sites"><i class="fa fa-check"></i><b>6.1.2</b> Replication Sites</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html#models-1"><i class="fa fa-check"></i><b>6.2</b> Models</a></li>
+<li class="chapter" data-level="6.3" data-path="6-analysis-of-tp53.html"><a href="6-analysis-of-tp53.html#results-2"><i class="fa fa-check"></i><b>6.3</b> Results</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="7-conclusion.html"><a href="7-conclusion.html"><i class="fa fa-check"></i><b>7</b> Conclusion</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Bayesian Reproducibility</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="models" class="section level1">
+<h1><span class="header-section-number">Chapter 3</span> Models</h1>
+<p>We propose three different Bayesian approaches:</p>
+<ol style="list-style-type: decimal">
+<li><p>A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner’s curse and account for the uncertainty that arises when selecting an SNP.</p></li>
+<li><p>A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size.</p></li>
+<li><p>A bayes factor based model that uses the bayes factor from the discovery sites (which is more reliable than the p-value, as discussed previously) to quantify the uncertainty of the significant result.</p></li>
+</ol>
+<p>While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, <span class="math inline">\(\alpha\)</span>) are available.</p>
+<div id="fully-bayesian-model" class="section level2">
+<h2><span class="header-section-number">3.1</span> Fully Bayesian Model</h2>
+<p>Let <span class="math inline">\(\delta_a(x)\)</span> be the Dirac delta function: <span class="math inline">\(\delta_a(x) = 1\)</span> for <span class="math inline">\(x = a\)</span> and <span class="math inline">\(\delta_a(x)=0\)</span> otherwise. The test for significance is <span class="math inline">\(H_0: \mu = 0\)</span> <span class="math inline">\(H_1: \mu \neq 0\)</span>, where <span class="math inline">\(\mu\)</span> is the mean effect size. Then, <span class="math inline">\(P(\mu |H_0) = \delta_0(\mu)\)</span> and $ P(|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter <span class="math inline">\(\xi\)</span> such that <span class="math inline">\(P(H_1) = \xi\)</span>. This gives rise to a latent variable <span class="math inline">\(\iota\)</span> drawn from a bernoulli(<span class="math inline">\(\xi\)</span>), which is then used to parametrize the distribution of <span class="math inline">\(\mu\)</span>. If <span class="math inline">\(\iota= 0\)</span>, <span class="math inline">\(\mu=0\)</span>.</p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>For a hierarchical framework, site means <span class="math inline">\(\beta_{j}|\iota=1 \sim N(\mu, \sigma^2)\)</span>, and <span class="math inline">\(\beta_{j}|\iota = 0 = 0\)</span>. In this case the prior for <span class="math inline">\(\mu\)</span> is a mixture of a point mass at zero and a Cauchy(0,1). The prior for <span class="math inline">\(\sigma\)</span> was a truncated Cauchy(0,1), with support only on the positive real line. This choice of priors is based on simulation results. The prior for <span class="math inline">\(\xi\)</span>, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 or 1 more heavily than the values between them.</p>
+<p>The complete model is as follows:</p>
+<p><span class="math inline">\(\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2})\)</span>\ <span class="math inline">\(\mu|\iota=1\sim Cauchy(0,0.1)\)</span>\ <span class="math inline">\(\mu, \beta_{j}|\iota = 0 =0\)</span>\ <span class="math inline">\(\sigma\sim Cauchy(0,1), \sigma\geq 0\)</span>\ <span class="math inline">\(\iota \sim Bernoulli(\xi)\)</span>\ <span class="math inline">\(\xi \sim Beta(1/2, 1/2)\)</span>\</p>
+<p>There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results.</p>
+</div>
+<div id="conditional-likelihood" class="section level2">
+<h2><span class="header-section-number">3.2</span> Conditional Likelihood</h2>
+<p>In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed.</p>
+<p>Given the discovery sites’ MLE and SE, we can use the CLT and definition of MLE to state that <span class="math inline">\(MLE_i \sim N(\beta_i, SE_i)\)</span>. Let <span class="math inline">\(B\)</span> indicate that the data is significant at the level <span class="math inline">\(\alpha\)</span>. The conditional likelihood <span class="math inline">\(L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} = \frac{P(Y| \mu)}{\int_{\text{significant Y}} P(t| \mu) dt }\)</span>. Conditioning on finding a significant estimate, <span class="math inline">\(P(MLE_i | B) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}\)</span>, where <span class="math inline">\(\phi(x, \beta_i, \sigma)\)</span> is the pdf of a normal distribution with mean <span class="math inline">\(\beta_i\)</span> and variance <span class="math inline">\(\sigma^2\)</span>, and <span class="math inline">\(\Phi(x, \beta_i, \sigma)\)</span> is the cdf of the same distribution. The value of <span class="math inline">\(q_i\)</span> is <span class="math inline">\(\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)\)</span>, where <span class="math inline">\(\alpha\)</span> is the power of the test (i.e. p-values that are smaller than <span class="math inline">\(\alpha\)</span> are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of <span class="math inline">\(MLE_i\)</span> be denoted as <span class="math inline">\(CL(\beta_i,SE_i, q_i)\)</span>.</p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We can see that as <span class="math inline">\(\alpha\)</span> decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0.</p>
+<p>In the hierarchical setting, we used the random effect conditional likelihood model as a “prior” for <span class="math inline">\(\beta_{ j}, j\in discovery\)</span>, and then use this as the prior <span class="math inline">\(P(\beta | discovery)\)</span> for the model with the validation data.</p>
+<p>The updated model is:</p>
+<p><span class="math inline">\(\beta_{j} \sim N(\mu, \sigma^{2p53}) , j \in validation\)</span>\ <span class="math inline">\(MLE_{j} \sim CL(\beta_{j},SE_{j}, q_j) , j \in discovery\)</span>\ <span class="math inline">\(\sigma\sim Cauchy(0,1), \sigma\geq 0\)</span>\</p>
+<p>Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.</p>
+<blockquote>
+<p>should I go into more detail about this assumption and how conditioning sort of accounts for it</p>
+</blockquote>
+</div>
+<div id="bayes-factor-model" class="section level2">
+<h2><span class="header-section-number">3.3</span> Bayes Factor Model</h2>
+<p>The discovery data can be used not only in estimating the distribution of the size of a preestablished effect (<span class="math inline">\(\mu\)</span>), but in estimating the distribution of the probability of the effect itself (<span class="math inline">\(\xi = P(H_1)\)</span>). To make this model easily generalizable, we use the upper bound on the Bayes Factor <span class="math inline">\(BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}\)</span>, where <span class="math inline">\(p\)</span> is the p-value from the discovery data <span class="citation">(Sellke et al., 2001)</span>. This is a “best-case scenario” of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the “posterior”&quot; probability of true association <span class="math inline">\(\xi\)</span> given the discovery p-value as a transformation of <span class="math inline">\(\xi\)</span>, which is parametrized with prior Beta(.5,.5). Let <span class="math inline">\(o\)</span> be the prior odds <span class="math inline">\(\frac{1-\xi}{\xi}\)</span>. The transformation <span class="math inline">\(\xi&#39; = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF}{1+o*BF}\)</span>. Then <span class="math inline">\(\xi&#39;\)</span> can be used in the overall model with the validation data.</p>
+<p><img src="thesis_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value <span class="math inline">\(p = 10^{-7}\)</span> and <span class="math inline">\(\xi \sim Beta(.5,.5)\)</span> , <span class="math inline">\(P( \xi&#39; \leq 0.5) =\)</span> <span class="math inline">\(4.7364436\times 10^{-11}\)</span> . Due to this, we use a flatter prior: <span class="math inline">\(\xi \sim Beta(.9,.9)\)</span> . Then <span class="math inline">\(P( \xi&#39; \leq 0.5) =\)</span> <span class="math inline">\(1.2409339\times 10^{-6}\)</span>. This is extremely sensitive to the choice of prior as well as to the p-value.</p>
+</div>
+<div id="methods" class="section level2">
+<h2><span class="header-section-number">3.4</span> Methods</h2>
+<p>Models were fit using R2jags and in the simpler cases, with original Metropolis Hastings algorithms. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the “ones trick”, which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for <span class="math inline">\(\theta\)</span> that is proportional to <span class="math inline">\(\pi(\theta)\)</span>. If we set that bernoulli variable “ones” is equal to 1 with probability <span class="math inline">\(\pi(\theta)\)</span>, create an observation “ones”<span class="math inline">\(= 1\)</span>, and set a uniform prior for <span class="math inline">\(\theta\)</span>, then we are effectively creating a “posterior” for theta that is proportional to <span class="math inline">\(\pi(\theta)\)</span> as intended.</p>
+<p>Each JAGS model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.</p>
+<p>All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. HPD intervals are guaranteed to be the shortest intervals for that scale (they are not scale-invariant), and can give more reasonable answers for multimodal distributions than quantile-based intervals because they can be disjoint.</p>
+<p>Point estimates were calculated used the posterior median, so that these estimates would be invariant to transformations (e.g. log).</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="2-lit-review.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="4-normal-simulation-study.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"weibo": false,
+"instapper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"download": [["thesis.pdf", "PDF"], ["thesis.epub", "EPUB"], ["thesis.docx", "Word"]],
+"toc": {
+"collapse": "section"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(script.src))
+      script.src  = script.src.replace(/^https?:/, '');
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

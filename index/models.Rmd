@@ -1,6 +1,4 @@
-# TP53
-
->better title?
+# Models 
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -11,36 +9,6 @@ library(reshape2)
 library(ggthemes)
 
 ```
-
-
-Traditionally, genome-wide-significant associations often fail or have much smaller effects in replication tests because of the winner's curse. To account for this discrepancy, previous studies perform two analyses: one with all the data together, and one only using the validation site data. However, this approach is based on the underlying assumption that the association found in discovery sites is true, which is problematic for multiple testing applications such as genome-wide association studies. Furthermore, if there is a true effect, leaving out the discovery data, which could be a large portion of the total dataset, reduces power.
-
-One example of the winner’s curse in action is the analysis of the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. Although initial studies found an association, follow-up studies have been unable to replicate this finding.
-
-## Data
-
-### Discovery Sites
-
-Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS), the Mayo Clinic Case-Control Study (MAYO), and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites.
-
-
-### Replication Sites
-
-Ten other sites contributed data: the Australian Ovarian Cancer Study (AOCS) and the Australian Cancer Study (ACS) presented together as AUS, the Family Registry for Ovarian Cancer (FROC, presented as STA), the Hawaiian Ovarian Cancer Study (HAW), the Malignant Ovarian Cancer Study Denmark (MALOVA), the New England Case-Control Study (NEC), the Nurses' Health Study (NHS), SEARCH Cambridge (SEA), the Los Angeles County Case-Control Study of Ovarian Cancer (LAC-CCOC, presented here as USC), the University of California at Irvine study (UCI), and the United Kingdom Ovarian Cancer Population Study (UKOPS, presented here as UKO).
-
-The combined data set (discovery and replication) comprised 5,206 white, non-Hispanic invasive epithelial ovarian cancer cases, of which 2,829 were classified as serous invasive ovarian cancer, and 8,790 white non-Hispanic controls. Analysis was restricted to white, non-Hispanic invasive serous ovarian cancer cases and white, non-Hispanic controls.
-
-## Previous Studies
-
-Mixed effect SNP-at-a-time analysis of 5 SNPs that were chosen for replication resulted in associations between 2 SNPs and serous invasive cancer [@Schildkraut2349]. Only one of these was strongly supported to be associated in a follow-up analysis using Multi-level Inference for SNP Association (MISA), which employs Bayesian Model Averaging and Bayes Factors for selection [@schildkraut2010association].
-
-However, most recent studies have not found evidence of association between any TP53 SNPs and cancer [@phelan2017identification].
-
-> is this enough/too much information about the data?
-
-
-# Models 
-
 We propose three different Bayesian approaches: 
 
 1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP.
@@ -54,9 +22,7 @@ While the first approach is truly Bayesian and requires all the data, the second
 
 ## Fully Bayesian Model
 
->Would it be better to name the models (i.e. M1, M2, M3) in this section, that way it's clear in the simulation and p53 analysis which one is which?
-
-In this model, the probability of association $\xi$ can give rise to a latent variable $\iota$ drawn from a bernoulli, which is then used to parametrize the distribution of $\mu$ and $\beta_{j}$. If $\iota= 0$, $\mu=0$ and $\beta_{j} = 0$ for all sites $j$. Otherwise, $\beta_{j}$ are normally distributed around (nonzero) $\mu$.
+Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. The test for significance is  $H_0: \mu = 0$   $H_1: \mu \neq 0$, where $\mu$ is the mean effect size. Then, $P(\mu |H_0) = \delta_0(\mu)$ and $ P(\mu |H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable $\iota$ drawn from a bernoulli($\xi$), which is then used to parametrize the distribution of $\mu$.  If $\iota= 0$, $\mu=0$. 
 
 ```{r}
 cond.likelihood<- function(ybar, mu, SE, q=1.96){
@@ -80,11 +46,12 @@ ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2
   theme_minimal() + scale_colour_few()
 ```
 
-Site effects $\beta_j$ were normally distributed with mean $\mu$ and variance $\sigma^2$ if  $\mu$ was nonzero, otherwise they defaulted to 0. The prior for  $\mu$ was a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma$ was a truncated Cauchy(0,1), with support only on the positive real line. This choice of priors is based on simulation results.  The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 or 1 more heavily than the values between them. 
+
+For a hierarchical framework, site means $\beta_{j}|\iota=1 \sim N(\mu, \sigma^2)$, and $\beta_{j}|\iota = 0 = 0$. In this case the prior for  $\mu$ is a mixture of a point mass at zero and a Cauchy(0,1). The prior for $\sigma$ was a truncated Cauchy(0,1), with support only on the positive real line. This choice of priors is based on simulation results.  The prior for $\xi$, the probability of the alternative, was a Beta(.5,.5), which has a U-shape so that it favors 0 or 1 more heavily than the values between them. 
 
 The complete model is as follows:
 
-$\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2p53})$\\
+$\beta_{j}|\iota = 1 \sim N(\mu, \sigma^{2})$\\
 $\mu|\iota=1\sim Cauchy(0,0.1)$\\
 $\mu, \beta_{j}|\iota = 0  =0$\\
 $\sigma\sim Cauchy(0,1), \sigma\geq 0$\\
@@ -94,15 +61,12 @@ $\xi \sim Beta(1/2, 1/2)$\\
 
 There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
 
-The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
-
 ## Conditional Likelihood
 
-In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. 
+In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed.
 
-Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Conditioning on the fact that this estimate is significant, $P(MLE_i | MLE_i \text{ is significant}) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $MLE_i$  be denoted as $CL(\beta_i,SE_i, q_i)$.
+Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $MLE_i \sim N(\beta_i, SE_i)$. Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood $L(\mu | B) = \frac{P(Y| \mu)P(B| Y,\mu)}{P(B|\mu)} =  \frac{P(Y| \mu)}{\int_{\text{significant Y}} P(t| \mu) dt }$. Conditioning on finding a significant estimate, $P(MLE_i | B) = \frac{\phi(MLE_i, \beta_i, SE_i)}{\Phi(-q_i, \beta_i, SE_i)+1-\Phi(q_i, \beta_i, SE_i)}$, where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,SE_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $MLE_i$  be denoted as $CL(\beta_i,SE_i, q_i)$.
 
-> would it be appropriate to call CL a distribution? Is it relevant to add some comments about the skew towards 0 as alpha decreases
 
 ```{r}
 CLdata<-data.frame(mu, cond.likelihood(LOR, mu, SE, q = -qnorm(0.005/2)), 
@@ -123,8 +87,9 @@ ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)
 
 ```
 
+We can see that as $\alpha$ decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0.
 
-We used the random effect conditional likelihood model as a "prior" for $\beta_{ j}, j\in discovery$, and then use this as the prior $P(\beta | discovery)$ for the model with the validation data.
+In the hierarchical setting, we used the random effect conditional likelihood model as a "prior" for $\beta_{ j}, j\in discovery$, and then use this as the prior $P(\beta | discovery)$ for the model with the validation data.
 
 The updated model is:
 
@@ -139,7 +104,7 @@ Note that the selection uncertainty is somewhat accounted for through the condit
 
 ## Bayes Factor Model
 
-The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu$), but in estimating the distribution of the probability of the effect itself ($\xi = P(H_1)$). To make this model easily generalizable, we use the upper bound on the Bayes Factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}$, where $p$ is the p-value from the discovery data [@sellke2001calibration]. This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the posterior probability of true association $\xi$ given the discovery as a transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$. The posterior $\xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF}{1+o*BF}$. Then $\xi'$ can be used in the overall model with the validation data.
+The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu$), but in estimating the distribution of the probability of the effect itself ($\xi = P(H_1)$). To make this model easily generalizable, we use the upper bound on the Bayes Factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}$, where $p$ is the p-value from the discovery data [@sellke2001calibration]. This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the "posterior"" probability of true association $\xi$ given the discovery p-value as a transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$. The transformation $\xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF}{1+o*BF}$. Then $\xi'$ can be used in the overall model with the validation data.
 
 ```{r}
 pind.dens<-function(post.ind,p){
@@ -163,24 +128,20 @@ BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
 colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","theta")
 ggplot(data=melt(BFapproxdata,id.vars = "theta"), aes(y=theta))+
   geom_line(aes(x=value, group=variable,color=variable))+
-  labs(title = "Posterior Distribution of Probability of Effect\n with Bayes Factor Approximation", 
+  labs(title = "Distribution of Transformed Probability of Effect\n with Bayes Factor Approximation", 
        x = expression(theta), y = "Density")+  theme_minimal()+ 
   theme(legend.justification=c(1,1), legend.position=c(1,1)) +
   scale_colour_few(name="p-value")
 ```
 
-In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$ , $P( \xi' \leq 0.5) =$  $`r qbeta(pind.dens(0.5,1e-7),.5,.5)`$ . Due to this, we use a flatter prior: $\xi \sim Beta(.9,.9)$ . Then $P( \xi' \leq 0.5) =$ $`r qbeta(pind.dens(0.5,1e-7),.9,.9)`$.
+In this case, the discovery data is not used at all to estimate the effect sizes, but it will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. Note that for small p-values, this can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim Beta(.5,.5)$ , $P( \xi' \leq 0.5) =$  $`r qbeta(pind.dens(0.5,1e-7),.5,.5)`$ . Due to this, we use a flatter prior: $\xi \sim Beta(.9,.9)$ . Then $P( \xi' \leq 0.5) =$ $`r qbeta(pind.dens(0.5,1e-7),.9,.9)`$. This is extremely sensitive to the choice of prior as well as to the p-value. 
 
 ## Methods
 
->is this the right place for this section?
+Models were fit using R2jags and in the simpler cases, with original Metropolis Hastings algorithms. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
 
-All models were fit using R2jags. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
+Each JAGS model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.
 
-Each model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples.
+All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. HPD intervals are guaranteed to be the shortest intervals for that scale (they are not scale-invariant), and can give more reasonable answers for multimodal distributions than quantile-based intervals because they can be disjoint.
 
-All computed credible intervals are HPD (highest posterior density) intervals. A 95% HPD interval is the 95% of the sampled values with the highest density. Unlike quantile-based intervals, these can account for multimodal distributions and give more reasonable answers.
-
-> this HPD part can be more detailed? should I put a figure?
-
-Point estimates were calculated used the posterior median, so that the estimates would be invariant to transformations (e.g. log).
+Point estimates were calculated used the posterior median, so that these estimates would be invariant to transformations (e.g. log).
