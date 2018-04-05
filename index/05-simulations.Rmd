@@ -1,13 +1,13 @@
 # Normal Simulation Study
 
-
+This simulation study addresses on the first goal outlined in the introduction: if the data from one site is found to be significant, how can we report this discovery in a way that takes into account the winner's curse? 
 
 ## Data Generation
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-To test the hypothesis $H_0: \mu = 0$ versus  $H_1: \mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $\mu_i = 0$ in the null scenario and $\mu_i \sim \textsf{N}(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $\mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $\alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the frequentist one, which is conditional on the data being significant.
+To test the hypothesis $H_0: \mu = 0$ versus  $H_1: \mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $\mu_i = 0$ in the null scenario and $\mu_i \sim \textsf{N}(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $\mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $\alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the conditional likelihood, which requires the data to be significant. The Bayes factor model as it is specified cannot be used in this scenario, since it only uses the p-value from the discovery site(s).
 
 ## Conditional Likelihood
 
@@ -44,9 +44,8 @@ cond.posterior<- function(Y, n.samp){
 }
 ```
 
-In this case, the sufficient statistic can be used to simplify the conditional likelihood: since $\bar Y \sim \textsf{N}(\mu, \sigma^2/n)$, the conditional likelihood for the simulated data is equivalent to $L(\mu|\bar Y) = \frac{\phi((\bar Y-\mu)/\sqrt{n})}{\Phi(Z_{\alpha/2}-\mu\sqrt{n})+\Phi(Z_{1-\alpha/2}-\mu\sqrt{n})}$.
 
-Since this likelihood is difficult to integrate analytically, the confidence intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $\pi(\mu) = 1$, and obtaining the HPD region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.
+The credible intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $p(\mu) = 1$, and obtaining the HPD region covering 95%. Sampling was done through a Metropolis-Hastings algorithm.
 
 ## Posterior Distribution
 
@@ -71,10 +70,11 @@ getposterior <- function(Y,n.samp, pi = .5){
 ```
 
 
-In the Bayesian case, the prior was set to the mixture model $\pi(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
+In the Bayesian case, the prior was set to the mixture model $p(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
 
 The marginal posterior distribution is $P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1)$.  The separate posteriors for $\mu$ are:
-$P(\mu|Y, H_0) = \delta_0(\mu)$, $P(\mu|Y, H_1) \sim \textsf{N}(\frac{n}{n+1}\bar Y, \frac{1}{n+1})$. The posterior for the alternative hypothesis can be calculated using its bayes factor, BF and the prior odds, $\pi = \frac{(1-\xi)}{\xi}$: $P(H_1| Y ) = \frac{\pi BF}{1+\pi BF}$. For this example, the prior odds are 1 (because the probability of $H_1 = \xi = 0.5$). The bayes factor $BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1}* e^{\frac{n^2}{2(n+1)}(\bar Y)^2}$. This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim \textsf{N}(0, \frac{n}{n+1})$.
+$P(\mu|Y, H_0) = \delta_0(\mu)$, $P(\mu|Y, H_1) \sim \textsf{N}(\frac{n}{n+1}\bar Y, \frac{1}{n+1})$. The posterior for the alternative hypothesis can be calculated using its Bayes factor, BF and the prior odds, $\pi = \frac{(1-\xi)}{\xi}$: $$P(H_1| Y ) = \frac{\pi BF}{1+\pi BF}$$. For this example, the prior odds are 1 (because the probability of $H_1 = \xi = 0.5$). The Bayes factor is
+$$BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1}* e^{\frac{n^2}{2(n+1)}(\bar Y)^2}$$ . This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim \textsf{N}(0, \frac{n}{n+1})$.
 
 
 Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate credible intervals. 
@@ -139,9 +139,9 @@ all <- function(H, N, n.samp, interval,alpha){
   expected.cov <- .95*alt.prob+(conf.upper>=0&&conf.lower<=0)*(1-alt.prob)
   
   
-  bayes.est = mean(post$draws)
-  bayes.median.est = median(post$draws)
-  bayes.mode.est = as.numeric(names(sort(-table(post$draws)))[1])
+  Bayes.est = mean(post$draws)
+  Bayes.median.est = median(post$draws)
+  Bayes.mode.est = as.numeric(names(sort(-table(post$draws)))[1])
   cond.mean.est = mean(cond)
   d <- density(cond)
   cond.mode.est = d$x[which.max(d$y)]
@@ -150,8 +150,8 @@ all <- function(H, N, n.samp, interval,alpha){
      cred.lower  , cred.upper  , 
      conf.lower , conf.upper , 
      bayes.cov , freq.cov , naive.cov, expected.cov, 
-     bayes.est, bayes.median.est,
-     bayes.mode.est,cond.mean.est,cond.mode.est))
+     Bayes.est, Bayes.median.est,
+     Bayes.mode.est,cond.mean.est,cond.mode.est))
   
 }
 
@@ -163,7 +163,7 @@ colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" ,
         "cred.lower"  , "cred.upper"  , 
         "conf.lower" , "conf.upper" , 
         "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
-        "bayes.est","bayes.median.est","bayes.mode.est",
+        "Bayes.est","Bayes.median.est","Bayes.mode.est",
         "cond.mean.est","cond.mode.est")
 save(results, file="normalsim.RData")
 
@@ -181,20 +181,20 @@ load("normalsim.RData")
 #results <- fullresults
 fullresults<-results
 results<-na.omit(results)
-estimators <- data.frame(bayes = abs(results$bayes.est-results$mu),
+estimators <- data.frame(Bayes.mean = abs(results$bayes.est-results$mu),
               naive = abs(results$Ybar-results$mu), 
-              bayes.median = abs(results$bayes.median.est-results$mu),
-              bayes.mode = abs(results$bayes.mode.est-results$mu),
+              Bayes.median = abs(results$bayes.median.est-results$mu),
+              Bayes.mode = abs(results$bayes.mode.est-results$mu),
               cond.mean = abs(results$cond.mean.est-results$mu),
               cond.mode = abs(results$cond.mode.est-results$mu))
 
 ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|", title= "Bias Distribution by Estimator")+theme_minimal() + scale_colour_few()
 
-kable(c(bayes = sqrt(sum(estimators$bayes^2)), bayes.median= sqrt(sum(estimators$bayes.median^2)), bayes.mode = sqrt(sum(estimators$bayes.mode^2)),cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2))), col.names = "RMSE")
+kable(t(c(Bayes.mean = sqrt(sum(estimators$Bayes.mean^2)), Bayes.median= sqrt(sum(estimators$Bayes.median^2)), Bayes.mode = sqrt(sum(estimators$Bayes.mode^2)),cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2)))), caption = "RMSE of 100 simulations", digits=3)
 
 ```
 
-The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error) for $\mu$ out of the frequentist estimators, while the bayesian median and mode (which end up being the same) the smallest bias in the bayesian framework. The RMSE for the bayesian estimator (mean of the posterior) is the lowest, followed by the conditional mean and mode.
+The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error) for $\mu$ out of the frequentist estimators, while the Bayesian median and mode (which end up being the same) the smallest bias in the Bayesian framework. The RMSE for the Bayesian estimator (mean of the posterior) is the lowest, followed by the conditional mean and mode.
 
 ### Credible and Confidence Intervals
 
@@ -207,11 +207,13 @@ ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper
 
 The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes.
 
-The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood confidence intervals are almost always larger than the credible intervals, but still mostly smaller than the naive ones. 
+The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the fully Bayesian credible intervals, but still mostly smaller than the naive ones. 
 
 ### Coverage
 
-The marginal coverage of the (frequentist conditional likelihood) confidence interval C, $P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)$ will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0. 
+The marginal coverage of the conditional likelihood credible interval C is 
+$$P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)$$
+This will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0. 
 
 However, conditioning on the alternative hypothesis does not lead to an empirical coverage of 95%.
 
@@ -226,10 +228,10 @@ b <- which(results$H==0)
 
 kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov),mean(results[-b,]$naive.cov)), 
         conditional = c(mean(results$freq.cov), mean(results[b,]$freq.cov), mean(results[-b,]$freq.cov)),
-        bayesian = c(mean(results$bayes.cov), mean(results[b,]$bayes.cov), mean(results[-b,]$bayes.cov)))),
+        Bayesian = c(mean(results$bayes.cov), mean(results[b,]$bayes.cov), mean(results[-b,]$bayes.cov)))),
       col.names = c("Unconditional Coverage","Coverage Conditional on H0", "Coverage Conditional on H1"), 
       row.names = TRUE,
-      caption = "Empirical Coverage for 95% Confidence/Credible Intervals")
+      caption = "Empirical Coverage for 95% Confidence/Credible Intervals", digits=3)
 
 #kable(c(naive = , conditional = ,bayesian = mean(results[b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H0")
 #kable(c(naive =c(0) , conditional = mean(results[-b,]$freq.cov),bayesian = mean(results[-b,]$bayes.cov)), col.names = c("Empirical Coverage"), caption = "coverage for 95% confidence/credible intervals conditional on H1")
@@ -238,28 +240,28 @@ kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov)
 
 ### Hypothesis Rejection
 
-Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
+Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
 
 
 ```{r cache=TRUE}
 ##confusion matrices
-kable(table(results$H,abs(results$Ybar)/sqrt(1/100)<qnorm(1-0.05/2))/dim(results)[1], col.names = c("Do not reject null", "Reject null"), row.names = TRUE, caption = "Naive method")
+kable(table(results$H,abs(results$Ybar)/sqrt(1/100)<qnorm(1-0.05/2))/dim(results)[1], col.names = c("Do not reject null", "Reject null"), row.names = TRUE, caption = "Naive method", digits=3)
 
 ```
 ```{r}
 
-kable(table(results$H,results$conf.upper>=0&results$conf.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Conditional Likelihood Method")
+kable(table(results$H,results$conf.upper>=0&results$conf.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Conditional Likelihood Method", digits=3)
 
 ```
 
 ```{r}
 
-kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Bayesian Mixture Model")
+kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Bayesian Mixture Model", digits=3)
 
 ```
 
 
-Despite never rejecting the null, the conditional likelihood and the bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
+Despite never rejecting the null, the conditional likelihood and the Bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
 
 
 

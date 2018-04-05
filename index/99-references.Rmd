@@ -34,5 +34,5 @@ This is just for testing with more citations for the bibliography at the end.  A
 
 ---
 nocite: | 
-  
+  @xu2011bayesian, @zhong2008bias, @ferguson2013empirical, @storey2003statistical
 ...
