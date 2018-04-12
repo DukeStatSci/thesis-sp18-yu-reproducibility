@@ -165,7 +165,11 @@ bf.model = function() {
   for (j in 1:J) {
     CaseCon[j] ~ dbern(theta[j])
     logit(theta[j]) <-  beta.p53[site[j]] }
-  
+  C<-1000
+  for (k in 1:n.discovery){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[discovery.sites[k]], tau[k])
+  }
   for (l in 1:n.sites) {
     beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
     beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
