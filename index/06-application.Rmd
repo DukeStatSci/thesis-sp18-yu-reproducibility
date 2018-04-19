@@ -182,16 +182,16 @@ OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir=
   p53.data.normal$MLE<- freq$OR[,1] 
   p53.data.normal$SE<- freq$SE 
   p53.data.normal$q<-qnorm(1-p/2)
-  bfdata <- p53.dataval
+  bfdata <- p53.data.normal
   bfdata$p <- freq$p.value
   
   #run all 
   parameters = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind","beta.site", "beta.p53","phi.site","phi.p53")
   
-  p53.sim = jags(data=p53.data, inits=NULL, parameters.to.save =parameters, model = p53.model)
-  p53.simnew = jags(data=p53.data , inits=NULL, parameters.to.save =parameters, model = p53.newmodel) 
-  p53.simnormal = jags(data=p53.data.normal, inits=NULL, parameters.to.save =parameters.normal, model = p53.normal)
-  p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)}, parameters.to.save =parameters, model = p53.bf.approx)
+  p53.sim = jags(data=p53.data, inits=NULL,n.iter=5000,n.chains=5, parameters.to.save =parameters, model = p53.model)
+  p53.simnew = jags(data=p53.data , inits=NULL,n.iter=5000,n.chains=5, parameters.to.save =parameters, model = p53.newmodel) 
+  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=5000,n.chains=5, parameters.to.save =parameters.normal, model = p53.normal)
+  p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)},n.iter=5000,n.chains=5, parameters.to.save =parameters, model = p53.bf.approx)
   
   #OR
   return(list(original= (p53.sim),
@@ -228,15 +228,17 @@ for(i in 1:length(snps)){
 }
 save.image()
 
-ORbySNP2<- lapply(allSNP, function(snplist)
+ORbySNP<- lapply(allSNP, function(snplist)
   lapply(snplist[1:(length(snplist)-2)],function(x)
     getOR(x,snplist[[(length(snplist)-1)]],snplist[[(length(snplist))]])))
+
+save(ORbySNP, snps, file="p53OR.RData")
 ```
 
 
 ```{r}
-snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))[c(1,2,3,4,6)] #only the ones needed
-ORbySNP<-ORbySNP[c(1,2,3,4,6)]
+# snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))[c(1,2,3,4,6)] #only the ones needed
+# ORbySNP<-ORbySNP[c(1,2,3,4,6)]
 
 overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
 
