@@ -188,10 +188,10 @@ OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir=
   #run all 
   parameters = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind","beta.site", "beta.p53","phi.site","phi.p53")
   
-  p53.sim = jags(data=p53.data, inits=NULL,n.iter=5000,n.chains=5, parameters.to.save =parameters, model = p53.model)
-  p53.simnew = jags(data=p53.data , inits=NULL,n.iter=5000,n.chains=5, parameters.to.save =parameters, model = p53.newmodel) 
-  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=5000,n.chains=5, parameters.to.save =parameters.normal, model = p53.normal)
-  p53.bfsim = jags(data=bfdata, inits=function(){list("pind"=.9)},n.iter=5000,n.chains=5, parameters.to.save =parameters, model = p53.bf.approx)
+  p53.sim = jags(data=p53.data, inits=NULL,n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.model)
+  p53.simnew = jags(data=p53.data ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)), n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.newmodel) 
+  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=10000,n.chains=5, parameters.to.save =parameters.normal, model = p53.normal)
+  p53.bfsim = jags(data=bfdata, inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)),n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.bf.approx)
   
   #OR
   return(list(original= (p53.sim),
