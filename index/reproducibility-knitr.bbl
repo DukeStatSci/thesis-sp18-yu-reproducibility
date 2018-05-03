@@ -1,0 +1,93 @@
+\begin{thebibliography}{10}
+
+\bibitem{benjamin2017redefine}
+Benjamin Daniel~J, Berger James~O, Johannesson Magnus, et al. Redefine
+  statistical significance.  {\it Nature Human Behaviour. }2017;.
+
+\bibitem{zollner2007overcoming}
+Z{\"o}llner Sebastian, Pritchard Jonathan~K. Overcoming the winner’s curse:
+  estimating penetrance parameters from case-control data.  {\it The American
+  Journal of Human Genetics. }2007;80(4):605--615.
+
+\bibitem{Schildkraut2349}
+Schildkraut Joellen~M., Goode Ellen~L., Clyde Merlise~A., et al. Single
+  Nucleotide Polymorphisms in the TP53 Region and Susceptibility to Invasive
+  Epithelial Ovarian Cancer.  {\it Cancer Research. }2009;69(6):2349--2357.
+
+\bibitem{schildkraut2010association}
+Schildkraut Joellen~M, Iversen Edwin~S, Wilson Melanie~A, et al. Association
+  between DNA damage response and repair genes and risk of invasive serous
+  ovarian cancer.  {\it PLoS One. }2010;5(4):e10061.
+
+\bibitem{phelan2017identification}
+Phelan Catherine~M, Kuchenbaecker Karoline~B, Tyrer Jonathan~P, et al.
+  Identification of 12 new susceptibility loci for different histotypes of
+  epithelial ovarian cancer.  {\it Nature genetics. }2017;49(5):680.
+
+\bibitem{sellke2001calibration}
+Sellke Thomas, Bayarri MJ, Berger James~O. Calibration of $\rho$ values for
+  testing precise null hypotheses.  {\it The American Statistician.
+  }2001;55(1):62--71.
+
+\bibitem{xu2003theoretical}
+Xu~Shizhong. Theoretical basis of the Beavis effect.  {\it Genetics.
+  }2003;165(4):2259--2268.
+
+\bibitem{zhong2008bias}
+Zhong Hua, Prentice Ross~L. Bias-reduced estimators and confidence intervals
+  for odds ratios in genome-wide association studies.  {\it Biostatistics.
+  }2008;9(4):621--634.
+
+\bibitem{ghosh2008estimating}
+Ghosh Arpita, Zou Fei, Wright Fred~A. Estimating odds ratios in genome scans:
+  an approximate conditional likelihood approach.  {\it The American Journal of
+  Human Genetics. }2008;82(5):1064--1074.
+
+\bibitem{sun2011br}
+Sun Lei, Dimitromanolakis Apostolos, Faye Laura~L, et al. BR-squared: a
+  practical solution to the winner’s curse in genome-wide scans.  {\it Human
+  genetics. }2011;129(5):545--552.
+
+\bibitem{bacanu2013extracting}
+Bacanu Silviu-Alin, Kendler Kenneth~S. Extracting actionable information from
+  genome scans.  {\it Genetic epidemiology. }2013;37(1):48--59.
+
+\bibitem{bigdeli2016simple}
+Bigdeli T~Bernard, Lee Donghyung, Webb Bradley~Todd, et al. A simple yet
+  accurate correction for winner's curse can predict signals discovered in much
+  larger genome scans.  {\it Bioinformatics. }2016;32(17):2598--2603.
+
+\bibitem{storey2003statistical}
+Storey John~D, Tibshirani Robert. Statistical significance for genomewide
+  studies.  {\it Proceedings of the National Academy of Sciences.
+  }2003;100(16):9440--9445.
+
+\bibitem{xu2011bayesian}
+Xu~Lizhen, Craiu Radu~V, Sun Lei. Bayesian methods to overcome the winner's
+  curse in genetic studies.  {\it The Annals of Applied Statistics.
+  }2011;5:201--231.
+
+\bibitem{ferguson2013empirical}
+Ferguson John~P, Cho Judy~H, Yang Can, Zhao Hongyu. Empirical Bayes correction
+  for the Winner's Curse in genetic association studies.  {\it Genetic
+  epidemiology. }2013;37(1):60--68.
+
+\bibitem{jiang2016power}
+Jiang Wei, Yu~Weichuan. Power estimation and sample size determination for
+  replication studies of genome-wide association studies.  {\it BMC genomics.
+  }2016;17(1):19.
+
+\bibitem{dawid1994selection}
+Dawid AP. Selection paradoxes of Bayesian inference.  {\it Lecture
+  Notes-Monograph Series. }1994;:211--220.
+
+\bibitem{panigrahi2016bayesian}
+Panigrahi Snigdha, Taylor Jonathan, Weinstein Asaf. Bayesian post-selection
+  inference in the linear model.  {\it arXiv preprint arXiv:1605.08824. }2016;.
+
+\bibitem{yekutieli2012adjusted}
+Yekutieli Daniel. Adjusted Bayesian inference for selected parameters.  {\it
+  Journal of the Royal Statistical Society: Series B (Statistical Methodology).
+  }2012;74(3):515--541.
+
+\end{thebibliography}

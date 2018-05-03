@@ -1,0 +1,13 @@
+base
+knitr
+ggplot2
+ggthemes
+reshape2
+foreach
+iterators
+doParallel
+coda
+rjags
+R2jags
+random
+gridExtra
