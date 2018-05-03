@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  3 MAY 2018 00:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  3 MAY 2018 01:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -958,7 +958,26 @@ Package textcomp Info: Setting ptmj sub-encoding to TS1/4 on input line 409.
 LaTeX Warning: Unused global option(s):
     [AMA,STIX1COL].
 
-(./reproducibility-knitr.aux)
+(./reproducibility-knitr.aux
+
+LaTeX Warning: Label `tab:unnamed-chunk-39' multiply defined.
+
+
+LaTeX Warning: Label `tab:unnamed-chunk-39' multiply defined.
+
+
+LaTeX Warning: Label `tab:unnamed-chunk-39' multiply defined.
+
+
+LaTeX Warning: Label `tab:unnamed-chunk-39' multiply defined.
+
+
+LaTeX Warning: Label `tab:unnamed-chunk-39' multiply defined.
+
+
+LaTeX Warning: Label `tab:unnamed-chunk-39' multiply defined.
+
+)
 \openout1 = `reproducibility-knitr.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 61.
@@ -978,8 +997,7 @@ LaTeX Font Info:    ... okay on input line 61.
 LaTeX Font Info:    Checking defaults for LS1/stix/m/n on input line 61.
 LaTeX Font Info:    Try loading font information for LS1+stix on input line 61.
 
-
-(/usr/local/texlive/2015/texmf-dist/tex/latex/stix/ls1stix.fd
+ (/usr/local/texlive/2015/texmf-dist/tex/latex/stix/ls1stix.fd
 File: ls1stix.fd 2015/04/17 v1.1.2-latex STIX LS1 font definitions
 )
 LaTeX Font Info:    ... okay on input line 61.
@@ -1170,581 +1188,220 @@ Overfull \vbox (6.46347pt too high) has occurred while \output is active []
 
 ]
 LaTeX Font Info:    Font shape `T1/stix/bx/n' in size <7> not available
-(Font)              Font shape `T1/stix/b/n' tried instead on input line 169.
+(Font)              Font shape `T1/stix/b/n' tried instead on input line 177.
 
 [2] [3]
-LaTeX Font Info:    Try loading font information for T1+cmss on input line 191.
+LaTeX Font Info:    Try loading font information for T1+cmss on input line 201.
 
  (/usr/local/texlive/2015/texmf-dist/tex/latex/base/t1cmss.fd
 File: t1cmss.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `T1/stix/bx/n' in size <12> not available
-(Font)              Font shape `T1/stix/b/n' tried instead on input line 210.
-
-Overfull \hbox (69.85114pt too wide) in paragraph at lines 245--245
-[][]\T1/cmtt/m/n/10 p[][]<-[][]ggplot[][]([][]data[] []=[] []data.frame[][]([][
-]maxy[] []=[] []dnorm[][]([][].4[][],[] [].4[][],[][].2[][])[][]/[][].6[][],[] 
-[]x[] []= mu,[] []y[] []=[] []dnorm[][](mu,[] [].4[][],[][].2[][]),[] []xl[][]=
-[][]0[][],[] []xu[][]=[][]0[][],[][]yl[][]=[][]0[][],[][]yu[][]=[][].4[][]))[][
-]+[][] 
- []
-
-[4] <figure/unnamed-chunk-3-1.pdf, id=83, 505.89pt x 505.89pt>
+(Font)              Font shape `T1/stix/b/n' tried instead on input line 220.
+ [4]
+<figure/unnamed-chunk-3-1.pdf, id=77, 505.89pt x 505.89pt>
 File: figure/unnamed-chunk-3-1.pdf Graphic file (type pdf)
 
 <use figure/unnamed-chunk-3-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-3-1.pdf used on input line 257.
+Package pdftex.def Info: figure/unnamed-chunk-3-1.pdf used on input line 243.
 (pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
-
-<figure/unnamed-chunk-5-1.pdf, id=84, 505.89pt x 505.89pt>
+ [5 <./figure/unnamed-chunk-3-1.pdf>]
+<figure/unnamed-chunk-5-1.pdf, id=95, 505.89pt x 505.89pt>
 File: figure/unnamed-chunk-5-1.pdf Graphic file (type pdf)
 
 <use figure/unnamed-chunk-5-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-5-1.pdf used on input line 309.
+Package pdftex.def Info: figure/unnamed-chunk-5-1.pdf used on input line 276.
 (pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
- [5] [6 <./figure/unnamed-chunk-3-1.pdf>]
-[7 <./figure/unnamed-chunk-5-1.pdf>]
-Overfull \hbox (22.61267pt too wide) in paragraph at lines 371--371
-[]  []\T1/cmtt/m/n/10 labs[][]([][]title[] []=[] []"Distribution of Transformed
- Probability of Effect\n with Bayes Factor Approximation"[][],[][] 
- []
 
-<figure/unnamed-chunk-7-1.pdf, id=121, 505.89pt x 505.89pt>
+<figure/unnamed-chunk-7-1.pdf, id=97, 505.89pt x 505.89pt>
 File: figure/unnamed-chunk-7-1.pdf Graphic file (type pdf)
 
 <use figure/unnamed-chunk-7-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-7-1.pdf used on input line 383.
+Package pdftex.def Info: figure/unnamed-chunk-7-1.pdf used on input line 320.
 (pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
- [8] [9 <./figure/unnamed-chunk-7-1.pdf>]
-[10] [11]
-LaTeX Font Info:    Try loading font information for TS1+cmtt on input line 541
-.
- (/usr/local/texlive/2015/texmf-dist/tex/latex/base/ts1cmtt.fd
-File: ts1cmtt.fd 2014/09/29 v2.5h Standard LaTeX font definitions
-)
-Overfull \hbox (64.60242pt too wide) in paragraph at lines 588--588
-[][]\T1/cmtt/m/n/10 results[] []<-[][]data.frame[][]([][]t[][]([][]apply[][]([]
-[]matrix[][]([][]as.numeric[][]([][]runif[][](n.sim)[][]<[][]pi)),[][]1[][],[] 
-[]function[][]([][]x[][])[] []all[][](x, N, n.samp,[] [].2[][],[] [].05[][]))))
-[][] 
- []
-
-[12]
-Overfull \hbox (484.49988pt too wide) in paragraph at lines 614--614
-[][]\T1/cmtt/m/n/10 p[][]<-[] []ggplot[][]([][]data[] []=[] []melt[][](estimato
-rs),[] []aes[][]([][]x[][]=variable,[] []y[][]=value))[] []+[] []geom_boxplot[]
-[]()[][]+[][]labs[][]([][]x[][]=[] []"Estimator"[][],[] []y[][]=[][]"|Bias|"[][
-],[] []title[][]=[] []"Bias Distribution by Estimator"[][])[][]+[][]theme_minim
-al[][]()[] []+[] []scale_colour_few[][]()[][] 
- []
-
-
-Overfull \hbox (1271.80762pt too wide) in paragraph at lines 616--616
-[][]\T1/cmtt/m/n/10 kable[][]([][]t[][]([][]c[][]([][]Bayes.mean[] []=[] []sqrt
-[][]([][]sum[][](estimators[][]$[][]Bayes.mean[][]^[][]2[][])),[] []Bayes.media
-n[][]=[] []sqrt[][]([][]sum[][](estimators[][]$[][]Bayes.median[][]^[][]2[][]))
-,[] []Bayes.mode[] []=[] []sqrt[][]([][]sum[][](estimators[][]$[][]Bayes.mode[]
-[]^[][]2[][])),[][]cond.mean[] []=[] []sqrt[][]([][]sum[][](estimators[][]$[][]
-cond.mean[][]^[][]2[][])),[] []cond.mode[] []=[] []sqrt[][]([][]sum[][](estimat
-ors[][]$[][]cond.mode[][]^[][]2[][])),[] []naive[][]=[] []sqrt[][]([][]sum[][](
-estimators[][]$[][]naive[][]^[][]2[][])))),[] []caption[] []=[] []"RMSE of 100 
-simulations"[][],[] []digits[][]=[][]3[][])[][] 
- []
-
+ [6] [7 <./figure/unnamed-chunk-5-1.pdf>]
+[8 <./figure/unnamed-chunk-7-1.pdf>] [9]
 LaTeX Font Info:    Font shape `T1/stix/bx/n' in size <10.03749> not available
-(Font)              Font shape `T1/stix/b/n' tried instead on input line 620.
-<figure/unnamed-chunk-12-1.pdf, id=166, 505.89pt x 505.89pt>
+(Font)              Font shape `T1/stix/b/n' tried instead on input line 404.
+
+<figure/unnamed-chunk-12-1.pdf, id=150, 505.89pt x 505.89pt>
 File: figure/unnamed-chunk-12-1.pdf Graphic file (type pdf)
 
 <use figure/unnamed-chunk-12-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-12-1.pdf used on input line 638.
+Package pdftex.def Info: figure/unnamed-chunk-12-1.pdf used on input line 422.
 (pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
- [13]
-Overfull \hbox (1591.97943pt too wide) in paragraph at lines 650--650
-[][]\T1/cmtt/m/n/10 p[][]<-[][]ggplot[][]([][]data[] []= results)[][]+[] []geom
-_point[][]([][]aes[][]([][]x[] []= conf.upper[][]-[][]conf.lower,[] []y[] []= c
-red.upper[][]-[][]cred.lower,[] []colour[] []=[] []abs[][](Ybar)))[][]+[][]geom
-_abline[][]([][]intercept[] []=[] []0[][],[] []slope[] []=[] []1[][])[][]+[][]g
-eom_hline[][]([][]yintercept[][]=[][]2[][]*[][]1.96[][]*[][]sqrt[][]([][]1[][]/
-[][]100[][]))[][]+[][]geom_vline[][]([][]xintercept[][]=[][]2[][]*[][]1.96[][]*
-[][]sqrt[][]([][]1[][]/[][]100[][]))[][]+[][]labs[][]([][]x[][]=[][]"Length of 
-(Conditional) Confidence Interval"[][],[][]y[][]=[][]"Length of (Bayesian) Cred
-ible Interval"[][],[] []title[][]=[][]"Interval Size Comparison"[][],[][]color[
-][]=[][]"|Ybar|"[][])[][]+[][]theme_minimal[][]()[][] 
- []
 
-<figure/unnamed-chunk-14-1.pdf, id=173, 505.89pt x 505.89pt>
+<figure/unnamed-chunk-14-1.pdf, id=151, 505.89pt x 505.89pt>
 File: figure/unnamed-chunk-14-1.pdf Graphic file (type pdf)
 
 <use figure/unnamed-chunk-14-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-14-1.pdf used on input line 659.
+Package pdftex.def Info: figure/unnamed-chunk-14-1.pdf used on input line 437.
+(pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
+ [10] [11 <./figure/unnamed-chunk-12-1.pdf>] [12 <./figure/unnamed-chunk-14-1.p
+df>]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 561.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\mu' on input line 561.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 561.
+
+<figure/unnamed-chunk-26-1.pdf, id=189, 505.89pt x 505.89pt>
+File: figure/unnamed-chunk-26-1.pdf Graphic file (type pdf)
+
+<use figure/unnamed-chunk-26-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-26-1.pdf used on input line 598.
 (pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
 
-Overfull \hbox (87.33298pt too wide) in paragraph at lines 688--688
-[][]\T1/cmtt/m/it/10 # kable(t(data.frame(naive = c(mean(results$naive.cov),mea
-n(results[b,]$naive.cov),mean(results[-b,]$naive.cov)),[][] 
- []
 
-
-Overfull \hbox (55.84067pt too wide) in paragraph at lines 689--689
-[][]\T1/cmtt/m/it/10 #         conditional = c(mean(results$freq.cov), mean(res
-ults[b,]$freq.cov), mean(results[-b,]$freq.cov)),[][] 
- []
-
-
-Overfull \hbox (66.3381pt too wide) in paragraph at lines 690--690
-[][]\T1/cmtt/m/it/10 #         Bayesian = c(mean(results$bayes.cov), mean(resul
-ts[b,]$bayes.cov), mean(results[-b,]$bayes.cov)))),[][] 
- []
-
-
-Overfull \hbox (55.84067pt too wide) in paragraph at lines 691--691
-[][]\T1/cmtt/m/it/10 #       col.names = c("Unconditional Coverage","Coverage C
-onditional on H0", "Coverage Conditional on H1"),[][] 
- []
-
-
-Overfull \hbox (494.99731pt too wide) in paragraph at lines 706--706
-[][]\T1/cmtt/m/n/10 kable[][]([][]table[][](results[][]$[][]H,[][]abs[][](resul
-ts[][]$[][]Ybar)[][]/[][]sqrt[][]([][]1[][]/[][]100[][])[][]<[][]qnorm[][]([][]
-1[][]-[][]0.05[][]/[][]2[][]))[][]/[][]dim[][](results)[[][]1[][]],[] []col.nam
-es[] []=[] []c[][]([][]"Do not reject null"[][],[] []"Reject null"[][]),[] []ro
-w.names[] []=[] []TRUE[][],[] []caption[] []=[] []"Naive method"[][],[] []digit
-s[][]=[][]3[][])[][] 
- []
-
-
-Overfull \hbox (494.99731pt too wide) in paragraph at lines 729--729
-[][]\T1/cmtt/m/n/10 kable[][]([][]table[][](results[][]$[][]H,results[][]$[][]c
-onf.upper[][]>=[][]0[][]&[][]results[][]$[][]conf.lower[][]<=[][]0[][])[][]/[][
-]dim[][](results)[[][]1[][]],[] []col.names[] []=[] []c[][]([][]"Do not reject 
-null"[][]),[] []row.names[] []=[] []TRUE[][],[] []caption[] []=[] []"Conditiona
-l Likelihood Method"[][],[] []digits[][]=[][]3[][])[][] 
- []
-
-[14]
-Overfull \hbox (458.25629pt too wide) in paragraph at lines 752--752
-[][]\T1/cmtt/m/n/10 kable[][]([][]table[][](results[][]$[][]H,results[][]$[][]c
-red.upper[][]>=[][]0[][]&[][]results[][]$[][]cred.lower[][]<=[][]0[][])[][]/[][
-]dim[][](results)[[][]1[][]],[] []col.names[] []=[] []c[][]([][]"Do not reject 
-null"[][]),[] []row.names[] []=[] []TRUE[][],[] []caption[] []=[] []"Bayesian M
-ixture Model"[][],[] []digits[][]=[][]3[][])[][] 
- []
-
-[15 <./figure/unnamed-chunk-12-1.pdf>] [16 <./figure/unnamed-chunk-14-1.pdf>]
-Overfull \hbox (69.85114pt too wide) in paragraph at lines 838--838
-[]    []\T1/cmtt/m/n/10 Y[((i[][]-[][]1[][])[][]*[][]observations[][]+[][]1[][]
-)[][]:[][](i[][]*[][]observations)][][]<-[][]rbinom[][](observations,[] []1[][]
-,[] []exp[][](beta.p53[i])[][]/[][]([][]1[][]+[][]exp[][](beta.p53[i])))[][] 
- []
-
-
-Overfull \hbox (122.33832pt too wide) in paragraph at lines 841--841
-[]  []\T1/cmtt/m/n/10 return[][]([][]list[][]([][]beta.p53[][]=beta.p53,[] []si
-mdata[] []=[] []list[][]([][]CaseCon[][]=Y,[] []site[][]=site,[]  []J[][]=n.sit
-es[][]*[][]observations ,[][]n.sites[][]=n.sites,[] []one[][]=[][]1[][])))[][] 
-
- []
-
-
-Overfull \hbox (61.08939pt too wide) in paragraph at lines 875--875
-[][]\T1/cmtt/m/n/10 run.cl.better[][]<-[] []function[][]([][]assoc[][],[][]mu[]
-[],[] []sd[][],[] []inits[][],[] []pvals[][]){[] []\T1/cmtt/m/it/10 #slower but
- will use the same data so hopefully better[][] 
- []
-
-[17]
-Underfull \vbox (badness 10000) detected at line 894
- []
-
-
-Underfull \vbox (badness 10000) detected at line 894
- []
-
-[18]
-Underfull \hbox (badness 10000) in paragraph at lines 901--902
-[]\T1/stix/m/n/10.03749 To try to keep this sim-u-la-tion as close to the real 
-data as pos-si-ble, a pre-lim-i-nary logis-tic regres-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 901--902
-\T1/stix/m/n/10.03749 sion with ran-dom slope and ran-dom p53 coef-fi-cient by 
-site was run. This led to the val-ues of $\LS1/stix/m/it/10.03749 ^^V \LS1/stix
-/m/n/10.03749 =
- []
-
-
-Overfull \hbox (2736.93243pt too wide) in paragraph at lines 901--902
-\LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 2\LS1/
-stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/sti
-x/m/n/10.03749 19\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m
-/it/10.03749 :\LS1/stix/m/n/10.03749 18\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/
-10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 17\LS1/stix/m/it/10.
-03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.0374
-9 16\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 
-:\LS1/stix/m/n/10.03749 15\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\L
-S1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 14\LS1/stix/m/it/10.03749 ; \LS1/
-stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 13\LS1/stix
-/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/
-n/10.03749 12\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/
-10.03749 :\LS1/stix/m/n/10.03749 11\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.0
-3749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749
- ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 09\
-LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1
-/stix/m/n/10.03749 08\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/st
-ix/m/it/10.03749 :\LS1/stix/m/n/10.03749 07\LS1/stix/m/it/10.03749 ; \LS1/stix/
-m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 06\LS1/stix/m/it
-/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.
-03749 05\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03
-749 :\LS1/stix/m/n/10.03749 04\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 
-*0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 03\LS1/stix/m/it/10.03749 ; \
-LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 02\LS1/
-stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 *0\LS1/stix/m/it/10.03749 :\LS1/sti
-x/m/n/10.03749 01\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/
-it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10
-.03749 01\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03
-749 :\LS1/stix/m/n/10.03749 02\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 
-0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 03\LS1/stix/m/it/10.03749 ; \L
-S1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 04\LS1/st
-ix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m
-/n/10.03749 05\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/
-10.03749 :\LS1/stix/m/n/10.03749 06\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.0
-3749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 07\LS1/stix/m/it/10.03749
- ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 08\L
-S1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/s
-tix/m/n/10.03749 09\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/
-m/it/10.03749 :\LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/
-10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 11\LS1/stix/m/it/10.0
-3749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 
-12\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\L
-S1/stix/m/n/10.03749 13\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/s
-tix/m/it/10.03749 :\LS1/stix/m/n/10.03749 14\LS1/stix/m/it/10.03749 ; \LS1/stix
-/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 15\LS1/stix/m/it
-/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.0
-3749 16\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.0374
-9 :\LS1/stix/m/n/10.03749 17\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\
-LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 18\LS1/stix/m/it/10.03749 ; \LS1
-/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 19\LS1/stix
-/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n
-/10.03749 2\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.
-03749 :\LS1/stix/m/n/10.03749 21\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.0374
-9 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 22\LS1/stix/m/it/10.03749 ; 
-\LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 23\LS1/
-stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix
-/m/n/10.03749 24\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/i
-t/10.03749 :\LS1/stix/m/n/10.03749 25\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10
-.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 26\LS1/stix/m/it/10.037
-49 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 27
-\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1
-/stix/m/n/10.03749 28\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/sti
-x/m/it/10.03749 :\LS1/stix/m/n/10.03749 29\LS1/stix/m/it/10.03749 ; \LS1/stix/m
-/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 3\LS1/stix/m/it/10
-.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.0374
-9 31\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :
-\LS1/stix/m/n/10.03749 32\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1
-/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 33\LS1/stix/m/it/10.03749 ; \LS1/st
-ix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 34\LS1/stix/m/
-it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10
-.03749 35\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03
-749 :\LS1/stix/m/n/10.03749 36\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 
-0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 37\LS1/stix/m/it/10.03749 ; \L
-S1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 38\LS1/st
-ix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m
-/n/10.03749 39\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/
-10.03749 :\LS1/stix/m/n/10.03749 4\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03
-749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 41\LS1/stix/m/it/10.03749 
-; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 42\LS
-1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/st
-ix/m/n/10.03749 43\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m
-/it/10.03749 :\LS1/stix/m/n/10.03749 44\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/
-10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 45\LS1/stix/m/it/10.0
-3749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 
-46\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\L
-S1/stix/m/n/10.03749 47\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/s
-tix/m/it/10.03749 :\LS1/stix/m/n/10.03749 48\LS1/stix/m/it/10.03749 ; \LS1/stix
-/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 49\LS1/stix/m/it
-/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.0
-3749 5\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749
- :\LS1/stix/m/n/10.03749 51\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\L
-S1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 52\LS1/stix/m/it/10.03749 ; \LS1/
-stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 53\LS1/stix/
-m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/
-10.03749 54\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.
-03749 :\LS1/stix/m/n/10.03749 55\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.0374
-9 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 56\LS1/stix/m/it/10.03749 ; 
-\LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 57\LS1/
-stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix
-/m/n/10.03749 58\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/i
-t/10.03749 :\LS1/stix/m/n/10.03749 59\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10
-.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 6\LS1/stix/m/it/10.0374
-9 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 61\
-LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/
-stix/m/n/10.03749 62\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix
-/m/it/10.03749 :\LS1/stix/m/n/10.03749 63\LS1/stix/m/it/10.03749 ; \LS1/stix/m/
-n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 64\LS1/stix/m/it/10
-.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.0374
-9 65\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :
-\LS1/stix/m/n/10.03749 66\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1
-/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 67\LS1/stix/m/it/10.03749 ; \LS1/st
-ix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 68\LS1/stix/m/
-it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10
-.03749 69\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03
-749 :\LS1/stix/m/n/10.03749 7\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0
-\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 71\LS1/stix/m/it/10.03749 ; \LS
-1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 72\LS1/sti
-x/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/
-n/10.03749 73\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/1
-0.03749 :\LS1/stix/m/n/10.03749 74\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03
-749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 75\LS1/stix/m/it/10.03749 
-; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 76\LS
-1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/st
-ix/m/n/10.03749 77\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m
-/it/10.03749 :\LS1/stix/m/n/10.03749 78\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/
-10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 79\LS1/stix/m/it/10.0
-3749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 
-8\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS
-1/stix/m/n/10.03749 81\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/st
-ix/m/it/10.03749 :\LS1/stix/m/n/10.03749 82\LS1/stix/m/it/10.03749 ; \LS1/stix/
-m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 83\LS1/stix/m/it/
-10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03
-749 84\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749
- :\LS1/stix/m/n/10.03749 85\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\L
-S1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 86\LS1/stix/m/it/10.03749 ; \LS1/
-stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 87\LS1/stix/
-m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/
-10.03749 88\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.
-03749 :\LS1/stix/m/n/10.03749 89\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.0374
-9 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 9\LS1/stix/m/it/10.03749 ; \
-LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 91\LS1/s
-tix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/
-m/n/10.03749 92\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it
-/10.03749 :\LS1/stix/m/n/10.03749 93\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.
-03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 94\LS1/stix/m/it/10.0374
-9 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 95\
-LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/
-stix/m/n/10.03749 96\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix
-/m/it/10.03749 :\LS1/stix/m/n/10.03749 97\LS1/stix/m/it/10.03749 ; \LS1/stix/m/
-n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 98\LS1/stix/m/it/10
-.03749 ; \LS1/stix/m/n/10.03749 0\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.0374
-9 99\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 ;
- \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 01\LS1
-/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/sti
-x/m/n/10.03749 02\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/
-it/10.03749 :\LS1/stix/m/n/10.03749 03\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/1
-0.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 04\LS1/stix/m/it/10.03
-749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 0
-5\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS
-1/stix/m/n/10.03749 06\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/st
-ix/m/it/10.03749 :\LS1/stix/m/n/10.03749 07\LS1/stix/m/it/10.03749 ; \LS1/stix/
-m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 08\LS1/stix/m/it/
-10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03
-749 09\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749
- :\LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS
-1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 11\LS1/stix/m/it/10.03749 ; \LS1/s
-tix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 12\LS1/stix/m
-/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/1
-0.03749 13\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.0
-3749 :\LS1/stix/m/n/10.03749 14\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749
- 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 15\LS1/stix/m/it/10.03749 ; \
-LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 16\LS1/s
-tix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/
-m/n/10.03749 17\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it
-/10.03749 :\LS1/stix/m/n/10.03749 18\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.
-03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 19\LS1/stix/m/it/10.0374
-9 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 2\L
-S1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/s
-tix/m/n/10.03749 21\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/
-m/it/10.03749 :\LS1/stix/m/n/10.03749 22\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n
-/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749 23\LS1/stix/m/it/10.
-03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\LS1/stix/m/n/10.03749
- 24\LS1/stix/m/it/10.03749 ; \LS1/stix/m/n/10.03749 1\LS1/stix/m/it/10.03749 :\
-LS1/stix/m/n/10.03749 25\LS1/stix/m/it/10.03749 ; ^^[[] \LS1/stix/m/n/10.03749 
-=$\T1/stix/m/n/10.03749 .
- []
-
-[19]
-Overfull \hbox (12.11523pt too wide) in paragraph at lines 974--974
-[]  []\T1/cmtt/m/n/10 vec[][]<-[][]sapply[][](simlist,[] []function[][]([][]out
-putlist[][])[] []sapply[][](outputlist[[][]-[][]length[][](outputlist)],getstat
-s,mu,sd))[][] 
- []
-
-
-Overfull \hbox (153.83063pt too wide) in paragraph at lines 975--975
-[]  []\T1/cmtt/m/n/10 return[][]([][]array[][]([][]data[][]=vec,[][]dim[][]=[] 
-[]c[][]([][]length[][](getstatsitems),[][]length[][](modelnames),I),[] []dimnam
-es[][]=[][]list[][](getstatsitems,modelnames,[][]seq[][]([][]1[][]:[][]I))))[][
-] 
- []
-
-[20]
-Overfull \hbox (227.31268pt too wide) in paragraph at lines 1039--1039
-[][]\T1/cmtt/m/n/10 save[][](sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.be
-tter1,sim.cl.stats.better4,sim.cl.stats.better0,[] []file[] []=[] []"p53sim_pro
-cesseddata.RData"[][])[][] 
- []
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 603.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1044.
+(hyperref)                removing `\mu' on input line 603.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\mu' on input line 1044.
+(hyperref)                removing `math shift' on input line 603.
+
+<figure/unnamed-chunk-29-1.pdf, id=190, 505.89pt x 505.89pt>
+File: figure/unnamed-chunk-29-1.pdf Graphic file (type pdf)
+
+<use figure/unnamed-chunk-29-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-29-1.pdf used on input line 660.
+(pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1044.
+(hyperref)                removing `math shift' on input line 665.
 
-[21]
-Overfull \hbox (38.35883pt too wide) in paragraph at lines 1059--1059
-[][]\T1/cmtt/m/n/10 mseplot[] []=[] []ggplot[][]([][]data[] []= (df1),[] []aes[
-][]([][]x[][]=[][]factor[][](simulation,[] []labels[][]=[][]c[][]([][]0[][],[][
-]"s/2"[][],[] []"s"[][],[] []"2s"[][],[] []"4s"[][])),[] []y[][]=value))[] []+[
-][] 
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\xi' on input line 665.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 665.
+
+[13]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 711.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\alpha' on input line 711.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 711.
+
+[14 <./figure/unnamed-chunk-26-1.pdf>]
+<figure/unnamed-chunk-34-1.pdf, id=215, 505.89pt x 505.89pt>
+File: figure/unnamed-chunk-34-1.pdf Graphic file (type pdf)
+
+<use figure/unnamed-chunk-34-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-34-1.pdf used on input line 747.
+(pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
+
+<figure/unnamed-chunk-35-1.pdf, id=216, 505.89pt x 505.89pt>
+File: figure/unnamed-chunk-35-1.pdf Graphic file (type pdf)
+
+<use figure/unnamed-chunk-35-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-35-1.pdf used on input line 756.
+(pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
+ [15] [16 <./figure/unnamed-chunk-29-1.pdf>] <figure/unnamed-chunk-38-1.pdf, id
+=240, 505.89pt x 505.89pt> [17 <./figure/unnamed-chunk-34-1.pdf>]
+File: figure/unnamed-chunk-38-1.pdf Graphic file (type pdf)
+ <use figure/unnamed-chunk-38-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-38-1.pdf used on input line 790.
+(pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
+ [18 <./figure/unnamed-chunk-35-1.pdf>]
+Overfull \hbox (183.85817pt too wide) in paragraph at lines 809--824
+ [][] 
  []
 
 
-Overfull \hbox (232.5614pt too wide) in paragraph at lines 1061--1061
-[]  []\T1/cmtt/m/n/10 labs[][]([][]x[][]=[][]expression[][]([][]paste[][](sigma
-[][]^[][]2[][],[] []" used in simulation"[][])),[][]y[][]=[][]"Absolute Error"[
-][],[] []title[][]=[][]expression[][]([][]paste[][]([][]"Absolute Error of Simu
-lation "[][],mu )))[][]+[][] 
+Overfull \hbox (207.78755pt too wide) in paragraph at lines 829--862
+ [][] 
  []
 
 
-Overfull \hbox (48.85626pt too wide) in paragraph at lines 1091--1091
-[][]\T1/cmtt/m/n/10 intlenplot[] []=[] []ggplot[][]([][]data[] []= (df),[] []ae
-s[][]([][]x[][]=[][]factor[][](simulation,[] []labels[][]=[][]c[][]([][]0[][],[
-][]"s/2"[][],[] []"s"[][],[] []"2s"[][],[] []"4s"[][])),[] []y[][]=value))[] []
-+[][] 
+Overfull \hbox (99.11176pt too wide) in paragraph at lines 867--890
+ [][] 
  []
 
 
-Overfull \hbox (306.04346pt too wide) in paragraph at lines 1093--1093
-[]  []\T1/cmtt/m/n/10 labs[][]([][]x[][]=[][]expression[][]([][]paste[][](sigma
-[][]^[][]2[][],[] []" used in simulation"[][])),[][]y[][]=[][]"Credible Interva
-l Length"[][],[] []title[][]=[][]expression[][]([][]paste[][]([][]"Credible Int
-ervals of Simulation "[][],mu )))[][]+[][] 
- []
-
-[22]
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1128.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\mu' on input line 1128.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1128.
-
-
-Overfull \hbox (12.11523pt too wide) in paragraph at lines 1138--1138
-[][]\T1/cmtt/m/n/10 kable[][](hasm, ,[][]format[][]=[][]\TS1/cmtt/m/n/10 '\T1/c
-mtt/m/n/10 latex\TS1/cmtt/m/n/10 '[][]\T1/cmtt/m/n/10 ,[][]caption[][]=[][]"Pro
-portion of Credible Intervals containing $\\mu$"[][],[] []digits[][]=[][]3[][])
-[][] 
+Overfull \hbox (99.11176pt too wide) in paragraph at lines 895--918
+ [][] 
  []
 
 
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1156.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\xi' on input line 1156.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1156.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1180.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\alpha' on input line 1180.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 1180.
-
-[23]
-Overfull \hbox (232.5614pt too wide) in paragraph at lines 1193--1193
-[]  []\T1/cmtt/m/n/10 labs[][]([][]x[][]=[][]expression[][]([][]paste[][](sigma
-[][]^[][]2[][],[] []" used in simulation"[][])),[][]y[][]=[][]"Absolute Error"[
-][],[] []title[][]=[][]expression[][]([][]paste[][]([][]"Absolute Error of Simu
-lation "[][],mu )))[][]+[][] 
+Overfull \hbox (99.11176pt too wide) in paragraph at lines 923--936
+ [][] 
  []
 
 
-Overfull \hbox (1.6178pt too wide) in paragraph at lines 1194--1194
-[]  []\T1/cmtt/m/n/10 scale_colour_few[][]([][]name[][]=[][]"p-value"[][])[] []
-+[]  []theme[][]([] []legend.justification[][]=[][]c[][]([][]0[][],[][]1[][]),[
-] []legend.position[][]=[][]c[][]([][]0[][],[][]1[][]))[][] 
+Overfull \hbox (225.35313pt too wide) in paragraph at lines 941--966
+ [][] 
  []
 
 
-Overfull \hbox (306.04346pt too wide) in paragraph at lines 1212--1212
-[]  []\T1/cmtt/m/n/10 labs[][]([][]x[][]=[][]expression[][]([][]paste[][](sigma
-[][]^[][]2[][],[] []" used in simulation"[][])),[][]y[][]=[][]"Credible Interva
-l Length"[][],[] []title[][]=[][]expression[][]([][]paste[][]([][]"Credible Int
-ervals of Simulation "[][],mu )))[][]+[][] 
+Overfull \hbox (75.96533pt too wide) in paragraph at lines 971--982
+ [][] 
  []
 
-
-Overfull \hbox (1.6178pt too wide) in paragraph at lines 1213--1213
-[]  []\T1/cmtt/m/n/10 scale_colour_few[][]([][]name[][]=[][]"p-value"[][])[] []
-+[]  []theme[][]([] []legend.justification[][]=[][]c[][]([][]0[][],[][]1[][]),[
-] []legend.position[][]=[][]c[][]([][]0[][],[][]1[][]))[][] 
- []
-
-[24] (./reproducibility-knitr.bbl [25]) [26]
-Overfull \hbox (3.00244pt too wide) in paragraph at lines 1290--1290
+[19 <./figure/unnamed-chunk-38-1.pdf>] [20] [21] (./reproducibility-knitr.bbl
+[22]) [23]
+Overfull \hbox (3.00244pt too wide) in paragraph at lines 1006--1006
  [] 
  []
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1290.
-[27
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1006.
+[24
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1290.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1006.
  (./reproducibility-knitr.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1290.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1290.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1290.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1006.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1006.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1006.
  ) 
 Here is how much of TeX's memory you used:
- 15102 strings out of 493089
- 214523 string characters out of 6134842
- 325200 words of memory out of 5000000
- 18172 multiletter control sequences out of 15000+600000
- 101834 words of font info for 125 fonts, out of 8000000 for 9000
+ 15131 strings out of 493089
+ 215135 string characters out of 6134842
+ 334410 words of memory out of 5000000
+ 18191 multiletter control sequences out of 15000+600000
+ 101239 words of font info for 123 fonts, out of 8000000 for 9000
  1167 hyphenation exceptions out of 8191
- 43i,11n,40p,1707b,419s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 43i,11n,40p,1707b,469s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2015/texmf-dist/fonts/enc/dvips/stix/stix-t1.enc}{/usr/lo
-cal/texlive/2015/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}{/usr/loc
-al/texlive/2015/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/local
-/texlive/2015/texmf-dist/fonts/type1/public/stix/STIXGeneral-Bold.pfb></usr/loc
-al/texlive/2015/texmf-dist/fonts/type1/public/stix/STIXGeneral-Italic.pfb></usr
-/local/texlive/2015/texmf-dist/fonts/type1/public/stix/STIXGeneral-Regular.pfb>
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sfit1000.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sfss0700.pfb></us
-r/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sfss1000.pfb></usr/
-local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/lo
-cal/texlive/2015/texmf-dist/fonts/type1/public/stix/stix-mathcal.pfb></usr/loca
-l/texlive/2015/texmf-dist/fonts/type1/public/stix/stix-mathex.pfb></usr/local/t
-exlive/2015/texmf-dist/fonts/type1/public/stix/stix-mathit.pfb></usr/local/texl
-ive/2015/texmf-dist/fonts/type1/public/stix/stix-mathrm.pfb>
-Output written on reproducibility-knitr.pdf (27 pages, 452478 bytes).
+cal/texlive/2015/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/loca
+l/texlive/2015/texmf-dist/fonts/type1/public/stix/STIXGeneral-Bold.pfb></usr/lo
+cal/texlive/2015/texmf-dist/fonts/type1/public/stix/STIXGeneral-Italic.pfb></us
+r/local/texlive/2015/texmf-dist/fonts/type1/public/stix/STIXGeneral-Regular.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sfit1000.pfb><
+/usr/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sfss0700.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sfss1000.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/stix/stix-mathcal.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/stix/stix-mathex.pfb></usr/local/
+texlive/2015/texmf-dist/fonts/type1/public/stix/stix-mathit.pfb></usr/local/tex
+live/2015/texmf-dist/fonts/type1/public/stix/stix-mathrm.pfb>
+Output written on reproducibility-knitr.pdf (24 pages, 458429 bytes).
 PDF statistics:
- 452 PDF objects out of 1000 (max. 8388607)
- 397 compressed objects within 4 object streams
- 117 named destinations out of 1000 (max. 500000)
- 290 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 487 PDF objects out of 1000 (max. 8388607)
+ 424 compressed objects within 5 object streams
+ 127 named destinations out of 1000 (max. 500000)
+ 315 words of extra memory for PDF output out of 10000 (max. 10000000)
 

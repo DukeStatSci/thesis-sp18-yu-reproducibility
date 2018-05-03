@@ -106,10 +106,20 @@
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{knitr}\hlopt{::}\hlstd{opts_chunk}\hlopt{$}\hlkwd{set}\hlstd{(}\hlkwc{message} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{warning} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{cache}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{knitr}\hlopt{::}\hlstd{opts_chunk}\hlopt{$}\hlkwd{set}\hlstd{(}\hlkwc{message} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{warning} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{cache}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{echo}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \hlstd{mu}\hlkwb{<-}\hlstd{I}\hlkwb{<-}\hlstd{sd}\hlkwb{<-}\hlstd{overall}\hlkwb{<-}\hlkwa{NULL}
 
-\hlkwd{library}\hlstd{(knitr)}
+
+\hlkwd{library}\hlstd{(rmeta)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: grid}}\begin{alltt}
+\hlkwd{library}\hlstd{(lme4)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: Matrix}}\begin{alltt}
 \hlkwd{library}\hlstd{(ggplot2)}
 \hlkwd{library}\hlstd{(ggthemes)}
 \hlkwd{require}\hlstd{(reshape2)}
@@ -224,31 +234,7 @@ H\sim \textsf{Bernoulli}(\xi)\\
 \xi \sim \textsf{Beta}(a, b)
 \end{gather}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{cond.likelihood}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{ybar}\hlstd{,} \hlkwc{mu}\hlstd{,} \hlkwc{SE}\hlstd{,} \hlkwc{q}\hlstd{=}\hlnum{1.96}\hlstd{)\{}
-  \hlkwd{dnorm}\hlstd{(ybar, mu, SE)}\hlopt{/}
-    \hlstd{(}\hlkwd{pnorm}\hlstd{(}\hlopt{-}\hlstd{q}\hlopt{*}\hlstd{SE, mu, SE)} \hlopt{+}
-       \hlnum{1}\hlopt{-}\hlkwd{pnorm}\hlstd{(q}\hlopt{*}\hlstd{SE, mu, SE))}
-\hlstd{\}}
 
-\hlstd{p} \hlkwb{=} \hlnum{0.00325}
-\hlstd{LOR} \hlkwb{=} \hlkwd{log}\hlstd{(}\hlnum{1.65}\hlstd{)}
-\hlstd{q} \hlkwb{=} \hlopt{-}\hlkwd{qnorm}\hlstd{(p}\hlopt{/}\hlnum{2}\hlstd{)}
-\hlcom{# 1.21-2.25}
-\hlstd{SE} \hlkwb{=}  \hlstd{(}\hlkwd{log}\hlstd{(}\hlnum{2.25} \hlstd{)} \hlopt{-} \hlstd{LOR)}\hlopt{/}\hlnum{1.96}
-\hlcom{#exp(LOR + c(-1, 1)*1.96*SE)}
-\hlstd{BF} \hlkwb{=} \hlnum{1}\hlopt{/}\hlstd{(}\hlopt{-}\hlkwd{exp}\hlstd{(}\hlnum{1}\hlstd{)}\hlopt{*}\hlstd{p}\hlopt{*}\hlkwd{log}\hlstd{(p))}
-\hlstd{mu} \hlkwb{<-} \hlkwd{seq}\hlstd{(}\hlopt{-}\hlnum{.2}\hlstd{,}\hlnum{1.25}\hlstd{,}\hlnum{.01}\hlstd{)}
-
-\hlstd{p}\hlkwb{<-}\hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{=} \hlkwd{data.frame}\hlstd{(}\hlkwc{maxy} \hlstd{=} \hlkwd{dnorm}\hlstd{(}\hlnum{.4}\hlstd{,} \hlnum{.4}\hlstd{,}\hlnum{.2}\hlstd{)}\hlopt{/}\hlnum{.6}\hlstd{,} \hlkwc{x} \hlstd{= mu,} \hlkwc{y} \hlstd{=} \hlkwd{dnorm}\hlstd{(mu,} \hlnum{.4}\hlstd{,}\hlnum{.2}\hlstd{),} \hlkwc{xl}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{xu}\hlstd{=}\hlnum{0}\hlstd{,}\hlkwc{yl}\hlstd{=}\hlnum{0}\hlstd{,}\hlkwc{yu}\hlstd{=}\hlnum{.4}\hlstd{))}\hlopt{+}
-  \hlkwd{geom_line}\hlstd{(}\hlkwd{aes}\hlstd{(x,y}\hlopt{/}\hlstd{maxy))}\hlopt{+}\hlkwd{geom_segment}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=xl,}\hlkwc{y}\hlstd{=yl,}\hlkwc{xend}\hlstd{=xu,}\hlkwc{yend}\hlstd{=yu))}\hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{title}\hlstd{=} \hlstr{"Mixture Model with Point Mass at 0"}\hlstd{,}\hlkwc{x}\hlstd{=}\hlkwd{expression}\hlstd{(mu),}\hlkwc{y}\hlstd{=}\hlstr{"density"}\hlstd{)}\hlopt{+}
-  \hlkwd{theme_minimal}\hlstd{()} \hlopt{+} \hlkwd{scale_colour_few}\hlstd{()}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
 \begin{figure}
@@ -281,26 +267,7 @@ p(\text{MLE}_i | B,\beta_i,\text{SE}_i,q_i) = \frac{\phi(\text{MLE}_i, \beta_i, 
 
 where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,\text{SE}_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $\text{MLE}_i$  be denoted as $\textsf{CL}(\beta_i,\text{SE}_i, q_i)$.
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{CLdata}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(mu,} \hlkwd{cond.likelihood}\hlstd{(LOR, mu, SE,} \hlkwc{q} \hlstd{=} \hlopt{-}\hlkwd{qnorm}\hlstd{(}\hlnum{0.005}\hlopt{/}\hlnum{2}\hlstd{)),}
-                   \hlkwd{cond.likelihood}\hlstd{(LOR, mu, SE,} \hlkwc{q} \hlstd{=} \hlopt{-}\hlkwd{qnorm}\hlstd{(}\hlnum{0.05}\hlopt{/}\hlnum{2}\hlstd{)),}
-                   \hlkwd{cond.likelihood}\hlstd{(LOR, mu, SE,} \hlkwc{q} \hlstd{=} \hlopt{-}\hlkwd{qnorm}\hlstd{(}\hlnum{0.01}\hlopt{/}\hlnum{2}\hlstd{)),}
-                   \hlkwd{dnorm}\hlstd{(LOR, mu, SE))}
-\hlkwd{colnames}\hlstd{(CLdata)}\hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"mu"}\hlstd{,} \hlstr{"CL.005"}\hlstd{,}\hlstr{"CL.05"}\hlstd{,}\hlstr{"CL.01"}\hlstd{,}\hlstr{"uncond"}\hlstd{)}
-\hlstd{melted} \hlkwb{<-} \hlkwd{melt}\hlstd{(CLdata,} \hlkwc{id.vars}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"mu"}\hlstd{))}
-\hlstd{p}\hlkwb{<-} \hlkwd{ggplot}\hlstd{(melted,} \hlkwd{aes}\hlstd{(mu, value,} \hlkwc{color} \hlstd{= variable))} \hlopt{+} \hlkwd{geom_line}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{group}\hlstd{=variable))} \hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{title} \hlstd{=} \hlstr{"Conditional vs. Unconditional Likelihood"}\hlstd{,}
-       \hlkwc{x} \hlstd{=} \hlkwd{expression}\hlstd{(mu),} \hlkwc{y} \hlstd{=} \hlstr{"Likelihood"}\hlstd{)}\hlopt{+}  \hlkwd{theme_minimal}\hlstd{()}\hlopt{+}
-  \hlkwd{theme}\hlstd{(}\hlkwc{legend.justification}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{legend.position}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))} \hlopt{+}
-  \hlkwd{scale_colour_few}\hlstd{(}\hlkwc{name}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{labels}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(alpha,}\hlstr{" = .005"}\hlstd{)),}
-                                     \hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(alpha,}\hlstr{" = .05"}\hlstd{)),}
-                                     \hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(alpha,}\hlstr{" = .01"}\hlstd{)),}
-                                     \hlstr{"unconditional"}\hlstd{))}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+
 
 
 \begin{figure}
@@ -344,37 +311,7 @@ where $p$ is the p-value from the discovery data \cite{sellke2001calibration}. T
 
 Then $\xi'$ can be used in the fully Bayesian model, but only with the validation data.
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{pind.dens}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{post.ind}\hlstd{,}\hlkwc{p}\hlstd{)\{}
-  \hlstd{BF}\hlkwb{<-} \hlnum{1}\hlopt{/}\hlstd{(}\hlopt{-}\hlkwd{exp}\hlstd{(}\hlnum{1}\hlstd{)}\hlopt{*}\hlstd{p}\hlopt{*}\hlkwd{log}\hlstd{(p))}
-  \hlstd{prior.odds}\hlkwb{<-}\hlstd{post.ind}\hlopt{/}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{post.ind)}\hlopt{/}\hlstd{BF}
-  \hlstd{pind}\hlkwb{<-} \hlstd{prior.odds}\hlopt{/}\hlstd{(}\hlnum{1}\hlopt{+}\hlstd{prior.odds)} \hlcom{#a/0}
-  \hlcom{#eplogp is BF h0/h1}
-  \hlkwd{return}\hlstd{(pind)}
-  \hlstd{\}}
-\hlstd{postind.dens}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{pind}\hlstd{,} \hlkwc{p}\hlstd{=}\hlnum{.0035}\hlstd{)\{}
-  \hlstd{prior.odds}\hlkwb{<-} \hlstd{(pind)}\hlopt{/}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{pind)} \hlcom{#a/0}
-  \hlstd{BF}\hlkwb{<-} \hlnum{1}\hlopt{/}\hlstd{(}\hlopt{-}\hlkwd{exp}\hlstd{(}\hlnum{1}\hlstd{)}\hlopt{*}\hlstd{p}\hlopt{*}\hlkwd{log}\hlstd{(p))} \hlcom{#eplogp is BF h0/h1}
-  \hlstd{post.ind}\hlkwb{<-}\hlstd{prior.odds}\hlopt{*}\hlstd{BF}\hlopt{/}\hlstd{(}\hlnum{1}\hlopt{+}\hlstd{prior.odds}\hlopt{*}\hlstd{BF)}
-  \hlkwd{return}\hlstd{(post.ind)}
-\hlstd{\}}
-\hlstd{pind}\hlkwb{<-} \hlkwd{seq}\hlstd{(}\hlnum{.001}\hlstd{,} \hlnum{.999}\hlstd{,}\hlkwc{by}\hlstd{=}\hlnum{.001}\hlstd{)}
 
-\hlstd{BFapproxdata}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(pind,} \hlkwd{postind.dens}\hlstd{(pind,} \hlnum{.05}\hlstd{),}\hlkwd{postind.dens}\hlstd{(pind,} \hlnum{.01}\hlstd{),}
-                         \hlkwd{postind.dens}\hlstd{(pind,} \hlnum{.005}\hlstd{),}\hlkwd{postind.dens}\hlstd{(pind,} \hlnum{1e-5}\hlstd{),}
-                   \hlkwd{dbeta}\hlstd{(pind,}\hlnum{.5}\hlstd{,}\hlnum{.5}\hlstd{))}
-\hlkwd{colnames}\hlstd{(BFapproxdata)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"prior"}\hlstd{,} \hlstr{"p = .05"}\hlstd{,} \hlstr{"p = .01"}\hlstd{,} \hlstr{"p = .005"}\hlstd{,} \hlstr{"p = 1e-5"}\hlstd{,}\hlstr{"xi"}\hlstd{)}
-\hlstd{p}\hlkwb{<-} \hlkwd{ggplot}\hlstd{(}\hlkwc{data}\hlstd{=}\hlkwd{melt}\hlstd{(BFapproxdata,}\hlkwc{id.vars} \hlstd{=} \hlstr{"xi"}\hlstd{),} \hlkwd{aes}\hlstd{(}\hlkwc{y}\hlstd{=xi))}\hlopt{+}
-  \hlkwd{geom_line}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=value,} \hlkwc{group}\hlstd{=variable,}\hlkwc{color}\hlstd{=variable))}\hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{title} \hlstd{=} \hlstr{"Distribution of Transformed Probability of Effect\textbackslash{}n with Bayes Factor Approximation"}\hlstd{,}
-       \hlkwc{x} \hlstd{=} \hlkwd{expression}\hlstd{(xi),} \hlkwc{y} \hlstd{=} \hlstr{"Density"}\hlstd{)}\hlopt{+}  \hlkwd{theme_minimal}\hlstd{()}\hlopt{+}
-  \hlkwd{theme}\hlstd{(}\hlkwc{legend.justification}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{legend.position}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))} \hlopt{+}
-  \hlkwd{scale_colour_few}\hlstd{(}\hlkwc{name}\hlstd{=}\hlstr{"p-value"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
 \begin{figure}
@@ -423,41 +360,7 @@ The credible intervals were estimated by treating the conditional likelihood as 
 
 \subsection{Posterior Distribution}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{cond.posterior}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{Y}\hlstd{,} \hlkwc{n.samp}\hlstd{)\{}
-  \hlstd{cond.likelihood}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{Y}\hlstd{,} \hlkwc{mu}\hlstd{)\{}
-    \hlstd{ybar} \hlkwb{=} \hlkwd{mean}\hlstd{(Y)}
-    \hlstd{N} \hlkwb{=} \hlkwd{length}\hlstd{(Y)}
-    \hlcom{#(abs(ybar-mu)/(sqrt(1/N))>1.96)*}
-    \hlkwd{dnorm}\hlstd{(ybar, mu,} \hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N))}\hlopt{/}
-      \hlstd{(}\hlkwd{pnorm}\hlstd{((}\hlopt{-}\hlnum{1.96}\hlopt{*}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N)), mu,} \hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N))}
-       \hlopt{+}\hlnum{1}\hlopt{-}\hlkwd{pnorm}\hlstd{((}\hlnum{1.96}\hlopt{*}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N)), mu,} \hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N)))}
-    \hlcom{#not symmetric other than mu = 0}
-  \hlstd{\}}
-  \hlcom{#x<- seq(-2,2,.01)}
-  \hlcom{#plot(x, cond.likelihood(Y, x), type="l")}
-  \hlcom{#metropolis hasting with flat prior}
-  \hlstd{c}\hlkwb{=}\hlnum{1}
-  \hlstd{mu} \hlkwb{<-} \hlnum{0}
-  \hlstd{MU} \hlkwb{<-} \hlkwa{NULL}
 
-  \hlkwa{for}\hlstd{(s} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{n.samp)\{}
-    \hlstd{mu.star} \hlkwb{<-} \hlkwd{rnorm}\hlstd{(}\hlnum{1}\hlstd{, mu, c)}
-    \hlstd{r} \hlkwb{=} \hlkwd{cond.likelihood}\hlstd{(Y,mu.star)}\hlopt{/}\hlkwd{cond.likelihood}\hlstd{(Y,mu)}
-    \hlkwa{if}\hlstd{(}\hlkwd{runif}\hlstd{(}\hlnum{1}\hlstd{)}\hlopt{<}\hlstd{r)\{}
-      \hlstd{mu} \hlkwb{<-} \hlstd{mu.star}
-    \hlstd{\}}
-    \hlstd{MU} \hlkwb{<-} \hlkwd{c}\hlstd{(MU, mu)}
-  \hlstd{\}}
-  \hlcom{#plot(MU, type="l")}
-  \hlcom{#ggplot(data = data.frame(MU))+geom_density(aes(x=MU))}
-  \hlstd{(MU)}
-\hlstd{\}}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
 In the Bayesian case, the prior was set to the mixture model $p(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
@@ -488,134 +391,15 @@ This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \s
 
 Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate credible intervals. 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{getposterior} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{Y}\hlstd{,}\hlkwc{n.samp}\hlstd{,} \hlkwc{pi} \hlstd{=} \hlnum{.5}\hlstd{)\{}
-  \hlstd{n} \hlkwb{=} \hlkwd{length}\hlstd{(Y)}
-  \hlstd{odds} \hlkwb{=} \hlstd{(}\hlnum{1}\hlopt{-}\hlstd{pi)}\hlopt{/}\hlstd{pi}
-  \hlcom{#bf.approx <- -exp(1)*p*log(p)}
-  \hlstd{bf} \hlkwb{<-}  \hlstd{(n}\hlopt{+}\hlnum{1}\hlstd{)}\hlopt{^}\hlstd{(}\hlopt{-}\hlnum{.5}\hlstd{)}\hlopt{*}\hlkwd{exp}\hlstd{(n}\hlopt{^}\hlnum{2}\hlopt{*}\hlkwd{mean}\hlstd{(Y)}\hlopt{^}\hlnum{2}\hlopt{/}\hlstd{(}\hlnum{2}\hlopt{*}\hlstd{(n}\hlopt{+}\hlnum{1}\hlstd{)))}
-  \hlstd{alt.prob} \hlkwb{<-} \hlstd{odds}\hlopt{*}\hlstd{bf}\hlopt{/}\hlstd{(}\hlnum{1}\hlopt{+}\hlstd{odds}\hlopt{*}\hlstd{bf)}
-  \hlcom{#alt.prob.approx <- odds*bf.approx/(1+odds*bf.approx)}
 
-  \hlcom{#draws from posterior-flip a coin (ber w prob P(H given Y) and then use that to get draw}
-  \hlstd{draws} \hlkwb{=} \hlkwd{sapply}\hlstd{(}\hlkwd{runif}\hlstd{(n.samp),} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)  \{}
-    \hlkwd{ifelse}\hlstd{(x}\hlopt{<}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{alt.prob),} \hlkwd{rnorm}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{),} \hlkwd{rnorm}\hlstd{(}\hlnum{1}\hlstd{,}\hlkwd{mean}\hlstd{(Y)}\hlopt{*}\hlstd{n}\hlopt{/}\hlstd{(n}\hlopt{+}\hlnum{1}\hlstd{),} \hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{(n}\hlopt{+}\hlnum{1}\hlstd{))))}
-  \hlstd{\})}
-  \hlcom{#ggplot(data = data.frame(draws))+geom_density(aes(x=draws))}
-  \hlstd{(}\hlkwd{list}\hlstd{(}\hlkwc{alt.prob}\hlstd{=alt.prob,} \hlkwc{draws}\hlstd{=draws))}
-
-\hlstd{\}}
-
-\hlstd{HPD} \hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{post}\hlstd{,} \hlkwc{prob}  \hlstd{=} \hlnum{.95}\hlstd{)\{}
-
-  \hlcom{#HPD interval- copied from BAS/coda}
-  \hlstd{obj} \hlkwb{<-} \hlkwd{as.matrix}\hlstd{(post)}
-  \hlstd{vals} \hlkwb{<-} \hlkwd{apply}\hlstd{(obj,} \hlnum{2}\hlstd{, sort)}
-  \hlkwa{if} \hlstd{(}\hlopt{!}\hlkwd{is.matrix}\hlstd{(vals))}
-    \hlkwd{stop}\hlstd{(}\hlstr{"obj must have nsamp > 1"}\hlstd{)}
-  \hlstd{nsamp} \hlkwb{<-} \hlkwd{nrow}\hlstd{(vals)}
-  \hlstd{npar} \hlkwb{<-} \hlkwd{ncol}\hlstd{(vals)}
-  \hlstd{gap} \hlkwb{<-} \hlkwd{max}\hlstd{(}\hlnum{1}\hlstd{,} \hlkwd{min}\hlstd{(nsamp} \hlopt{-} \hlnum{1}\hlstd{,} \hlkwd{round}\hlstd{(nsamp} \hlopt{*} \hlstd{prob)))}
-  \hlstd{init} \hlkwb{<-} \hlnum{1}\hlopt{:}\hlstd{(nsamp} \hlopt{-} \hlstd{gap)}
-  \hlstd{inds} \hlkwb{<-} \hlkwd{apply}\hlstd{(vals[init} \hlopt{+} \hlstd{gap, ,} \hlkwc{drop} \hlstd{=} \hlnum{FALSE}\hlstd{]} \hlopt{-} \hlstd{vals[init,}
-                                                        \hlstd{,} \hlkwc{drop} \hlstd{=} \hlnum{FALSE}\hlstd{],} \hlnum{2}\hlstd{, which.min)}
-  \hlstd{(}\hlkwd{cbind}\hlstd{(vals[}\hlkwd{cbind}\hlstd{(inds,} \hlnum{1}\hlopt{:}\hlstd{npar)], vals[}\hlkwd{cbind}\hlstd{(inds} \hlopt{+}
-                                                 \hlstd{gap,} \hlnum{1}\hlopt{:}\hlstd{npar)]))}
-  \hlcom{#look into this and check about continuity of cdf, etc}
-\hlstd{\}}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 \subsection{Results}
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{all} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{H}\hlstd{,} \hlkwc{N}\hlstd{,} \hlkwc{n.samp}\hlstd{,} \hlkwc{interval}\hlstd{,}\hlkwc{alpha}\hlstd{)\{}
-  \hlstd{mu} \hlkwb{<-} \hlkwd{ifelse}\hlstd{(H}\hlopt{==}\hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlkwd{rnorm}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{1}\hlstd{))} \hlcom{### normally distributed mu}
-  \hlstd{Y} \hlkwb{<-} \hlkwd{rnorm}\hlstd{(N, mu,} \hlnum{1}\hlstd{)}
-  \hlstd{count}\hlkwb{=}\hlnum{0}
-  \hlkwa{while}\hlstd{(}\hlkwd{abs}\hlstd{(}\hlkwd{abs}\hlstd{(}\hlkwd{mean}\hlstd{(Y))}\hlopt{/}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N)}\hlopt{-}\hlkwd{qnorm}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{alpha}\hlopt{/}\hlnum{2}\hlstd{))}\hlopt{>}\hlstd{interval)\{} \hlcom{#if Z is not in (1.94, 1.98)}
-    \hlkwa{if}\hlstd{(count}\hlopt{>}\hlnum{1000}\hlstd{)\{} \hlcom{#had to add this bc it wouldn't run}
-      \hlkwd{return} \hlstd{(}\hlkwd{c}\hlstd{(H, mu ,} \hlkwd{mean}\hlstd{(Y),} \hlnum{NA}  \hlstd{,}
-                \hlnum{NA}  \hlstd{,} \hlnum{NA}  \hlstd{,}
-                \hlnum{NA} \hlstd{,} \hlnum{NA} \hlstd{,}
-                \hlnum{NA} \hlstd{,} \hlnum{NA} \hlstd{,} \hlnum{NA}\hlstd{,} \hlnum{NA}  \hlstd{,} \hlnum{NA}  \hlstd{,}
-                \hlnum{NA} \hlstd{,} \hlnum{NA}\hlstd{,} \hlnum{NA}\hlstd{,} \hlnum{NA} \hlstd{))}
-    \hlstd{\}}
 
-    \hlstd{Y} \hlkwb{<-} \hlkwd{rnorm}\hlstd{(N, mu,} \hlnum{1}\hlstd{)}
-    \hlstd{count}\hlkwb{<-} \hlstd{count}\hlopt{+}\hlnum{1}
-  \hlstd{\}}
-  \hlstd{post} \hlkwb{<-} \hlkwd{getposterior}\hlstd{(Y,  n.samp)}
-  \hlstd{alt.prob} \hlkwb{=} \hlstd{post}\hlopt{$}\hlstd{alt.prob}
-  \hlstd{cred} \hlkwb{<-} \hlkwd{HPD}\hlstd{(post}\hlopt{$}\hlstd{draws)}
-  \hlstd{cred.lower} \hlkwb{=} \hlstd{cred[}\hlnum{1}\hlstd{]}
-  \hlstd{cred.upper} \hlkwb{=} \hlstd{cred[}\hlnum{2}\hlstd{]}
-  \hlstd{bayes.cov} \hlkwb{=}  \hlstd{(cred.upper}\hlopt{>=}\hlstd{mu}\hlopt{&&}\hlstd{cred.lower}\hlopt{<=}\hlstd{mu)}
-
-  \hlstd{cond} \hlkwb{<-}\hlkwd{cond.posterior}\hlstd{(Y, n.samp)}
-  \hlstd{conf} \hlkwb{<-} \hlkwd{HPD}\hlstd{(cond)}
-  \hlstd{conf.lower} \hlkwb{=} \hlstd{conf[}\hlnum{1}\hlstd{]}
-  \hlstd{conf.upper} \hlkwb{=} \hlstd{conf[}\hlnum{2}\hlstd{]}
-
-  \hlstd{freq.cov} \hlkwb{=}  \hlstd{(conf.upper}\hlopt{>=}\hlstd{mu}\hlopt{&&}\hlstd{conf.lower}\hlopt{<=}\hlstd{mu)}
-  \hlstd{naive.cov} \hlkwb{<-} \hlkwd{mean}\hlstd{(Y)}\hlopt{+}\hlnum{1.96}\hlopt{*}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N)}\hlopt{>=}\hlstd{mu}\hlopt{&&}\hlkwd{mean}\hlstd{(Y)}\hlopt{-}\hlnum{1.96}\hlopt{*}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{N)}\hlopt{<=}\hlstd{mu}
-  \hlstd{expected.cov} \hlkwb{<-} \hlnum{.95}\hlopt{*}\hlstd{alt.prob}\hlopt{+}\hlstd{(conf.upper}\hlopt{>=}\hlnum{0}\hlopt{&&}\hlstd{conf.lower}\hlopt{<=}\hlnum{0}\hlstd{)}\hlopt{*}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{alt.prob)}
-
-
-  \hlstd{Bayes.est} \hlkwb{=} \hlkwd{mean}\hlstd{(post}\hlopt{$}\hlstd{draws)}
-  \hlstd{Bayes.median.est} \hlkwb{=} \hlkwd{median}\hlstd{(post}\hlopt{$}\hlstd{draws)}
-  \hlstd{Bayes.mode.est} \hlkwb{=} \hlkwd{as.numeric}\hlstd{(}\hlkwd{names}\hlstd{(}\hlkwd{sort}\hlstd{(}\hlopt{-}\hlkwd{table}\hlstd{(post}\hlopt{$}\hlstd{draws)))[}\hlnum{1}\hlstd{])}
-  \hlstd{cond.mean.est} \hlkwb{=} \hlkwd{mean}\hlstd{(cond)}
-  \hlstd{d} \hlkwb{<-} \hlkwd{density}\hlstd{(cond)}
-  \hlstd{cond.mode.est} \hlkwb{=} \hlstd{d}\hlopt{$}\hlstd{x[}\hlkwd{which.max}\hlstd{(d}\hlopt{$}\hlstd{y)]}
-
-  \hlstd{(}\hlkwd{c}\hlstd{(H, mu ,} \hlkwd{mean}\hlstd{(Y), alt.prob  ,}
-     \hlstd{cred.lower  , cred.upper  ,}
-     \hlstd{conf.lower , conf.upper ,}
-     \hlstd{bayes.cov , freq.cov , naive.cov, expected.cov,}
-     \hlstd{Bayes.est, Bayes.median.est,}
-     \hlstd{Bayes.mode.est,cond.mean.est,cond.mode.est))}
-
-\hlstd{\}}
-
-
-\hlstd{N}\hlkwb{=}\hlnum{100}\hlstd{; n.samp} \hlkwb{=} \hlnum{10000}\hlstd{; n.sim}\hlkwb{=}\hlnum{1000}\hlstd{; pi} \hlkwb{=} \hlnum{.5}
-
-\hlstd{results} \hlkwb{<-}\hlkwd{data.frame}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{apply}\hlstd{(}\hlkwd{matrix}\hlstd{(}\hlkwd{as.numeric}\hlstd{(}\hlkwd{runif}\hlstd{(n.sim)}\hlopt{<}\hlstd{pi)),}\hlnum{1}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{all}\hlstd{(x, N, n.samp,} \hlnum{.2}\hlstd{,} \hlnum{.05}\hlstd{))))}
-\hlkwd{colnames}\hlstd{(results)}\hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"H"}\hlstd{,} \hlstr{"mu"} \hlstd{,} \hlstr{"Ybar"}\hlstd{,} \hlstr{"alt.prob"} \hlstd{,}
-        \hlstr{"cred.lower"}  \hlstd{,} \hlstr{"cred.upper"}  \hlstd{,}
-        \hlstr{"conf.lower"} \hlstd{,} \hlstr{"conf.upper"} \hlstd{,}
-        \hlstr{"bayes.cov"} \hlstd{,} \hlstr{"freq.cov"} \hlstd{,}  \hlstr{"naive.cov"}\hlstd{,} \hlstr{"expected.cov"}\hlstd{,}
-        \hlstr{"Bayes.est"}\hlstd{,}\hlstr{"Bayes.median.est"}\hlstd{,}\hlstr{"Bayes.mode.est"}\hlstd{,}
-        \hlstr{"cond.mean.est"}\hlstd{,}\hlstr{"cond.mode.est"}\hlstd{)}
-\hlkwd{save}\hlstd{(results,} \hlkwc{file}\hlstd{=}\hlstr{"normalsim.RData"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 \subsubsection{Estimators}
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{load}\hlstd{(}\hlstr{"normalsim.RData"}\hlstd{)}
-\hlstd{results}\hlkwb{<-}\hlkwd{na.omit}\hlstd{(results)}
-\hlstd{estimators} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{Bayes.mean} \hlstd{=} \hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{Bayes.est}\hlopt{-}\hlstd{results}\hlopt{$}\hlstd{mu),}
-              \hlkwc{naive} \hlstd{=} \hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{Ybar}\hlopt{-}\hlstd{results}\hlopt{$}\hlstd{mu),}
-              \hlkwc{Bayes.median} \hlstd{=} \hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{Bayes.median.est}\hlopt{-}\hlstd{results}\hlopt{$}\hlstd{mu),}
-              \hlkwc{Bayes.mode} \hlstd{=} \hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{Bayes.mode.est}\hlopt{-}\hlstd{results}\hlopt{$}\hlstd{mu),}
-              \hlkwc{cond.mean} \hlstd{=} \hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{cond.mean.est}\hlopt{-}\hlstd{results}\hlopt{$}\hlstd{mu),}
-              \hlkwc{cond.mode} \hlstd{=} \hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{cond.mode.est}\hlopt{-}\hlstd{results}\hlopt{$}\hlstd{mu))}
-
-\hlstd{p}\hlkwb{<-} \hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{=} \hlkwd{melt}\hlstd{(estimators),} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=variable,} \hlkwc{y}\hlstd{=value))} \hlopt{+} \hlkwd{geom_boxplot}\hlstd{()}\hlopt{+}\hlkwd{labs}\hlstd{(}\hlkwc{x}\hlstd{=} \hlstr{"Estimator"}\hlstd{,} \hlkwc{y}\hlstd{=}\hlstr{"|Bias|"}\hlstd{,} \hlkwc{title}\hlstd{=} \hlstr{"Bias Distribution by Estimator"}\hlstd{)}\hlopt{+}\hlkwd{theme_minimal}\hlstd{()} \hlopt{+} \hlkwd{scale_colour_few}\hlstd{()}
-
-\hlkwd{kable}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwc{Bayes.mean} \hlstd{=} \hlkwd{sqrt}\hlstd{(}\hlkwd{sum}\hlstd{(estimators}\hlopt{$}\hlstd{Bayes.mean}\hlopt{^}\hlnum{2}\hlstd{)),} \hlkwc{Bayes.median}\hlstd{=} \hlkwd{sqrt}\hlstd{(}\hlkwd{sum}\hlstd{(estimators}\hlopt{$}\hlstd{Bayes.median}\hlopt{^}\hlnum{2}\hlstd{)),} \hlkwc{Bayes.mode} \hlstd{=} \hlkwd{sqrt}\hlstd{(}\hlkwd{sum}\hlstd{(estimators}\hlopt{$}\hlstd{Bayes.mode}\hlopt{^}\hlnum{2}\hlstd{)),}\hlkwc{cond.mean} \hlstd{=} \hlkwd{sqrt}\hlstd{(}\hlkwd{sum}\hlstd{(estimators}\hlopt{$}\hlstd{cond.mean}\hlopt{^}\hlnum{2}\hlstd{)),} \hlkwc{cond.mode} \hlstd{=} \hlkwd{sqrt}\hlstd{(}\hlkwd{sum}\hlstd{(estimators}\hlopt{$}\hlstd{cond.mode}\hlopt{^}\hlnum{2}\hlstd{)),} \hlkwc{naive}\hlstd{=} \hlkwd{sqrt}\hlstd{(}\hlkwd{sum}\hlstd{(estimators}\hlopt{$}\hlstd{naive}\hlopt{^}\hlnum{2}\hlstd{)))),} \hlkwc{caption} \hlstd{=} \hlstr{"RMSE of 100 simulations"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}\begin{table}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
 \caption{\label{tab:unnamed-chunk-11}RMSE of 100 simulations}
 \centering
@@ -644,13 +428,7 @@ The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error
 
 \subsubsection{Credible Intervals}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{p}\hlkwb{<-}\hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{= results)}\hlopt{+} \hlkwd{geom_point}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x} \hlstd{= conf.upper}\hlopt{-}\hlstd{conf.lower,} \hlkwc{y} \hlstd{= cred.upper}\hlopt{-}\hlstd{cred.lower,} \hlkwc{colour} \hlstd{=} \hlkwd{abs}\hlstd{(Ybar)))}\hlopt{+}\hlkwd{geom_abline}\hlstd{(}\hlkwc{intercept} \hlstd{=} \hlnum{0}\hlstd{,} \hlkwc{slope} \hlstd{=} \hlnum{1}\hlstd{)}\hlopt{+}\hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlnum{2}\hlopt{*}\hlnum{1.96}\hlopt{*}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlnum{100}\hlstd{))}\hlopt{+}\hlkwd{geom_vline}\hlstd{(}\hlkwc{xintercept}\hlstd{=}\hlnum{2}\hlopt{*}\hlnum{1.96}\hlopt{*}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlnum{100}\hlstd{))}\hlopt{+}\hlkwd{labs}\hlstd{(}\hlkwc{x}\hlstd{=}\hlstr{"Length of (Conditional) Confidence Interval"}\hlstd{,}\hlkwc{y}\hlstd{=}\hlstr{"Length of (Bayesian) Credible Interval"}\hlstd{,} \hlkwc{title}\hlstd{=}\hlstr{"Interval Size Comparison"}\hlstd{,}\hlkwc{color}\hlstd{=}\hlstr{"|Ybar|"}\hlstd{)}\hlopt{+}\hlkwd{theme_minimal}\hlstd{()}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+
 
 
 \begin{figure}
@@ -679,21 +457,7 @@ However, conditioning on the alternative hypothesis does not lead to an empirica
 
 We can see that both methods are still significantly better than the naive one.
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{results} \hlkwb{<-} \hlkwd{na.omit}\hlstd{(results)}
-\hlstd{b} \hlkwb{<-} \hlkwd{which}\hlstd{(results}\hlopt{$}\hlstd{H}\hlopt{==}\hlnum{0}\hlstd{)}
-\hlcom{# }
-\hlcom{# kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov),mean(results[-b,]$naive.cov)),}
-\hlcom{#         conditional = c(mean(results$freq.cov), mean(results[b,]$freq.cov), mean(results[-b,]$freq.cov)),}
-\hlcom{#         Bayesian = c(mean(results$bayes.cov), mean(results[b,]$bayes.cov), mean(results[-b,]$bayes.cov)))),}
-\hlcom{#       col.names = c("Unconditional Coverage","Coverage Conditional on H0", "Coverage Conditional on H1"),}
-\hlcom{#       row.names = TRUE,}
-\hlcom{#       caption = "Empirical Coverage for 95% Credible Intervals", digits=3)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+
 
 \subsubsection{Hypothesis Testing}
 
@@ -701,11 +465,7 @@ We can see that both methods are still significantly better than the naive one.
 Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95\% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(}\hlkwd{table}\hlstd{(results}\hlopt{$}\hlstd{H,}\hlkwd{abs}\hlstd{(results}\hlopt{$}\hlstd{Ybar)}\hlopt{/}\hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlnum{100}\hlstd{)}\hlopt{<}\hlkwd{qnorm}\hlstd{(}\hlnum{1}\hlopt{-}\hlnum{0.05}\hlopt{/}\hlnum{2}\hlstd{))}\hlopt{/}\hlkwd{dim}\hlstd{(results)[}\hlnum{1}\hlstd{],} \hlkwc{col.names} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"Do not reject null"}\hlstd{,} \hlstr{"Reject null"}\hlstd{),} \hlkwc{row.names} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{caption} \hlstd{=} \hlstr{"Naive method"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}\begin{table}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
 \caption{\label{tab:unnamed-chunk-16}Naive method}
 \centering
@@ -724,11 +484,7 @@ Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal post
 \end{knitrout}
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(}\hlkwd{table}\hlstd{(results}\hlopt{$}\hlstd{H,results}\hlopt{$}\hlstd{conf.upper}\hlopt{>=}\hlnum{0}\hlopt{&}\hlstd{results}\hlopt{$}\hlstd{conf.lower}\hlopt{<=}\hlnum{0}\hlstd{)}\hlopt{/}\hlkwd{dim}\hlstd{(results)[}\hlnum{1}\hlstd{],} \hlkwc{col.names} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"Do not reject null"}\hlstd{),} \hlkwc{row.names} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{caption} \hlstd{=} \hlstr{"Conditional Likelihood Method"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}\begin{table}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
 \caption{\label{tab:unnamed-chunk-17}Conditional Likelihood Method}
 \centering
@@ -747,11 +503,7 @@ Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal post
 \end{knitrout}
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(}\hlkwd{table}\hlstd{(results}\hlopt{$}\hlstd{H,results}\hlopt{$}\hlstd{cred.upper}\hlopt{>=}\hlnum{0}\hlopt{&}\hlstd{results}\hlopt{$}\hlstd{cred.lower}\hlopt{<=}\hlnum{0}\hlstd{)}\hlopt{/}\hlkwd{dim}\hlstd{(results)[}\hlnum{1}\hlstd{],} \hlkwc{col.names} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"Do not reject null"}\hlstd{),} \hlkwc{row.names} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{caption} \hlstd{=} \hlstr{"Bayesian Mixture Model"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}\begin{table}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
 \caption{\label{tab:unnamed-chunk-18}Bayesian Mixture Model}
 \centering
@@ -775,133 +527,22 @@ Despite never rejecting the null, the conditional likelihood and the Bayesian me
 
 ---------
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{knitr}\hlopt{::}\hlstd{opts_chunk}\hlopt{$}\hlkwd{set}\hlstd{(}\hlkwc{eval}\hlstd{=}\hlnum{FALSE}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{load}\hlstd{(}\hlstr{"p53sim_processeddata.RData"}\hlstd{)}
-\hlstd{mu}\hlkwb{=}\hlnum{0.203}\hlstd{;sd}\hlkwb{=} \hlnum{0.05831085} \hlcom{#from glmer estimates using all data and one snp-------redo this}
-\hlstd{assoc}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{)}
-\hlstd{muvec}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,mu,mu,mu,mu)}
-\hlstd{sdvec}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{.5}\hlopt{*}\hlstd{sd,sd,}\hlnum{2}\hlopt{*}\hlstd{sd,}\hlnum{4}\hlopt{*}\hlstd{sd)}
-\hlstd{I} \hlkwb{=} \hlnum{100}
-\hlstd{pvals}\hlkwb{=}\hlkwd{c}\hlstd{(}\hlnum{.05}\hlstd{,}\hlnum{.01}\hlstd{,}\hlnum{.005}\hlstd{,}\hlnum{.001}\hlstd{,} \hlnum{1e-7}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
 
 This simulation study aims to deal with the second goal specified in the introduction. After an effect has been discovered, how can data from replication studies be combined with the original? In this scenario, we must account for the heterogeneity between sites; neglecting the uncertainty that comes from replication studies would lead to erroneously confident estimates of significance and effect size.
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{get.cond.likelihood.data}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{data}\hlstd{,} \hlkwc{p} \hlstd{=} \hlnum{0.00325}\hlstd{)\{}
-  \hlstd{freq} \hlkwb{=} \hlkwd{glm}\hlstd{(CaseCon} \hlopt{~} \hlkwd{factor}\hlstd{(site),} \hlkwc{data}\hlstd{=data,}\hlkwc{family}\hlstd{=binomial,} \hlkwc{x}\hlstd{=T)}
-  \hlcom{#get "discovery" with smallest p value (that is significant)}
-  \hlstd{coefs} \hlkwb{=} \hlkwd{coef}\hlstd{(}\hlkwd{summary}\hlstd{(freq))}
-  \hlstd{discovery.site} \hlkwb{=} \hlkwd{which.min}\hlstd{(coefs[,}\hlnum{4}\hlstd{])}
-  \hlkwa{if}\hlstd{(coefs[discovery.site,}\hlnum{4}\hlstd{]}\hlopt{>}\hlstd{p)\{}
-    \hlkwd{return}\hlstd{(}\hlkwa{NULL}\hlstd{)}
-  \hlstd{\}}
 
-  \hlstd{MLE} \hlkwb{=} \hlstd{coefs[discovery.site,}\hlnum{1}\hlstd{]}
-  \hlstd{SE} \hlkwb{=} \hlstd{coefs[discovery.site,}\hlnum{2}\hlstd{]}
-  \hlstd{p.value} \hlkwb{=} \hlstd{coefs[discovery.site,}\hlnum{4}\hlstd{]}
-  \hlcom{#make new data for model}
-  \hlstd{exclude} \hlkwb{<-} \hlkwd{which}\hlstd{(data}\hlopt{$}\hlstd{site}\hlopt{==}\hlstd{discovery.site)}
-  \hlstd{newdata} \hlkwb{=} \hlkwd{list}\hlstd{(}\hlkwc{MLE}\hlstd{=MLE,} \hlkwc{SE}\hlstd{=SE,} \hlkwc{n.discovery}\hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{zeroes}\hlstd{=} \hlnum{0}\hlstd{,}
-                 \hlkwc{discovery.sites}\hlstd{=discovery.site,}
-                 \hlkwc{CaseCon}\hlstd{= data}\hlopt{$}\hlstd{CaseCon[}\hlopt{-}\hlstd{exclude],}
-                 \hlkwc{site}\hlstd{= data}\hlopt{$}\hlstd{site[}\hlopt{-}\hlstd{exclude],} \hlkwc{n.sites} \hlstd{= data}\hlopt{$}\hlstd{n.sites,}
-                 \hlkwc{q}\hlstd{=}\hlkwd{qnorm}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{p}\hlopt{/}\hlnum{2}\hlstd{),}
-                 \hlkwc{p} \hlstd{= coefs[discovery.site,}\hlnum{4}\hlstd{])}
-  \hlstd{newdata}\hlopt{$}\hlstd{J}\hlkwb{<-} \hlkwd{length}\hlstd{(newdata}\hlopt{$}\hlstd{CaseCon)}
-  \hlkwd{return}\hlstd{(newdata)}
-
-\hlstd{\}}
-
-
-\hlstd{sample}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{assoc}\hlstd{,} \hlkwc{mu}\hlstd{,} \hlkwc{sd}\hlstd{,} \hlkwc{n.sites}\hlstd{=}\hlnum{7}\hlstd{,}\hlkwc{observations} \hlstd{=} \hlnum{1000}\hlstd{)\{}
-  \hlcom{#assoc is H}
-  \hlstd{beta.p53} \hlkwb{=} \hlkwd{rnorm}\hlstd{(n.sites,mu,sd)}\hlopt{*}\hlstd{assoc}
-  \hlstd{Y} \hlkwb{<-}\hlstd{site} \hlkwb{<-} \hlkwd{rep}\hlstd{(}\hlnum{NA}\hlstd{, observations}\hlopt{*}\hlstd{n.sites)}
-  \hlkwa{for}\hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{n.sites)\{}
-    \hlstd{Y[((i}\hlopt{-}\hlnum{1}\hlstd{)}\hlopt{*}\hlstd{observations}\hlopt{+}\hlnum{1}\hlstd{)}\hlopt{:}\hlstd{(i}\hlopt{*}\hlstd{observations)]}\hlkwb{<-}\hlkwd{rbinom}\hlstd{(observations,} \hlnum{1}\hlstd{,} \hlkwd{exp}\hlstd{(beta.p53[i])}\hlopt{/}\hlstd{(}\hlnum{1}\hlopt{+}\hlkwd{exp}\hlstd{(beta.p53[i])))}
-    \hlstd{site[((i}\hlopt{-}\hlnum{1}\hlstd{)}\hlopt{*}\hlstd{observations}\hlopt{+}\hlnum{1}\hlstd{)}\hlopt{:}\hlstd{(i}\hlopt{*}\hlstd{observations)]}\hlkwb{<-} \hlkwd{rep}\hlstd{(i, observations)}
-  \hlstd{\}}
-  \hlkwd{return}\hlstd{(}\hlkwd{list}\hlstd{(}\hlkwc{beta.p53}\hlstd{=beta.p53,} \hlkwc{simdata} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{CaseCon}\hlstd{=Y,} \hlkwc{site}\hlstd{=site,}  \hlkwc{J}\hlstd{=n.sites}\hlopt{*}\hlstd{observations ,}\hlkwc{n.sites}\hlstd{=n.sites,} \hlkwc{one}\hlstd{=}\hlnum{1}\hlstd{)))}
-\hlstd{\}}
-
-\hlstd{run.all}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{assoc}\hlstd{,}\hlkwc{mu}\hlstd{,} \hlkwc{sd}\hlstd{,} \hlkwc{inits}\hlstd{,}\hlkwc{n.sites}\hlstd{)\{}
-  \hlstd{cond.data} \hlkwb{=} \hlkwa{NULL}\hlstd{;count}\hlkwb{=}\hlnum{0}
-  \hlkwa{while}\hlstd{(}\hlkwd{is.null}\hlstd{(cond.data)} \hlopt{&} \hlstd{count}\hlopt{<}\hlnum{1000}\hlstd{)\{}
-    \hlstd{data} \hlkwb{<-} \hlkwd{sample}\hlstd{(assoc, mu, sd,n.sites)}
-    \hlstd{cond.data}\hlkwb{<-}\hlkwd{get.cond.likelihood.data}\hlstd{(data}\hlopt{$}\hlstd{simdata)}
-    \hlstd{count}\hlkwb{=}\hlstd{count}\hlopt{+}\hlnum{1}
-  \hlstd{\}}
-  \hlcom{#run jags}
-  \hlstd{latent.cauchy} \hlkwb{<-} \hlkwd{jags}\hlstd{(}\hlkwc{data}\hlstd{=data}\hlopt{$}\hlstd{simdata,} \hlkwc{inits}\hlstd{=inits,}
-                        \hlkwc{parameters.to.save} \hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"pind"}\hlstd{,} \hlstr{"mu.p53"}\hlstd{,} \hlstr{"sigma.p53"}\hlstd{,}\hlstr{"mu.p53.notzero"}\hlstd{),}
-                        \hlkwc{model} \hlstd{= latent.cauchy.model)}
-  \hlstd{cond.likelihood}\hlkwb{<-}\hlkwa{NULL}
-  \hlkwa{if}\hlstd{(}\hlopt{!}\hlkwd{is.null}\hlstd{(cond.data))\{}
-    \hlstd{cond.likelihood}\hlkwb{<-} \hlkwd{jags}\hlstd{(}\hlkwc{data}\hlstd{=cond.data ,}\hlkwc{inits}\hlstd{=inits,}
-                           \hlkwc{parameters.to.save} \hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"mu.p53"}\hlstd{,} \hlstr{"sigma.p53"}\hlstd{),}
-                           \hlkwc{model} \hlstd{= cond.likelihood.re.model)}
-    \hlstd{bf.approx}\hlkwb{<-} \hlkwd{jags}\hlstd{(}\hlkwc{data}\hlstd{=cond.data,} \hlkwc{inits}\hlstd{=inits,}
-                     \hlkwc{parameters.to.save} \hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"pind"}\hlstd{,}\hlstr{"mu.p53"}\hlstd{,} \hlstr{"sigma.p53"}\hlstd{,}\hlstr{"mu.p53.notzero"}\hlstd{),}
-                     \hlkwc{model} \hlstd{= bf.model)}
-  \hlstd{\}}
-  \hlstd{original}\hlkwb{<-} \hlkwd{jags}\hlstd{(}\hlkwc{data}\hlstd{=data}\hlopt{$}\hlstd{simdata,} \hlkwc{inits}\hlstd{=inits,}
-                  \hlkwc{parameters.to.save} \hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"mu.p53"}\hlstd{,} \hlstr{"sigma.p53"}\hlstd{),}
-                  \hlkwc{model} \hlstd{= original.model)}
-
-  \hlkwd{return}\hlstd{(}\hlkwd{list}\hlstd{(}\hlkwc{latent.cauchy} \hlstd{= latent.cauchy,}
-              \hlkwc{cond.likelihood} \hlstd{= cond.likelihood,}
-              \hlkwc{bf}\hlstd{=bf.approx,}
-              \hlkwc{original}\hlstd{= original,}
-              \hlkwc{beta.p53} \hlstd{= data}\hlopt{$}\hlstd{beta.p53))}
-\hlstd{\}}
-
-\hlstd{run.cl.better}\hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{assoc}\hlstd{,}\hlkwc{mu}\hlstd{,} \hlkwc{sd}\hlstd{,} \hlkwc{inits}\hlstd{,} \hlkwc{pvals}\hlstd{)\{} \hlcom{#slower but will use the same data so hopefully better}
-  \hlstd{cond.data} \hlkwb{=} \hlkwa{NULL}\hlstd{;count}\hlkwb{=}\hlnum{0}
-  \hlkwa{while}\hlstd{(}\hlkwd{is.null}\hlstd{(cond.data)} \hlopt{&} \hlstd{count}\hlopt{<}\hlnum{1000}\hlstd{)\{}
-    \hlstd{data} \hlkwb{<-} \hlkwd{sample}\hlstd{(assoc, mu, sd)}
-    \hlstd{cond.data}\hlkwb{<-}\hlkwd{get.cond.likelihood.data}\hlstd{(data}\hlopt{$}\hlstd{simdata,} \hlkwd{min}\hlstd{(pvals))}
-    \hlstd{count}\hlkwb{=}\hlstd{count}\hlopt{+}\hlnum{1}
-  \hlstd{\}}
-  \hlkwa{if}\hlstd{(}\hlopt{!}\hlkwd{is.null}\hlstd{(cond.data))\{}
-    \hlstd{cond.likelihood}\hlkwb{<-} \hlkwd{lapply}\hlstd{(pvals,} \hlkwa{function}\hlstd{(}\hlkwc{p}\hlstd{)\{}
-      \hlstd{cond.data}\hlopt{$}\hlstd{q}\hlkwb{<-}\hlkwd{qnorm}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{p}\hlopt{/}\hlnum{2}\hlstd{)}
-      \hlkwd{return}\hlstd{(}\hlkwd{jags}\hlstd{(}\hlkwc{data}\hlstd{=cond.data ,}\hlkwc{inits}\hlstd{=inits,}
-                  \hlkwc{parameters.to.save} \hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"mu.p53"}\hlstd{,} \hlstr{"sigma.p53"}\hlstd{),}
-                  \hlcom{#rerun also with random effect?}
-                  \hlkwc{model} \hlstd{= cond.likelihood.re.model))}
-    \hlstd{\})}
-  \hlstd{\}}
-  \hlkwd{return}\hlstd{(cond.likelihood)}
-\hlstd{\}}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 \subsection{Data Generation}
 
 The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the models section: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim \textsf{N}(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. 
 
-To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =-0.2, -0.19, -0.18, -0.17, -0.16, -0.15, -0.14, -0.13, -0.12, -0.11, -0.1, -0.09, -0.08, -0.07, -0.06, -0.05, -0.04, -0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.51, 0.52, 0.53, 0.54, 0.55, 0.56, 0.57, 0.58, 0.59, 0.6, 0.61, 0.62, 0.63, 0.64, 0.65, 0.66, 0.67, 0.68, 0.69, 0.7, 0.71, 0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78, 0.79, 0.8, 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1, 1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1, 1.11, 1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.2, 1.21, 1.22, 1.23, 1.24, 1.25, \sigma^2 = $. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of  simulated datasets was created each time.
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =0.203, \sigma^2 = 0.003$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of 100 simulated datasets was created each time.
 
 
- datasets were also simulated under the null hypothesis. They were fit with the models described previously. 
+100 datasets were also simulated under the null hypothesis. They were fit with the models described previously. 
 
 \subsubsection{Finding "Discovery" Sites}
 
@@ -909,137 +550,13 @@ In this simulation study, a logistic regression with fixed effects for sites was
 
 \subsection{Results}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{cl} \hlkwb{=} \hlkwd{makeCluster}\hlstd{(}\hlnum{8}\hlstd{)}
-\hlkwd{registerDoParallel}\hlstd{(cl)}
-
-\hlkwd{system.time}\hlstd{(\{}
-  \hlstd{allsim}\hlkwb{<-} \hlkwd{foreach}\hlstd{(}\hlkwc{j} \hlstd{=} \hlnum{1}\hlopt{:}\hlnum{5}\hlstd{)} \hlopt{%:%}
-    \hlkwd{foreach} \hlstd{(} \hlkwc{i} \hlstd{=} \hlnum{1}\hlopt{:}\hlstd{I,} \hlkwc{.inorder}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{.packages} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"R2jags"}\hlstd{))}  \hlopt{%dopar%} \hlstd{\{}
-      \hlkwd{return}\hlstd{(}\hlkwd{run.all}\hlstd{(assoc[j],muvec[j],sdvec[j],} \hlkwa{NULL}\hlstd{,} \hlnum{7}\hlstd{))}
-    \hlstd{\}}
-\hlstd{\})}
-\hlkwd{save.image}\hlstd{()}
 
 
-\hlstd{cl} \hlkwb{=} \hlkwd{makeCluster}\hlstd{(}\hlnum{8}\hlstd{)}
-\hlkwd{registerDoParallel}\hlstd{(cl)}
-\hlkwd{system.time}\hlstd{(\{}
-  \hlstd{cl.sim.better.1}\hlkwb{<-}
-    \hlkwd{foreach} \hlstd{(} \hlkwc{i} \hlstd{=} \hlnum{1}\hlopt{:}\hlstd{I,} \hlkwc{.inorder}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{.packages} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"R2jags"}\hlstd{))}  \hlopt{%dopar%} \hlstd{\{}
-      \hlkwd{return}\hlstd{(}\hlkwd{run.cl.better}\hlstd{(}\hlnum{1}\hlstd{,mu,sd,} \hlkwa{NULL}\hlstd{,pvals))}
-    \hlstd{\}}
-\hlstd{\})}
-\hlkwd{save.image}\hlstd{()}
-
-\hlstd{cl} \hlkwb{=} \hlkwd{makeCluster}\hlstd{(}\hlnum{8}\hlstd{)}
-\hlkwd{registerDoParallel}\hlstd{(cl)}
-\hlkwd{system.time}\hlstd{(\{}
-  \hlstd{cl.sim.better.4}\hlkwb{<-}
-    \hlkwd{foreach} \hlstd{(} \hlkwc{i} \hlstd{=} \hlnum{1}\hlopt{:}\hlstd{I,} \hlkwc{.inorder}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{.packages} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"R2jags"}\hlstd{))}  \hlopt{%dopar%} \hlstd{\{}
-      \hlkwd{return}\hlstd{(}\hlkwd{run.cl.better}\hlstd{(}\hlnum{1}\hlstd{,mu,sd}\hlopt{*}\hlnum{4}\hlstd{,} \hlkwa{NULL}\hlstd{,pvals))}
-    \hlstd{\}}
-\hlstd{\})}
-\hlkwd{save.image}\hlstd{()}
-
-\hlstd{cl} \hlkwb{=} \hlkwd{makeCluster}\hlstd{(}\hlnum{8}\hlstd{)}
-\hlkwd{registerDoParallel}\hlstd{(cl)}
-\hlkwd{system.time}\hlstd{(\{}
-  \hlstd{cl.sim.better.0}\hlkwb{<-}
-    \hlkwd{foreach} \hlstd{(} \hlkwc{i} \hlstd{=} \hlnum{1}\hlopt{:}\hlstd{I,} \hlkwc{.inorder}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{.packages} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"R2jags"}\hlstd{))}  \hlopt{%dopar%} \hlstd{\{}
-      \hlkwd{return}\hlstd{(}\hlkwd{run.cl.better}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,sd,} \hlkwa{NULL}\hlstd{,pvals[}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{]))}
-    \hlstd{\}}
-\hlstd{\})}
-\hlkwd{save.image}\hlstd{()}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{getstatsitems}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"hasmu"}\hlstd{,}\hlstr{"haszero"}\hlstd{,}\hlstr{"mean"}\hlstd{,}\hlstr{"median"}\hlstd{,}
-                 \hlstr{"ismultimodal"}\hlstd{,} \hlstr{"intervallength"}\hlstd{,}\hlstr{"probneqzero"}\hlstd{,}
-                 \hlstr{"hassd"}\hlstd{,}\hlstr{"sdmean"}\hlstd{,}\hlstr{"sdmedian"}\hlstd{,}\hlstr{"sdintlen"}\hlstd{,}
-                 \hlstr{"haspind"}\hlstd{,}\hlstr{"pindmean"}\hlstd{,}\hlstr{"pindmedian"}\hlstd{,}\hlstr{"pindg.5"}\hlstd{)}
-
-\hlstd{modelnames}\hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"Bayesian"}\hlstd{,}
-               \hlstr{"Cond Likelihood"}\hlstd{,}\hlstr{"BF Approx"}\hlstd{,} \hlstr{"Original"}\hlstd{)}
-
-\hlstd{getstatsloop}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{simlist}\hlstd{,}\hlkwc{mu}\hlstd{,}\hlkwc{sd}\hlstd{,}\hlkwc{modelnames}\hlstd{)\{}
-  \hlstd{I}\hlkwb{<-}\hlkwd{length}\hlstd{(simlist)}
-  \hlstd{vec}\hlkwb{<-}\hlkwd{sapply}\hlstd{(simlist,} \hlkwa{function}\hlstd{(}\hlkwc{outputlist}\hlstd{)} \hlkwd{sapply}\hlstd{(outputlist[}\hlopt{-}\hlkwd{length}\hlstd{(outputlist)],getstats,mu,sd))}
-  \hlkwd{return}\hlstd{(}\hlkwd{array}\hlstd{(}\hlkwc{data}\hlstd{=vec,}\hlkwc{dim}\hlstd{=} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(getstatsitems),}\hlkwd{length}\hlstd{(modelnames),I),} \hlkwc{dimnames}\hlstd{=}\hlkwd{list}\hlstd{(getstatsitems,modelnames,}\hlkwd{seq}\hlstd{(}\hlnum{1}\hlopt{:}\hlstd{I))))}
-\hlstd{\}}
-
-\hlstd{getstats}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{jagsoutput}\hlstd{,} \hlkwc{mu}\hlstd{,} \hlkwc{sd}\hlstd{)\{}
-  \hlstd{mu.samples}\hlkwb{<-} \hlstd{jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{mu.p53}
-  \hlkwa{if}\hlstd{(}\hlopt{!}\hlkwd{is.null}\hlstd{(jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{mu.p53.notzero))\{}
-    \hlstd{mu.samples}\hlkwb{<-}\hlstd{mu.samples}\hlopt{*}\hlstd{jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{mu.p53.notzero}
-  \hlstd{\}}
-  \hlstd{cred}\hlkwb{<-}\hlkwd{HPDM}\hlstd{(mu.samples)}
-  \hlstd{upper}\hlkwb{<-} \hlstd{cred[}\hlnum{2}\hlstd{]}
-  \hlstd{lower}\hlkwb{<-} \hlstd{cred[}\hlnum{1}\hlstd{]}
-  \hlkwa{if}\hlstd{(}\hlkwd{length}\hlstd{(cred)}\hlopt{>}\hlnum{2}\hlstd{)\{}
-    \hlcom{#assume 2 modes max}
-    \hlstd{upper} \hlkwb{<-} \hlkwd{c}\hlstd{(upper,cred[}\hlnum{4}\hlstd{])}
-    \hlstd{lower} \hlkwb{<-} \hlkwd{c}\hlstd{(lower,cred[}\hlnum{3}\hlstd{])}
-  \hlstd{\}}
-  \hlstd{sd.samples}\hlkwb{<-}\hlstd{sd.cred}\hlkwb{<-}\hlnum{NA}
-  \hlkwa{if}\hlstd{(}\hlopt{!}\hlkwd{is.null}\hlstd{(jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{sigma.p53))\{}
-    \hlstd{sd.samples} \hlkwb{<-} \hlstd{(jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{sigma.p53)}
-    \hlstd{sd.cred}\hlkwb{<-} \hlkwd{HPDM}\hlstd{(sd.samples)}
-  \hlstd{\}}
-
-  \hlstd{pind.samples}\hlkwb{<-}\hlstd{pind.cred}\hlkwb{<-}\hlnum{NA}
-  \hlkwa{if}\hlstd{(}\hlopt{!}\hlkwd{is.null}\hlstd{(jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{pind))\{}
-    \hlstd{pind.samples}\hlkwb{<-} \hlstd{jagsoutput}\hlopt{$}\hlstd{BUGSoutput}\hlopt{$}\hlstd{sims.list}\hlopt{$}\hlstd{pind}
-    \hlcom{# pind.cred<- HPDM(pind.samples)}
-  \hlstd{\}}
-  \hlkwd{return}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwc{hasmu} \hlstd{=} \hlkwd{any}\hlstd{(upper}\hlopt{>=}\hlstd{mu}\hlopt{&}\hlstd{lower}\hlopt{<=}\hlstd{mu),}
-           \hlkwc{haszero} \hlstd{=} \hlkwd{any}\hlstd{(upper}\hlopt{>=}\hlnum{0}\hlopt{&}\hlstd{lower}\hlopt{<=}\hlnum{0}\hlstd{),}
-           \hlkwc{mean} \hlstd{=} \hlkwd{mean}\hlstd{(mu.samples),}
-           \hlkwc{median} \hlstd{=} \hlkwd{median}\hlstd{(mu.samples),}
-           \hlkwc{ismultimodal}\hlstd{=}\hlkwd{length}\hlstd{(cred)}\hlopt{>}\hlnum{2}\hlstd{,}
-           \hlkwc{intervallength} \hlstd{=} \hlkwd{sum}\hlstd{(upper}\hlopt{-}\hlstd{lower),}
-           \hlkwc{probneqzero} \hlstd{=} \hlkwd{sum}\hlstd{(mu.samples}\hlopt{!=}\hlnum{0}\hlstd{)}\hlopt{/}\hlkwd{length}\hlstd{(mu.samples),}
-           \hlkwc{hassd}\hlstd{= sd.cred[}\hlnum{2}\hlstd{]}\hlopt{>=}\hlstd{sd}\hlopt{&}\hlstd{sd.cred[}\hlnum{1}\hlstd{]}\hlopt{<=}\hlstd{sd,}
-           \hlkwc{sdmean}\hlstd{=} \hlkwd{mean}\hlstd{(sd.samples),}
-           \hlkwc{sdmedian}\hlstd{=} \hlkwd{median}\hlstd{(sd.samples),}
-           \hlkwc{sdintlen}\hlstd{=sd.cred[}\hlnum{2}\hlstd{]}\hlopt{-}\hlstd{sd.cred[}\hlnum{1}\hlstd{],}
-           \hlkwc{haspind}\hlstd{=pind.cred[}\hlnum{2}\hlstd{]}\hlopt{>=}\hlnum{0}\hlopt{&}\hlstd{pind.cred[}\hlnum{1}\hlstd{]}\hlopt{<=}\hlnum{1}\hlstd{,}
-           \hlkwc{pindmean} \hlstd{=}\hlkwd{mean}\hlstd{(pind.samples),}
-           \hlkwc{pindmedian}\hlstd{=}\hlkwd{median}\hlstd{(pind.samples),}
-           \hlcom{# pindintlen=pind.cred[2]-pind.cred[1]}
-           \hlkwc{pindgreater.5}\hlstd{=}\hlkwd{mean}\hlstd{(pind.samples}\hlopt{>}\hlnum{.5}\hlstd{)}
-
-  \hlstd{))}
-\hlstd{\}}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{sim.0}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(allsim[[}\hlnum{1}\hlstd{]],}\hlnum{0}\hlstd{,} \hlnum{1}\hlstd{,modelnames)}
-\hlstd{sim.half}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(allsim[[}\hlnum{2}\hlstd{]],mu, sd}\hlopt{*}\hlnum{.5}\hlstd{,modelnames)}
-\hlstd{sim.1}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(allsim[[}\hlnum{3}\hlstd{]],mu, sd, modelnames)}
-\hlstd{sim.2}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(allsim[[}\hlnum{4}\hlstd{]],mu,sd}\hlopt{*}\hlnum{2}\hlstd{,modelnames)}
-\hlstd{sim.4}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(allsim[[}\hlnum{5}\hlstd{]],mu,sd}\hlopt{*}\hlnum{4}\hlstd{,modelnames)}
 
-\hlstd{sim.cl.stats.better1}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(cl.sim.better.1,mu,sd, pvals)}
-\hlstd{sim.cl.stats.better4}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(cl.sim.better.4,mu,sd, pvals)}
-\hlstd{sim.cl.stats.better0}\hlkwb{<-}\hlkwd{getstatsloop}\hlstd{(cl.sim.better.0 ,}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{, pvals)}
-
-\hlkwd{save}\hlstd{(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better4,sim.cl.stats.better0,} \hlkwc{file} \hlstd{=} \hlstr{"p53sim_processeddata.RData"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 \subsubsection{RMSE of $\mu$}
 
@@ -1048,81 +565,39 @@ As expected, the models performed more poorly as $\sigma$ increased. Out of the 
 
 At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{df1}\hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.0[}\hlnum{4}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{0}\hlstd{)}
-\hlstd{simslist}\hlkwb{<-}\hlkwd{list}\hlstd{(sim.half,sim.1,sim.2,sim.4)}
-\hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlnum{4}\hlstd{)\{}
-  \hlstd{df1}\hlkwb{<-}\hlkwd{rbind}\hlstd{(df1,}\hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(simslist[[i]][}\hlnum{4}\hlstd{,,]}\hlopt{-}\hlstd{mu)))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=i))}
-\hlstd{\}}
-\hlstd{mseplot} \hlkwb{=} \hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{= (df1),} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{factor}\hlstd{(simulation,} \hlkwc{labels}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)),} \hlkwc{y}\hlstd{=value))} \hlopt{+}
-  \hlkwd{geom_boxplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{color}\hlstd{=Var2))}\hlopt{+}  \hlkwd{theme_minimal}\hlstd{()} \hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(sigma}\hlopt{^}\hlnum{2}\hlstd{,} \hlstr{" used in simulation"}\hlstd{)),}\hlkwc{y}\hlstd{=}\hlstr{"Absolute Error"}\hlstd{,} \hlkwc{title}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Absolute Error of Simulation "}\hlstd{,mu )))}\hlopt{+}
-  \hlkwd{scale_colour_few}\hlstd{(}\hlkwc{name}\hlstd{=}\hlstr{"Model"}\hlstd{)} \hlopt{+}  \hlkwd{theme}\hlstd{(} \hlkwc{legend.justification}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{legend.position}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{))}
 
-
-\hlstd{rmse}\hlkwb{<-} \hlkwd{cbind}\hlstd{(}\hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim.0[}\hlnum{4}\hlstd{,x,])}\hlopt{^}\hlnum{2}\hlstd{))),}
-             \hlkwd{sapply}\hlstd{(simslist,} \hlkwa{function}\hlstd{(}\hlkwc{sim}\hlstd{)}
-               \hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim[}\hlnum{4}\hlstd{,x,]}\hlopt{-}\hlstd{mu)}\hlopt{^}\hlnum{2}\hlstd{)))))}
-\hlkwd{rownames}\hlstd{(rmse)}\hlkwb{<-}\hlstd{modelnames}
-\hlkwd{colnames}\hlstd{(rmse)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"mu=0"}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)}
-
-
-\hlstd{pindmed}\hlkwb{<-} \hlkwd{cbind}\hlstd{(}\hlkwd{sapply}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim.0[}\hlnum{14}\hlstd{,x,])}\hlopt{^}\hlnum{2}\hlstd{))),}
-                \hlkwd{sapply}\hlstd{(simslist,} \hlkwa{function}\hlstd{(}\hlkwc{sim}\hlstd{)}
-                  \hlkwd{sapply}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim[}\hlnum{14}\hlstd{,x,])}\hlopt{^}\hlnum{2}\hlstd{)))))}
-\hlkwd{rownames}\hlstd{(pindmed)}\hlkwb{<-}\hlstd{modelnames[}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{)]}
-\hlkwd{colnames}\hlstd{(pindmed)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"mu=0"}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)}
-
-\hlstd{zeromu}\hlkwb{<-} \hlkwd{cbind}\hlstd{(}\hlkwd{sapply}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim.0[}\hlnum{7}\hlstd{,x,])}\hlopt{^}\hlnum{2}\hlstd{))),}
-               \hlkwd{sapply}\hlstd{(simslist,} \hlkwa{function}\hlstd{(}\hlkwc{sim}\hlstd{)}
-                 \hlkwd{sapply}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim[}\hlnum{7}\hlstd{,x,])}\hlopt{^}\hlnum{2}\hlstd{)))))}
-\hlkwd{rownames}\hlstd{(zeromu)}\hlkwb{<-}\hlstd{modelnames[}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{)]}
-\hlkwd{colnames}\hlstd{(zeromu)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"mu=0"}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)}
-
-
-\hlstd{df}\hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.0[}\hlnum{6}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{0}\hlstd{)}
-\hlstd{simslist}\hlkwb{<-}\hlkwd{list}\hlstd{(sim.half,sim.1,sim.2,sim.4)}
-\hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlnum{4}\hlstd{)\{}
-  \hlstd{df}\hlkwb{<-}\hlkwd{rbind}\hlstd{(df,}\hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(simslist[[i]][}\hlnum{6}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=i))}
-\hlstd{\}}
-
-\hlstd{intlenplot} \hlkwb{=} \hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{= (df),} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{factor}\hlstd{(simulation,} \hlkwc{labels}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)),} \hlkwc{y}\hlstd{=value))} \hlopt{+}
-  \hlkwd{geom_boxplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{color}\hlstd{=Var2))}\hlopt{+}  \hlkwd{theme_minimal}\hlstd{()} \hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(sigma}\hlopt{^}\hlnum{2}\hlstd{,} \hlstr{" used in simulation"}\hlstd{)),}\hlkwc{y}\hlstd{=}\hlstr{"Credible Interval Length"}\hlstd{,} \hlkwc{title}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Credible Intervals of Simulation "}\hlstd{,mu )))}\hlopt{+}
-  \hlkwd{scale_colour_few}\hlstd{(}\hlkwc{name}\hlstd{=}\hlstr{"Model"}\hlstd{)} \hlopt{+}  \hlkwd{theme}\hlstd{(} \hlkwc{legend.justification}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{legend.position}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{))}
-
-
-
-
-\hlstd{hasm}\hlkwb{<-}  \hlkwd{cbind}\hlstd{(}\hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{mean}\hlstd{(sim.0[}\hlnum{1}\hlstd{,x,])),}
-              \hlkwd{sapply}\hlstd{(simslist,} \hlkwa{function}\hlstd{(}\hlkwc{sim}\hlstd{)}
-  \hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{mean}\hlstd{(sim[}\hlnum{1}\hlstd{,x,]))))}
-\hlkwd{rownames}\hlstd{(hasm)}\hlkwb{<-}\hlstd{modelnames}
-\hlkwd{colnames}\hlstd{(hasm)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"mu=0"}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)}
-
-\hlstd{has0}\hlkwb{<-}  \hlkwd{cbind}\hlstd{(}\hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{mean}\hlstd{(sim.0[}\hlnum{1}\hlstd{,x,])),}
-              \hlkwd{sapply}\hlstd{(simslist,} \hlkwa{function}\hlstd{(}\hlkwc{sim}\hlstd{)}
-  \hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{mean}\hlstd{(sim[}\hlnum{2}\hlstd{,x,]))))}
-\hlkwd{rownames}\hlstd{(has0)}\hlkwb{<-}\hlstd{modelnames}
-\hlkwd{colnames}\hlstd{(has0)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"mu=0"}\hlstd{,}\hlstr{"s/2"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"2s"}\hlstd{,} \hlstr{"4s"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
 
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(rmse,} \hlkwc{caption}\hlstd{=}\hlstr{"RMSE of $\textbackslash{}\textbackslash{}mu$"}\hlstd{,}\hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-25}RMSE of $\mu$}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r}
+\hline
+  & mu=0 & s/2 & s & 2s & 4s\\
+\hline
+Bayesian & 0.000 & 0.025 & 0.037 & 0.053 & 0.099\\
+\hline
+Cond Likelihood & 0.018 & 0.027 & 0.034 & 0.055 & 0.098\\
+\hline
+BF Approx & 0.012 & 0.024 & 0.031 & 0.053 & 0.097\\
+\hline
+Original & 0.024 & 0.025 & 0.031 & 0.052 & 0.099\\
+\hline
+\end{tabular}
+\end{table}
+
+
 \end{knitrout}
 
 
 \begin{figure}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-26-1} 
 
+\end{knitrout}
 \end{figure}
 
 \subsubsection{Coverage of $\mu$}
@@ -1133,24 +608,58 @@ The Bayesian model had the shortest intervals, and the original model had the la
 
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(hasm, ,}\hlkwc{format}\hlstd{=}\hlstr{'latex'}\hlstd{,}\hlkwc{caption}\hlstd{=}\hlstr{"Proportion of Credible Intervals containing $\textbackslash{}\textbackslash{}mu$"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-27}Proportion of Credible Intervals containing $\mu$}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r}
+\hline
+  & mu=0 & s/2 & s & 2s & 4s\\
+\hline
+Bayesian & 1.00 & 1 & 0.98 & 0.98 & 0.97\\
+\hline
+Cond Likelihood & 0.71 & 1 & 0.95 & 0.95 & 0.96\\
+\hline
+BF Approx & 0.98 & 1 & 0.97 & 0.98 & 0.97\\
+\hline
+Original & 0.96 & 1 & 1.00 & 0.99 & 0.95\\
+\hline
+\end{tabular}
+\end{table}
+
+
 \end{knitrout}
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(has0, ,}\hlkwc{format}\hlstd{=}\hlstr{'latex'}\hlstd{,}\hlkwc{caption}\hlstd{=}\hlstr{"Proportion of Credible Intervals containing 0"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-28}Proportion of Credible Intervals containing 0}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r}
+\hline
+  & mu=0 & s/2 & s & 2s & 4s\\
+\hline
+Bayesian & 1.00 & 0.02 & 0.08 & 0.13 & 0.50\\
+\hline
+Cond Likelihood & 0.71 & 0.00 & 0.01 & 0.11 & 0.51\\
+\hline
+BF Approx & 0.98 & 0.00 & 0.00 & 0.11 & 0.51\\
+\hline
+Original & 0.96 & 0.00 & 0.01 & 0.14 & 0.42\\
+\hline
+\end{tabular}
+\end{table}
+
+
 \end{knitrout}
 
 
 \begin{figure}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-29-1} 
 
+\end{knitrout}
 \end{figure}
 
 \subsubsection{Probability of Association $\xi$}
@@ -1161,75 +670,97 @@ For the simulations that had no true effect, the Bayes Factor approximation mode
 
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(pindmed,}\hlkwc{caption}\hlstd{=}\hlstr{"Average of Posterior Median $\textbackslash{}\textbackslash{}xi$"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-30}Average of Posterior Median $\xi$}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r}
+\hline
+  & mu=0 & s/2 & s & 2s & 4s\\
+\hline
+Bayesian & 0.210 & 0.836 & 0.830 & 0.832 & 0.837\\
+\hline
+BF Approx & 0.847 & 0.991 & 0.992 & 0.994 & 0.998\\
+\hline
+\end{tabular}
+\end{table}
+
+
 \end{knitrout}
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{kable}\hlstd{(zeromu,}\hlkwc{caption}\hlstd{=}\hlstr{"Average Proportion of $H_1$"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-31}Average Proportion of $H_1$}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r}
+\hline
+  & mu=0 & s/2 & s & 2s & 4s\\
+\hline
+Bayesian & 0.132 & 0.998 & 0.989 & 0.989 & 0.996\\
+\hline
+BF Approx & 0.501 & 1.000 & 1.000 & 1.000 & 1.000\\
+\hline
+\end{tabular}
+\end{table}
+
+
 \end{knitrout}
 
 
 \subsubsection{Sensitivity of Conditional Likelihood Method to Changes in $\alpha$}
 
-The conditional likelihood method with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$.  datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
+The conditional likelihood method with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
+
+
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{df}\hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.cl.stats.better0[}\hlnum{4}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{0}\hlstd{),}
-           \hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.cl.stats.better1[}\hlnum{4}\hlstd{,,]}\hlopt{-}\hlstd{mu)))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{1}\hlstd{),}
-           \hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.cl.stats.better4[}\hlnum{4}\hlstd{,,]}\hlopt{-}\hlstd{mu)))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{2}\hlstd{))}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\hlstd{mseplot} \hlkwb{=} \hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{= (df),} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{factor}\hlstd{(simulation,} \hlkwc{labels}\hlstd{=}\hlkwd{c}\hlstd{(} \hlstr{"0"}\hlstd{,} \hlstr{"s"}\hlstd{,} \hlstr{"4s"}\hlstd{)),} \hlkwc{y}\hlstd{=value))} \hlopt{+}
-  \hlkwd{geom_boxplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{color}\hlstd{=}\hlkwd{factor}\hlstd{(Var2)))}\hlopt{+}  \hlkwd{theme_minimal}\hlstd{()} \hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(sigma}\hlopt{^}\hlnum{2}\hlstd{,} \hlstr{" used in simulation"}\hlstd{)),}\hlkwc{y}\hlstd{=}\hlstr{"Absolute Error"}\hlstd{,} \hlkwc{title}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Absolute Error of Simulation "}\hlstd{,mu )))}\hlopt{+}
-  \hlkwd{scale_colour_few}\hlstd{(}\hlkwc{name}\hlstd{=}\hlstr{"p-value"}\hlstd{)} \hlopt{+}  \hlkwd{theme}\hlstd{(} \hlkwc{legend.justification}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{legend.position}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{))}
+\caption{\label{tab:unnamed-chunk-33}RMSE of $\mu$}
+\centering
+\begin{tabular}[t]{l|r|r|r}
+\hline
+  & 0 & s & 4s\\
+\hline
+0.05 & 0.019 & 0.039 & 0.101\\
+\hline
+0.01 & 0.020 & 0.040 & 0.090\\
+\hline
+0.005 & 0.019 & 0.040 & 0.099\\
+\hline
+0.001 & 0.019 & 0.038 & 0.098\\
+\hline
+1e-07 & NA & 0.039 & 0.097\\
+\hline
+\end{tabular}
+\end{table}
 
 
-\hlstd{rmse}\hlkwb{<-} \hlkwd{cbind}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim.cl.stats.better0[}\hlnum{4}\hlstd{,x,])}\hlopt{^}\hlnum{2}\hlstd{))),} \hlnum{NA}\hlstd{),}
-             \hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{5}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim.cl.stats.better1[}\hlnum{4}\hlstd{,x,]}\hlopt{-}\hlstd{mu)}\hlopt{^}\hlnum{2}\hlstd{))),}
-               \hlkwd{sapply}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{5}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlkwd{mean}\hlstd{((sim.cl.stats.better4[}\hlnum{4}\hlstd{,x,]}\hlopt{-}\hlstd{mu)}\hlopt{^}\hlnum{2}\hlstd{))))}
-\hlkwd{rownames}\hlstd{(rmse)}\hlkwb{<-}\hlstd{pvals}
-
-\hlkwd{colnames}\hlstd{(rmse)}\hlkwb{<-}\hlkwd{c}\hlstd{(}\hlstr{"0"}\hlstd{,}\hlstr{"s"}\hlstd{,} \hlstr{"4s"}\hlstd{)}
-
-
-
-\hlstd{df}\hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.cl.stats.better0[}\hlnum{6}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{0}\hlstd{),}
-           \hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.cl.stats.better1[}\hlnum{6}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{1}\hlstd{),}
-           \hlkwd{data.frame}\hlstd{(}\hlkwd{melt}\hlstd{(}\hlkwd{t}\hlstd{(}\hlkwd{abs}\hlstd{(sim.cl.stats.better4[}\hlnum{6}\hlstd{,,])))[,}\hlnum{2}\hlopt{:}\hlnum{3}\hlstd{],} \hlkwc{simulation}\hlstd{=}\hlnum{2}\hlstd{))}
-
-\hlstd{intlenplot} \hlkwb{=} \hlkwd{ggplot}\hlstd{(}\hlkwc{data} \hlstd{= (df),} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{factor}\hlstd{(simulation,} \hlkwc{labels}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"0"}\hlstd{,}\hlstr{"s"}\hlstd{,}\hlstr{"4s"}\hlstd{)),} \hlkwc{y}\hlstd{=value))} \hlopt{+}
-  \hlkwd{geom_boxplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{color}\hlstd{=}\hlkwd{factor}\hlstd{(Var2)))}\hlopt{+}  \hlkwd{theme_minimal}\hlstd{()} \hlopt{+}
-  \hlkwd{labs}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(sigma}\hlopt{^}\hlnum{2}\hlstd{,} \hlstr{" used in simulation"}\hlstd{)),}\hlkwc{y}\hlstd{=}\hlstr{"Credible Interval Length"}\hlstd{,} \hlkwc{title}\hlstd{=}\hlkwd{expression}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Credible Intervals of Simulation "}\hlstd{,mu )))}\hlopt{+}
-  \hlkwd{scale_colour_few}\hlstd{(}\hlkwc{name}\hlstd{=}\hlstr{"p-value"}\hlstd{)} \hlopt{+}  \hlkwd{theme}\hlstd{(} \hlkwc{legend.justification}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{legend.position}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{))}
-
-\hlkwd{kable}\hlstd{(rmse,}\hlkwc{caption}\hlstd{=}\hlstr{"RMSE of $\textbackslash{}\textbackslash{}mu$"}\hlstd{,} \hlkwc{digits}\hlstd{=}\hlnum{3}\hlstd{)}
-\end{alltt}
-\end{kframe}
 \end{knitrout}
 
 
-\begin{figure}
 
+\begin{figure}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-34-1} 
+
+\end{knitrout}
 \end{figure}
 
 
 \begin{figure}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-35-1} 
 
+\end{knitrout}
 \end{figure}
 This model shows little difference across levels of $\alpha$.
 
 \section{Analysis of TP53}\label{sec:tp53}
-
+---------------
 \subsection{Models}
 
 
@@ -1253,17 +784,202 @@ The fully Bayesian model was fit jointly as well as marginally. Since the result
 
 
 
-The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP () 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-38-1} 
+
+\end{knitrout}
+
+The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (rs2287498n) 
 that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.
 
 
-The original model has the longest credible intervals for all SNPs except , 
+The original model has the longest credible intervals for all SNPs except rs2287498n, 
 for which both the Bayesian and Bayes Factor models have large credible intervals, indicating more uncertainty than the original model.
 
 These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
 
 Below are the full tables of OR by site and SNP.
 
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs9894946n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+AUS & 0.969 & 0.737 - 1.245 & 1 & 1 - 1 & 0.985 & 0.769 - 1.197 & 1 & 0.886 - 1.097\\
+\hline
+HAW & 0.943 & 0.405 - 1 ,  1 - 1.485 & 1 & 1 - 1 & 0.987 & 0.565 - 1.35 & 1 & 0.753 - 1.181\\
+\hline
+MAY & 0.962 & 0.714 - 1.258 & 1 & 1 - 1 & 0.978 & 0.746 - 1.2 & 1 & 0.869 - 1.101\\
+\hline
+POL & 1.486 & 0.965 - 2.198 & 1 & 1 - 1 & 1.079 & 0.878 - 1 ,  1 - 1.461 & 1 & 0.93 - 1.128 ,  1.204 - 1.621\\
+\hline
+Overall & 1.058 & 0.385 - 1.82 & 1 & 1 - 1 & 1.008 & 0.691 - 1.396 & 1 & 0.862 - 1.249\\
+\hline
+\end{tabular}
+\end{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs12951053n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+AUS & 1.239 & 1.029 - 1.513 & 1 & 0.97 - 1.065 ,  1.067 - 1.386 & 1.139 & 0.975 - 1 ,  1.001 - 1.405 & 1 & 0.983 - 1.375\\
+\hline
+HAW & 1.185 & 0.842 - 1 ,  1 - 1.497 & 1 & 0.933 - 1.372 & 1.093 & 0.859 - 1.343 & 1 & 0.934 - 1.364\\
+\hline
+MAL & 1.19 & 0.931 - 1.445 & 1 & 0.953 - 1.348 & 1.108 & 0.929 - 1.339 & 1 & 0.959 - 1.335\\
+\hline
+MAY & 1.209 & 0.975 - 1.524 & 1 & 0.951 - 1.378 & 1.113 & 0.941 - 1 ,  1 - 1.338 & 1 & 0.954 - 1.343\\
+\hline
+NCO & 1.261 & 1.036 - 1.626 & 1 & 0.958 - 1.439 & 1.074 & 0.818 - 1 ,  1 - 1.295 & 1 & 0.893 - 1.357\\
+\hline
+NEC & 1.199 & 0.973 - 1.477 & 1 & 0.955 - 1.349 & 1.076 & 0.885 - 1.257 & 1 & 0.941 - 1.297\\
+\hline
+NHS & 1.148 & 0.742 - 1.407 & 1 & 0.897 - 1.35 & 1.099 & 0.888 - 1 ,  1 - 1.337 & 1 & 0.938 - 1.35\\
+\hline
+POL & 1.183 & 0.897 - 1.44 & 1 & 0.946 - 1.344 & 1.099 & 0.91 - 1.338 & 1 & 0.937 - 1.341\\
+\hline
+SEA & 1.136 & 0.844 - 1.35 & 1 & 0.93 - 1.301 & 1.117 & 0.929 - 1 ,  1 - 1.381 & 1 & 0.946 - 1.379\\
+\hline
+STA & 1.188 & 0.896 - 1 ,  1 - 1.471 & 1 & 0.94 - 1.365 & 1.117 & 0.944 - 1 ,  1 - 1.352 & 1 & 0.949 - 1.35\\
+\hline
+UCI & 1.18 & 0.89 - 1.45 & 1 & 0.948 - 1.352 & 1.08 & 0.931 - 1.24 & 1 & 0.942 - 1.367\\
+\hline
+UKO & 1.209 & 0.915 - 1.514 & 1 & 0.954 - 1.386 & 1.098 & 0.959 - 1.285 & 1 & 0.965 - 1.432\\
+\hline
+USC & 1.207 & 0.982 - 1.488 & 1 & 0.954 - 1.35 & 1.07 & 0.932 - 1.234 & 1 & 0.943 - 1.334\\
+\hline
+Overall & 1.19 & 1.023 - 1.36 & 1 & 0.988 - 1.32 & 1.1 & 0.989 - 1 ,  1 - 1.235 & 1 & 0.983 - 1.312\\
+\hline
+\end{tabular}
+\end{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs1625895n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+AUS & 1.005 & 0.803 - 1.216 & 1 & 1 - 1 & 1.006 & 0.826 - 1.166 & 1 & 1 - 1\\
+\hline
+HAW & 1.012 & 0.699 - 1.287 & 1 & 1 - 1 & 1.011 & 0.751 - 1 ,  1 - 1.23 & 1 & 1 - 1\\
+\hline
+MAL & 1.051 & 0.844 - 1.303 & 1 & 1 - 1 & 1.033 & 0.859 - 1 ,  1 - 1.234 & 1 & 1 - 1\\
+\hline
+MAY & 1.043 & 0.843 - 1.295 & 1 & 1 - 1 & 1.031 & 0.856 - 1.229 & 1 & 1 - 1\\
+\hline
+NCO & 0.991 & 0.789 - 1 ,  1 - 1.184 & 1 & 1 - 1 & 1.001 & 0.818 - 1.158 & 1 & 1 - 1\\
+\hline
+POL & 1.099 & 0.856 - 1.535 & 1 & 1 - 1 & 1.033 & 0.863 - 1 ,  1 - 1.238 & 1 & 1 - 1\\
+\hline
+SEA & 1.042 & 0.832 - 1.266 & 1 & 1 - 1 & 1.015 & 0.811 - 1.208 & 1 & 1 - 1\\
+\hline
+STA & 1.019 & 0.78 - 1 ,  1 - 1.268 & 1 & 1 - 1 & 1.037 & 0.912 - 1.222 & 1 & 1 - 1\\
+\hline
+Overall & 1.034 & 0.878 - 1.218 & 1 & 1 - 1 & 1.02 & 0.889 - 1.151 & 1 & 1 - 1\\
+\hline
+\end{tabular}
+\end{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs1042522n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+AUS & 1.047 & 0.85 - 1.217 & 1 & 1 - 1 & 1.032 & 0.857 - 1.179 & 1 & 1 - 1\\
+\hline
+HAW & 1.053 & 0.773 - 1 ,  1 - 1.272 & 1 & 1 - 1 & 1.038 & 0.833 - 1 ,  1 - 1.246 & 1 & 1 - 1\\
+\hline
+MAL & 1.086 & 0.934 - 1.26 & 1 & 1 - 1 & 1.062 & 0.935 - 1.218 & 1 & 1 - 1\\
+\hline
+MAY & 1.099 & 0.939 - 1.308 & 1 & 1 - 1 & 1.07 & 0.935 - 1.255 & 1 & 1 - 1\\
+\hline
+NCO & 1.067 & 0.899 - 1.244 & 1 & 1 - 1 & 1.048 & 0.897 - 1.206 & 1 & 1 - 1\\
+\hline
+POL & 1.117 & 0.927 - 1.409 & 1 & 1 - 1 & 1.045 & 0.905 - 1.199 & 1 & 1 - 1\\
+\hline
+SEA & 1.063 & 0.881 - 1.227 & 1 & 1 - 1 & 1.048 & 0.886 - 1.212 & 1 & 1 - 1\\
+\hline
+STA & 1.068 & 0.878 - 1.261 & 1 & 1 - 1 & 1.051 & 0.941 - 1.186 & 1 & 1 - 1\\
+\hline
+Overall & 1.073 & 0.938 - 1.216 & 1 & 1 - 1 & 1.048 & 0.936 - 1.163 & 1 & 1 - 1\\
+\hline
+\end{tabular}
+\end{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs8079544n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+MAY & 1.092 & 0.685 - 1.645 & 1 & 1 - 1 & 1.063 & 0.728 - 1.602 & 1 & 1 - 1\\
+\hline
+NCO & 1.093 & 0.779 - 1.481 & 1 & 1 - 1 & 0.991 & 0.583 - 1.376 & 1 & 1 - 1\\
+\hline
+POL & 0.986 & 0.516 - 1.422 & 1 & 1 - 1 & 1.025 & 0.875 - 1.227 & 1 & 1 - 1\\
+\hline
+Overall & 1.057 & 0.225 - 1 ,  1 - 1.896 & 1 & 1 - 1 & 1.027 & 0.484 - 1 ,  1 - 1.573 & 1 & 1 - 1\\
+\hline
+\end{tabular}
+\end{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs2287498n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+HAW & 1.284 & 0.887 - 1.734 & 1.287 & 0.806 - 1 ,  1.001 - 1.764 & 1.126 & 0.829 - 1.475 & 1.293 & 0.896 - 1.66\\
+\hline
+MAL & 1.259 & 0.991 - 1.531 & 1.271 & 0.931 - 0.999 ,  1.002 - 1.566 & 1.144 & 0.928 - 1.395 & 1.276 & 1.012 - 1.548\\
+\hline
+MAY & 1.347 & 1.057 - 1.844 & 1.346 & 0.984 - 0.998 ,  1.003 - 1.87 & 1.121 & 0.904 - 1.357 & 1.247 & 0.959 - 1.523\\
+\hline
+NCO & 1.353 & 1.073 - 1.717 & 1.353 & 1.049 - 1.771 & 1.141 & 0.889 - 1 ,  1 - 1.465 & 1.289 & 0.973 - 1.647\\
+\hline
+POL & 1.278 & 0.932 - 1.597 & 1.284 & 0.895 - 0.999 ,  1 - 1.69 & 1.137 & 0.902 - 1.448 & 1.291 & 0.96 - 0.999 ,  1.001 - 1.625\\
+\hline
+SEA & 1.226 & 0.909 - 1.477 & 1.236 & 0.873 - 1 ,  1 - 1.533 & 1.207 & 0.981 - 1.623 & 1.38 & 1.092 - 1.802\\
+\hline
+STA & 1.284 & 0.935 - 1.628 & 1.287 & 0.896 - 1 ,  1 - 1.717 & 1.123 & 0.951 - 1.38 & 1.362 & 1.061 - 1.777\\
+\hline
+UKO & 1.28 & 0.909 - 1.594 & 1.285 & 0.887 - 0.998 ,  1 - 1.667 & 1.124 & 0.966 - 1.364 & 1.358 & 1.088 - 1.691\\
+\hline
+USC & 1.375 & 1.102 - 1.846 & 1.375 & 1.053 - 1.924 & 1.097 & 0.923 - 1.298 & 1.289 & 0.972 - 1.612\\
+\hline
+Overall & 1.296 & 1.087 - 1.537 & 1.3 & 1.037 - 1.582 & 1.138 & 0.984 - 1.323 & 1.306 & 1.114 - 1.544\\
+\hline
+\end{tabular}
+\end{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-39}rs8073498n}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\hline
+  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+\hline
+MAY & 0.921 & 0.724 - 1.144 & 1 & 1 - 1 & 0.952 & 0.762 - 1.158 & 1 & 0.989 - 1.003\\
+\hline
+NCO & 0.844 & 0.695 - 0.989 & 1 & 1 - 1 & 0.96 & 0.824 - 1.045 & 1 & 0.962 - 1.023\\
+\hline
+Overall & 0.876 & 0.003 - 3.61 & 1 & 1 - 1 & 0.952 & 0.263 - 1.786 & 1 & 0.979 - 1.016\\
+\hline
+\end{tabular}
+\end{table}
 
 
 \section{Conclusion}\label{sec:conclusion}

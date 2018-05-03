@@ -59,10 +59,12 @@ concordance=TRUE
 % \footnotetext{\textbf{Abbreviations:} ANA, anti-nuclear antibodies; APC, antigen-presenting cells; IRF, interferon regulatory factor} this is a title footnote
 
 <<>>=
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, cache=TRUE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, cache=TRUE,echo=FALSE)
 mu<-I<-sd<-overall<-NULL
 
-library(knitr)
+
+library(rmeta)
+library(lme4)
 library(ggplot2)
 library(ggthemes)
 require(reshape2)
@@ -592,11 +594,6 @@ Despite never rejecting the null, the conditional likelihood and the Bayesian me
 ---------
 
 <<>>=
-knitr::opts_chunk$set(eval=FALSE)
-
-@
-
-<<>>=
 load("p53sim_processeddata.RData")
 mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp-------redo this
 assoc<-c(0,1,1,1,1)
@@ -820,7 +817,7 @@ getstats<-function(jagsoutput, mu, sd){
 @
 
 
-<<>>=
+<<eval=FALSE>>=
 sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames)
 sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames)
 sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames)
@@ -842,6 +839,11 @@ As expected, the models performed more poorly as $\sigma$ increased. Out of the 
 At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.
 
 <<>>=
+load("p53sim_processeddata.RData")
+source("HPD.R")
+source("p53simJAGScode_cauchy.R")
+
+
 df1<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
 simslist<-list(sim.half,sim.1,sim.2,sim.4)
 for (i in 1:4){
@@ -988,10 +990,13 @@ intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")
   geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
   scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+@
 
+<<>>=
 kable(rmse,caption="RMSE of $\\mu$", digits=3)
 
 @
+
 
 
 \begin{figure}
@@ -1009,7 +1014,7 @@ print(intlenplot)
 This model shows little difference across levels of $\alpha$.
 
 \section{Analysis of TP53}\label{sec:tp53}
-
+---------------
 \subsection{Models}
 
 
@@ -1030,10 +1035,206 @@ The fully Bayesian model was fit jointly as well as marginally. Since the result
 \subsection{Results}
 
 <<>>=
+source("p53finalJAGScode.R")
+load("p53OR.RData")
+load("tp53.RData")
+
+getdata<- function(snp.name, iter=5000, drop.sites= NULL){
+  load("tp53.Rdata")
+  if(!is.null(drop.sites)) {
+    
+    use = !(tp53epi.wsi$site %in% drop.sites)
+  } else {
+    use = rep(TRUE, nrow(tp53epi.wsi))
+  }
+  #this is a new indicator
+  site.names = levels(factor(tp53epi.wsi[which(!is.na(tp53geno.wsi[,snp.name])),"site"]))
+  discovery.sites <- which(site.names%in% drop.sites)
+  
+  p53.snp = tp53geno.wsi[use, snp.name]
+  tp53epi.wsi = tp53epi.wsi[use,]
+  
+  missing.geno = is.na(p53.snp)
+  site.names = levels(factor(tp53epi.wsi[!missing.geno,"site"]))
+  
+  p53.data = list(CaseCon=tp53epi.wsi$casecon[!missing.geno], site=as.numeric(factor(tp53epi.wsi$site[!missing.geno])), BC = as.numeric(tp53epi.wsi$prev.BC[!missing.geno]), Age = tp53epi.wsi$refage[!missing.geno], p53 = p53.snp[!missing.geno])
+  
+  p53.df = data.frame(p53.data)
+  
+  J = length(p53.data$CaseCon)
+  n.sites = length(unique(p53.data$site))
+  p53.data$J = J
+  p53.data$n.sites = n.sites
+  
+  p53.data$discovery.sites<-discovery.sites
+  p53.data$missing.geno<-missing.geno
+  p53.data$site.names<-site.names
+  
+  return(p53.data)
+  
+}
+
+OR.freq = function(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) {
+  load("tp53.Rdata")
+  if (!is.null(drop.sites)) {
+    use = !(tp53epi.wsi$site %in% drop.sites)}
+  else {
+    use = rep(TRUE, nrow(tp53epi.wsi))
+  }
+  
+  p53.snp = tp53geno.wsi[use, snp.name]
+  tp53epi.wsi = tp53epi.wsi[use,]
+  
+  missing.geno = is.na(p53.snp)
+  site.names = levels(factor(tp53epi.wsi[!missing.geno,"site"]))
+  
+  p53.data = list(CaseCon=tp53epi.wsi$casecon[!missing.geno], site=as.numeric(factor(tp53epi.wsi$site[!missing.geno])), BC = as.numeric(tp53epi.wsi$prev.BC[!missing.geno]), Age = tp53epi.wsi$refage[!missing.geno], p53 = p53.snp[!missing.geno])
+  
+  p53.df = data.frame(p53.data)
+  write.csv(p53.df, file=paste(snp.name, ".csv", sep=""))
+  if(length(site.names)>1){
+    p53.full = glm(CaseCon ~ factor(site) + factor(site)*p53 + factor(site)*Age + BC, data=p53.df, family=binomial, x=T)
+    p53.pooled = glm(CaseCon ~ factor(site) + p53 + factor(site)*Age + BC, data=p53.df, family=binomial)
+    p53.null = glm(CaseCon ~ factor(site) +  factor(site)*Age + BC, data=p53.df, family=binomial)
+    
+    p53.df$Site = factor(p53.df$site)
+    
+    p53.me = glmer(CaseCon ~ BC + p53 + Age + (1|site)  + (0 + p53 | site) + (0 + Age | site), start=c(site=1.0, p53=.1, Age=.01),nAGQ=1 , data=p53.df, family=binomial)
+    
+    test=anova(p53.full, p53.pooled, p53.null, test="Chi")
+    coef = summary(p53.full)$coef
+    ns = length(site.names)
+    OR = coef[c(ns+1, (ns+4):(ns+ns+2)),1]
+    x = p53.full$x
+    p = predict(p53.full, type="response")
+    var = solve(t(x)%*% diag(p*(1-p)) %*%x)[c(ns+1, (ns+4):(ns+ns+2)),c(ns+1, (ns+4):(ns+ns+2))]
+    
+    sqrt(diag(var))
+    
+    eff = matrix(0, ns,ns)
+    eff[,1] = 1
+    for (i in 2:ns) eff[i,i] = 1
+    
+    OR = eff %*% OR
+    OR.SE = sqrt(diag(eff %*% var %*% t(eff)))
+    
+    DS = meta.summaries(OR, OR.SE, method="random", names=site.names, logscale=F)
+    p.value = pnorm(-(abs(DS$summary/DS$se.summary)))*2
+    BF0 = -exp(1)*p.value*log(p.value)
+    return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0, test=test, p53.me=p53.me))}
+  else{
+    p53.full = glm(CaseCon ~ p53 + Age + BC, data=p53.df, family=binomial, x=T)
+    p53.null = glm(CaseCon ~ Age + BC, data=p53.df, family=binomial)
+    test=anova(p53.full, p53.null, test="Chi")
+    coef = summary(p53.full)$coef
+    ns = length(site.names)
+    OR = as.matrix(coef[2,1])
+    OR.SE = (coef[2,2])
+    p.value = coef[2,4]
+    BF0 = -exp(1)*p.value*log(p.value)
+    return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0))
+  }
+}
+
+getOR<-function(sim, totalsites,discoverysites){
+  
+  OR = as.data.frame(sim$BUGSoutput$sims.matrix)%>%select( starts_with("beta.p53"), "mu.p53")
+  exp(OR)
+  #colnames(OR) = c(site.names, "Overall")
+  
+  sum.OR = t(apply(exp(OR), 2, function(x) {PI = HPDM(as.matrix(x),pointmass=1)
+  return(c(median(x), PI[1], PI[2], PI[3],PI[4]))} #how to deal w multi, change HPD to have point mass at 1
+  ))
+  if (dim(sum.OR)[1]!= totalsites+1){
+    sum.OR1<- matrix(NA, totalsites+1, dim(sum.OR)[2])
+    sum.OR1[-discoverysites,]<- sum.OR
+    sum.OR<- sum.OR1
+  } ###
+  #colnames(sum.OR)<-c("Median","2.5%","97.5%")
+  return(sum.OR)
+}
+
+OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir="ps"){
+  #data
+  
+  p53.data<- getdata(snp.name, drop.sites=NULL)
+  p53.dataval<- getdata(snp.name, drop.sites=discovery.sitenames)
+  validation.sitenames = setdiff(p53.data$site.names, discovery.sitenames)
+  freq<-OR.freq(snp.name, psdir="ps",
+                drop=validation.sitenames,iter=5000, debug=F) 
+  p53.data.normal<-p53.dataval
+  p53.data.normal$n.discovery<- length(p53.data.normal$discovery.sites)
+  p53.data.normal$zeroes<- rep(0,p53.data.normal$n.discovery)
+  p53.data.normal$MLE<- freq$OR[,1] 
+  p53.data.normal$SE<- freq$SE 
+  p53.data.normal$q<-qnorm(1-p/2)
+  bfdata <- p53.data.normal
+  bfdata$p <- freq$p.value
+  
+  #run all 
+  parameters = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind","beta.site", "beta.p53","phi.site","phi.p53")
+  
+  p53.sim = jags(data=p53.data, inits=NULL,n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.model)
+  p53.simnew = jags(data=p53.data ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)), n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.newmodel) 
+  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=10000,n.chains=5, parameters.to.save =parameters.normal, model = p53.normal)
+  p53.bfsim = jags(data=bfdata, inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)),n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.bf.approx)
+  
+  #OR
+  return(list(original= (p53.sim),
+              bayes= (p53.simnew),
+              cond= (p53.simnormal),
+              bf= (p53.bfsim),
+              n.sites = p53.data$n.sites,
+              n.discovery = p53.data.normal$discovery.sites))
+}
 
 @
 
 
+<<eval=FALSE>>=
+discovery.siteslist<-list(c("POL"),
+                          c("POL", "MAY", "NCO"),
+                          c("POL"),
+                          c("POL"), 
+                          c("NCO"),
+                          c("POL", "MAY", "NCO"),
+                          c("NCO")
+                          
+) 
+
+snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
+
+allSNP<- vector("list", length = length(snps))
+for(i in 1:length(snps)){
+  allSNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
+  
+}
+save.image()
+
+ORbySNP<- lapply(allSNP, function(snplist)
+  lapply(snplist[1:(length(snplist)-2)],function(x)
+    getOR(x,snplist[[(length(snplist)-1)]],snplist[[(length(snplist))]])))
+
+save(ORbySNP, snps, file="p53OR.RData")
+@
+
+<<>>=
+
+overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
+
+#overall=data.frame(t(sapply(ORbySNP[[2]], function(x) x[dim(x)[1],])))
+colnames(overall) = c("X","L","U", "L1","U1")
+overall$model = rep(c("original","bayesian","conditional","bf approx"),length(snps))
+overall$model<- factor(overall$model, levels= c("bf approx", "conditional","bayesian","original"))
+overall$snp = rep(snps, each = 4)
+ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+ 
+  geom_hline(yintercept=1, alpha=.3)+
+  geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = .7))+
+  geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = .7))+ 
+  geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = .7)) +
+  coord_flip()+theme_minimal() + scale_colour_few()+labs(y="Odds Ratio", title= "OR and 95% CI for p53 SNPs")
+  
+@
 
 The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (\Sexpr{overall$snp[which(overall$X!=1 &overall$model=="bayesian")]}) 
 that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.
@@ -1046,8 +1247,34 @@ These results are consistent with those from recent GWAS \cite{phelan2017identif
 
 Below are the full tables of OR by site and SNP.
 
-<<>>=
+<<results="asis">>=
+all.sitenames<-lapply(snps, function(x) getdata(x)$site.names)
 
+formatCI<- function(ORvec){
+  if(is.na(ORvec[2])) ret<-"-"
+  else ret<-paste(ORvec[2],"-",ORvec[3])
+  if (!is.na(ORvec[4])){
+    ret<-paste(ret, ", ", ORvec[4],"-",ORvec[5])
+  }
+  return(ret)
+}
+makeORtable<-function(OR, sitenames){
+  est<-sapply(OR, function(x) paste(round(x[,1], 3)))
+  CI<-sapply(OR, function(x) apply(round(x, 3),1, formatCI))
+  ret<-matrix(NA, nrow = dim(est)[1],ncol=8)
+  ret[,-c(2,4,6,8)]<-est
+  ret[,c(2,4,6,8)]<-CI
+  colnames(ret)<- c("original estimate","original CI",
+                    "bayesian estimate","bayesian CI",
+                    "CL estimate","CL CI",
+                    "BF estimate","BF CI")
+  rownames(ret)<- c(sitenames, "Overall")
+  return(ret)
+}
+
+for(i in 1:length(snps)){
+  print(kable(makeORtable(ORbySNP[[i]], all.sitenames[[i]]), caption=snps[i]))
+}
 @
 
 \section{Conclusion}\label{sec:conclusion}
