@@ -11,3 +11,6 @@ rjags
 R2jags
 random
 gridExtra
+rmeta
+Matrix
+lme4
