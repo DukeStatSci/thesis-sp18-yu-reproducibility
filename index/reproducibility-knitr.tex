@@ -50,7 +50,7 @@
 
 \usepackage{alltt}
 
-\articletype{Article Type}%???
+\articletype{Research Article}%???
 
 \received{26 April 2016}
 \revised{6 June 2016}
@@ -60,104 +60,43 @@
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
-
-
-
 \title{Bayesian Reproducibility %\protect\thanks{This is an example for title footnote.}
 }
 
-\author[1]{Author One*}
+\author[1]{Huijia Yu}
 
-\author[2,3]{Author Two}
-
-\author[3]{Author Three}
-
-\authormark{AUTHOR ONE \textsc{et al}}
+\author[2]{Merlise Clyde*}
 
 
-\address[1]{\orgdiv{Org Division}, \orgname{Org Name}, \orgaddress{\state{State name}, \country{Country name}}}
+\authormark{HUIJIA YU \textsc{et al}}
 
-\address[2]{\orgdiv{Org Division}, \orgname{Org Name}, \orgaddress{\state{State name}, \country{Country name}}}
 
-\address[3]{\orgdiv{Org Division}, \orgname{Org Name}, \orgaddress{\state{State name}, \country{Country name}}}
+\address[1]{\orgdiv{Department of Statistical Science}, \orgname{Duke University}, \orgaddress{\state{North Carolina}, \country{USA}}}
+\address[2]{\orgdiv{Department of Statistical Science}, \orgname{Duke University}, \orgaddress{\state{North Carolina}, \country{USA}}}
 
-\corres{*Corresponding author name, This is sample corresponding address. \email{authorone@gmail.com}}
 
-\presentaddress{This is sample for present address text this is sample for present address text}
+\corres{*Merlise Clyde, Department of Statistical Science, Duke University, Durham, North Carolina, USA. \email{clyde@duke.edu}}
 
 \abstract[Summary]{
-%%% write abstract, get keywords %%%
+Parameter estimates from initial discovery data in genome-wide association studies (GWAS) often have upward bias compared to subsequent validation studies, which are underpowered due to the inflated effect estimate. This effect, known as the winner's curse, can be attributed to the double use of data, which must first pass a significance test. We propose three Bayesian approaches to discovery reporting and validation analysis: a fully Bayesian hierarchical model with a spike and slab prior, a conditional likelihood approach that only requires sufficient statistics from the discovery data, and an empirical approximation for the spike and slab prior using a Bayes factor approximation of the discovery data. We examine these methods with simulation studies and a real data example. All three proposed methods perform better than a naive models in the simulation studies, and produce results congruent with recent findings in the real example.
+
 }
 
-\keywords{keyword1, keyword2, keyword3, keyword4}
+\keywords{p value, bayes factor,winner's curse, hierarchical Bayes model, meta-analysis}
 
 \jnlcitation{\cname{ %this is the citation for this article!
-\author{Williams K.}, 
-\author{B. Hoskins}, 
-\author{R. Lee}, 
-\author{G. Masato}, and 
-\author{T. Woollings}} (\cyear{2016}), 
-\ctitle{A regime analysis of Atlantic winter jet variability applied to evaluate HadGEM3-GC2}, \cjournal{Q.J.R. Meteorol. Soc.}, \cvol{2017;00:1--6}.}
+\author{Yu H.}, 
+\author{Clyde M,}} (\cyear{2018}), 
+\ctitle{Bayesian Reproducibility}, \cjournal{Q.J.R. Meteorol. Soc.}, \cvol{2017;00:1--6}.} %????
 
 \maketitle
 
 % \footnotetext{\textbf{Abbreviations:} ANA, anti-nuclear antibodies; APC, antigen-presenting cells; IRF, interferon regulatory factor} this is a title footnote
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{knitr}\hlopt{::}\hlstd{opts_chunk}\hlopt{$}\hlkwd{set}\hlstd{(}\hlkwc{message} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{warning} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{cache}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{echo}\hlstd{=}\hlnum{FALSE}\hlstd{)}
-\hlstd{mu}\hlkwb{<-}\hlstd{I}\hlkwb{<-}\hlstd{sd}\hlkwb{<-}\hlstd{overall}\hlkwb{<-}\hlkwa{NULL}
 
 
-\hlkwd{library}\hlstd{(rmeta)}
-\end{alltt}
 
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: grid}}\begin{alltt}
-\hlkwd{library}\hlstd{(lme4)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: Matrix}}\begin{alltt}
-\hlkwd{library}\hlstd{(ggplot2)}
-\hlkwd{library}\hlstd{(ggthemes)}
-\hlkwd{require}\hlstd{(reshape2)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: reshape2}}\begin{alltt}
-\hlkwd{library}\hlstd{(doParallel)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: foreach}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: iterators}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: parallel}}\begin{alltt}
-\hlkwd{library}\hlstd{(R2jags)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: rjags}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: coda}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Linked to JAGS 4.2.0}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loaded modules: basemod,bugs}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'R2jags'}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:coda':\\\#\# \\\#\#\ \ \ \  traceplot}}\begin{alltt}
-\hlkwd{library}\hlstd{(random)}
-\hlkwd{require}\hlstd{(gridExtra)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: gridExtra}}\end{kframe}
-\end{knitrout}
 
 \section{Introduction}\label{sec:intro}
 
@@ -169,7 +108,7 @@ Mixed effect SNP-at-a-time analysis of 5 SNPs that were chosen for replication r
 
 The aim of this project is twofold: to explore ways in which discovery findings can be reported to avoid the winner's curse, and to combine discovery results with validation data in a coherent manner accounting for the selection effect. 
 
-After a review of existing literature, we propose three approaches to adress this: a fully Bayesian model, a conditional likelihood prior for discovery site data, and a Bayes Factor approximation to the probability of association. The performance of these methods is tested on normal simulations, and then on hierarchical simulations split into discovery and validation "sites". All three proposed methods provide improvements over naive models. Finally, the models are used to reanalyze the tp53 SNPs; none of the SNPs are found to be significant under any model.
+After a review of existing literature, we propose three approaches to adress this: a fully Bayesian model, a conditional likelihood prior for discovery site data, and a Bayes Factor approximation to the probability of association. The performance of these methods is tested on normal simulations, and then on hierarchical simulations split into discovery and validation "sites". All three proposed methods provide improvements over naive models. Finally, the models are used to reanalyze the tp53 SNPs; only one of them is found to be significant.
 
 \section{Literature Review}\label{sec:lit}
 
@@ -208,7 +147,7 @@ P(Y_{i}=1|\mu) = \textsf{logit}^{-1}(\mu)
 
 We propose three different Bayesian approaches: 
 
-1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al., and Jiang et al., which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
+1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al. \cite{xu2011bayesian}, and Jiang et al. \cite{jiang2016power}, which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
 
 2. A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size. This model incorporates the conditional likelihood introduced by Zollner and Pritchard as well as Zhong and Prentice, and Ghosh et al.)\cite{zollner2007overcoming, zhong2008bias, ghosh2008estimating} and incorporates it into the Bayesian hierarchical framework.
 
@@ -219,11 +158,7 @@ While the first approach is truly Bayesian and requires all the data, the second
 
 \subsection{Fully Bayesian Model}
 
-Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. Then, $P( \mu|H_0) = \delta_0 ( \mu )$,  and $P( \mu|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable drawn from a Bernoulli($\xi$), which is equivalent to selecting $H_1$ or $H_0$.
-
-Site means $\beta_{j}|\mu, \sigma^2,H_1 \sim N(\mu, \sigma^2)$, and $\beta_{j}|H_0 = 0$. In this case the prior for  $\mu| H_1$ was chosen to be a Cauchy distribution. The prior for $\sigma$ was a truncated Cauchy, with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta distribution. 
-
-The complete model is as follows:
+Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. Then, $P( \mu|H_0) = \delta_0 ( \mu )$,  and $P( \mu|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable drawn from a Bernoulli($\xi$), which is equivalent to selecting $H_1$ or $H_0$. Site means $\beta_{j}|\mu, \sigma^2,H_1 \sim N(\mu, \sigma^2)$, and $\beta_{j}|H_0 = 0$. In this case the prior for  $\mu| H_1$ was chosen to be a Cauchy distribution. The prior for $\sigma$ was a truncated Cauchy, with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta distribution.  The complete model is as follows:
 
 \begin{gather}\label{eq3}
 \beta_{j}|H_ 1 \sim \textsf{N}(\mu, \sigma_{\beta}^{2}) \\
@@ -234,26 +169,23 @@ H\sim \textsf{Bernoulli}(\xi)\\
 \xi \sim \textsf{Beta}(a, b)
 \end{gather}
 
-
-
-
-\begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-3-1} 
+
+{\centering \includegraphics[width=4in]{figure/mixture-1} 
+
+}
+
+
 
 \end{knitrout}
-\end{figure}
 
-If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al. with slightly different priors.
 
-There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
+If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al. with slightly different priors. There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
 
 \subsection{Conditional Likelihood Model}
 
-In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed.
-
-Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $\text{MLE}_i \sim N(\beta_i, \text{SE}_i)$. Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood is
+In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $\text{MLE}_i \sim N(\beta_i, \text{SE}_i)$. Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood is:
 
 \begin{equation}\label{eq4}
 L(\mu | B) = \frac{p(Y| \mu)p(B| Y,\mu)}{p(B|\mu)} =  \frac{p(Y| \mu)}{\int_{\textsf{significant Y}} p(t| \mu) dt }
@@ -273,19 +205,19 @@ where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-3-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
-We can see that as $\alpha$ decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0.
+We can see that as $\alpha$ decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0. The conditional likelihood of $\beta_{ j}, j\in \text{discovery}$ becomes the posterior of this variable if we use a uniform prior, since the likelihood will just be multiplied by one. In the discovery-only case, this is enough to create credible intervals for $\mu$ by sampling from the posterior (as opposed to maximizing the conditional likelihood or approximating the surface).
 
-The conditional likelihood of $\beta_{ j}, j\in \text{discovery}$ becomes the posterior of this variable if we use a uniform prior, since the likelihood will just be multiplied by one.
 
-In the discovery-only case, this is enough to create credible intervals for $\mu$ by sampling from the posterior (as opposed to maximizing the conditional likelihood or approximating the surface).
-
-In the hierarchical setting, the posteriors for the discovery sites are used as the priors for the validation data; that is, $p(\mu| \beta_i, \text{MLE}_i,\text{SE}_i, q_i, i \in  \text{discovery})$ is the prior for the hierarchical model using validation data.
-
-The updated model is:
+In the hierarchical setting, the posteriors for the discovery sites are used as the priors for the validation data; that is, $p(\mu| \beta_i, \text{MLE}_i,\text{SE}_i, q_i, i \in  \text{discovery})$ is the prior for the hierarchical model using validation data. The updated model is:
 
 \begin{gather} \label{eq6}
 \beta_{j}|\mu, \sigma_{\beta}^{2} \sim \textsf{N}(\mu, \sigma_{\beta}^{2}) , j \in \text{validation}\\
@@ -317,7 +249,12 @@ Then $\xi'$ can be used in the fully Bayesian model, but only with the validatio
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-7-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-5-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
@@ -328,23 +265,15 @@ In this case, the discovery data will have an effect on the amount of zero-value
 \subsection{Prior Specifications}
 
 
-The choice of Cauchy priors for $\mu$ and $\sigma^2_{\beta}$ is based on simulation results. Both priors had mean zero and variance 1, based on the usual range of effect sizes in GWAS. The hyperparameters for $\xi$ were set to $a = b= \frac{1}{2}$. This distribution has a U-shape so that it favors extreme probabilities (0 or 1) more heavily than the values between them. 
+The choice of Cauchy priors for $\mu$ and $\sigma^2_{\beta}$ is based on simulation results. Both priors had mean zero and variance 1, based on the usual range of effect sizes in GWAS. The hyperparameters for $\xi$ were set to $a = b= \frac{1}{2}$. This distribution has a U-shape so that it favors extreme probabilities (0 or 1) more heavily than the values between them.  The normal approximation for the conditional likelihood model was chosen for its simplicity and because of the large sample sizes of GWAS, which allow for CLT assumptions.
 
-The normal approximation for the conditional likelihood model was chosen for its simplicity and because of the large sample sizes of GWAS, which allow for CLT assumptions.
-
-For the Bayes Factor model, $a = b= \frac{9}{10}$. This is because for small p-values, the transformation of $\xi$ can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim \textsf{Beta}(.5,.5)$ , $P( \xi' \leq 0.5) =$  $\ensuremath{4.74\times 10^{-11}}$ . For the flatter prior: $\xi \sim \textsf{Beta}(.9,.9)$, $P( \xi' \leq 0.5) =$ $\ensuremath{1.24\times 10^{-6}}$.
-
-The Bayes Factor model is extremely sensitive to the choice of prior as well as to the p-value. While the skew is appropriate for this particular prior, it would not necessarily make sense with a flat or informative prior.
+For the Bayes Factor model, $a = b= \frac{9}{10}$. This is because for small p-values, the transformation of $\xi$ can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim \textsf{Beta}(.5,.5)$ , $P( \xi' \leq 0.5) =$  $\ensuremath{4.74\times 10^{-11}}$ . For the flatter prior: $\xi \sim \textsf{Beta}(.9,.9)$, $P( \xi' \leq 0.5) =$ $\ensuremath{1.24\times 10^{-6}}$. The Bayes Factor model is extremely sensitive to the choice of prior as well as to the p-value. While the skew is appropriate for this particular prior, it would not necessarily make sense with a flat or informative prior.
 
 \subsection{Methods}
 
-Models were fit using R2jags and in the simpler cases, with original Metropolis Hastings algorithms. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that Bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended.
+Models were fit using R2jags and in the simpler cases, with original Metropolis Hastings algorithms. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that Bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended. JAGS model functions for the hierarchical simulations can be found in the supplement.
 
-Each JAGS model was run with the default settings: 3 chains, 2000 iterations, and 1000 burn-in samples. JAGS model functions for the hierarchical simulations can be found in the supplement.
-
-All computed credible intervals are HPD (highest posterior density) intervals. A 95\% HPD interval is the 95\% of the sampled values with the highest density. HPD intervals are guaranteed to be the shortest intervals for that scale (they are not scale-invariant), and can give more reasonable answers for multimodal distributions than quantile-based intervals because they can be disjoint.
-
-Point estimates were calculated used the posterior median, so that these estimates would be invariant to transformations (e.g. log).
+All computed credible intervals are HPD (highest posterior density) intervals. A 95\% HPD interval is the 95\% of the sampled values with the highest density. HPD intervals are guaranteed to be the shortest intervals for that scale (they are not scale-invariant), and can give more reasonable answers for multimodal distributions than quantile-based intervals because they can be disjoint. Point estimates were calculated used the posterior median, so that these estimates would be invariant to transformations (e.g. log).
 
 \section{Normal Simulation}\label{sec:normal}
 
@@ -401,13 +330,13 @@ Putting these pieces together results in the marginal posterior for $\mu$, which
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-11}RMSE of 100 simulations}
+\caption{\label{tab:unnamed-chunk-8}RMSE of 100 simulations}
 \centering
 \begin{tabular}[t]{r|r|r|r|r|r}
 \hline
 Bayes.mean & Bayes.median & Bayes.mode & cond.mean & cond.mode & naive\\
 \hline
-3.799 & 4.318 & 4.318 & 3.913 & 3.877 & 4.982\\
+3.619 & 4.033 & 4.033 & 3.772 & 3.659 & 4.971\\
 \hline
 \end{tabular}
 \end{table}
@@ -419,7 +348,12 @@ Bayes.mean & Bayes.median & Bayes.mode & cond.mean & cond.mode & naive\\
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-12-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-9-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
@@ -434,14 +368,17 @@ The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-14-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-11-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
 
-The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes.
-
-The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the fully Bayesian credible intervals, but still mostly smaller than the naive ones. 
+The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes. The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the fully Bayesian credible intervals, but still mostly smaller than the naive ones. 
 
 \subsubsection{Coverage}
 
@@ -451,11 +388,7 @@ The marginal coverage of the conditional likelihood credible interval C is
 P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)
 \end{equation}
 
-This will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0. 
-
-However, conditioning on the alternative hypothesis does not lead to an empirical coverage of 95\%.
-
-We can see that both methods are still significantly better than the naive one.
+This will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0.  However, conditioning on the alternative hypothesis does not lead to an empirical coverage of 95\%. We can see that both methods are still significantly better than the naive one.
 
 
 
@@ -467,15 +400,15 @@ Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal post
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-16}Naive method}
+\caption{\label{tab:unnamed-chunk-13}Naive method}
 \centering
 \begin{tabular}[t]{l|r|r}
 \hline
   & Do not reject null & Reject null\\
 \hline
-0 & 0.317 & 0.400\\
+0 & 0.274 & 0.443\\
 \hline
-1 & 0.150 & 0.133\\
+1 & 0.127 & 0.156\\
 \hline
 \end{tabular}
 \end{table}
@@ -486,7 +419,7 @@ Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal post
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-17}Conditional Likelihood Method}
+\caption{\label{tab:unnamed-chunk-14}Conditional Likelihood Method}
 \centering
 \begin{tabular}[t]{l|r}
 \hline
@@ -505,7 +438,7 @@ Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal post
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-18}Bayesian Mixture Model}
+\caption{\label{tab:unnamed-chunk-15}Bayesian Mixture Model}
 \centering
 \begin{tabular}[t]{l|r}
 \hline
@@ -524,8 +457,6 @@ Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal post
 Despite never rejecting the null, the conditional likelihood and the Bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
 
 \section{Hierarchical Simulations}\label{sec:hierarchical}
-
----------
 
 
 
@@ -558,6 +489,8 @@ In this simulation study, a logistic regression with fixed effects for sites was
 
 
 
+
+
 \subsubsection{RMSE of $\mu$}
 
 As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.
@@ -571,7 +504,7 @@ At small variances (s/2, s,  2s), the original and bayesian models outperform th
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-25}RMSE of $\mu$}
+\caption{\label{tab:unnamed-chunk-20}RMSE of $\mu$}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r}
 \hline
@@ -595,7 +528,12 @@ Original & 0.024 & 0.025 & 0.031 & 0.052 & 0.099\\
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-26-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-21-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
@@ -610,7 +548,7 @@ The Bayesian model had the shortest intervals, and the original model had the la
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-27}Proportion of Credible Intervals containing $\mu$}
+\caption{\label{tab:unnamed-chunk-22}Proportion of Credible Intervals containing $\mu$}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r}
 \hline
@@ -633,7 +571,7 @@ Original & 0.96 & 1 & 1.00 & 0.99 & 0.95\\
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-28}Proportion of Credible Intervals containing 0}
+\caption{\label{tab:unnamed-chunk-23}Proportion of Credible Intervals containing 0}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r}
 \hline
@@ -657,7 +595,12 @@ Original & 0.96 & 0.00 & 0.01 & 0.14 & 0.42\\
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-29-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-24-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
@@ -672,7 +615,7 @@ For the simulations that had no true effect, the Bayes Factor approximation mode
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-30}Average of Posterior Median $\xi$}
+\caption{\label{tab:unnamed-chunk-25}Average of Posterior Median $\xi$}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r}
 \hline
@@ -691,7 +634,7 @@ BF Approx & 0.847 & 0.991 & 0.992 & 0.994 & 0.998\\
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-31}Average Proportion of $H_1$}
+\caption{\label{tab:unnamed-chunk-26}Average Proportion of $H_1$}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r}
 \hline
@@ -717,7 +660,7 @@ The conditional likelihood method with random effects is robust to changes in th
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}RMSE of $\mu$}
+\caption{\label{tab:unnamed-chunk-28}RMSE of $\mu$}
 \centering
 \begin{tabular}[t]{l|r|r|r}
 \hline
@@ -744,7 +687,12 @@ The conditional likelihood method with random effects is robust to changes in th
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-34-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-29-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
@@ -753,7 +701,12 @@ The conditional likelihood method with random effects is robust to changes in th
 \begin{figure}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-35-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-30-1} 
+
+}
+
+
 
 \end{knitrout}
 \end{figure}
@@ -774,9 +727,7 @@ P(Y_{ij}=1| \beta^{site}_{ j}, \beta^{p53}_{j}, \beta^{age}_{j},\beta^{BC}) = \t
 \sigma_{age},\sigma_{site} \sim \textsf{invGamma}(1, 0.05)
 \end{gather}
 
-The p53 variable's site-specific log OR priors were defined using the models described previously.
-
-The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
+The p53 variable's site-specific log OR priors were defined using the models described previously. The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
 
 \subsection{Results}
 
@@ -785,28 +736,28 @@ The fully Bayesian model was fit jointly as well as marginally. Since the result
 
 
 
+
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-38-1} 
+
+{\centering \includegraphics[width=4in]{figure/unnamed-chunk-32-1} 
+
+}
+
+
 
 \end{knitrout}
 
 The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (rs2287498n) 
-that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the credible interval contains 0, so there is not enough evidence for association. Similarly, although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero.
-
-
-The original model has the longest credible intervals for all SNPs except rs2287498n, 
-for which both the Bayesian and Bayes Factor models have large credible intervals, indicating more uncertainty than the original model.
-
-These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
+that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the fully Bayesian credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
 
 Below are the full tables of OR by site and SNP.
 
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs9894946n}
+\caption{\label{tab:unnamed-chunk-33}rs9894946n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -820,13 +771,13 @@ POL & 1.486 & 0.965 - 2.198 & 1 & 1 - 1 & 1.079 & 0.878 - 1 ,  1 - 1.461 & 1 & 0
 \hline
 Overall & 1.058 & 0.385 - 1.82 & 1 & 1 - 1 & 1.008 & 0.691 - 1.396 & 1 & 0.862 - 1.249\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs12951053n}
+\caption{\label{tab:unnamed-chunk-33}rs12951053n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -858,13 +809,13 @@ USC & 1.207 & 0.982 - 1.488 & 1 & 0.954 - 1.35 & 1.07 & 0.932 - 1.234 & 1 & 0.94
 \hline
 Overall & 1.19 & 1.023 - 1.36 & 1 & 0.988 - 1.32 & 1.1 & 0.989 - 1 ,  1 - 1.235 & 1 & 0.983 - 1.312\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs1625895n}
+\caption{\label{tab:unnamed-chunk-33}rs1625895n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -886,13 +837,13 @@ STA & 1.019 & 0.78 - 1 ,  1 - 1.268 & 1 & 1 - 1 & 1.037 & 0.912 - 1.222 & 1 & 1 
 \hline
 Overall & 1.034 & 0.878 - 1.218 & 1 & 1 - 1 & 1.02 & 0.889 - 1.151 & 1 & 1 - 1\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs1042522n}
+\caption{\label{tab:unnamed-chunk-33}rs1042522n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -914,13 +865,13 @@ STA & 1.068 & 0.878 - 1.261 & 1 & 1 - 1 & 1.051 & 0.941 - 1.186 & 1 & 1 - 1\\
 \hline
 Overall & 1.073 & 0.938 - 1.216 & 1 & 1 - 1 & 1.048 & 0.936 - 1.163 & 1 & 1 - 1\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs8079544n}
+\caption{\label{tab:unnamed-chunk-33}rs8079544n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -932,13 +883,13 @@ POL & 0.986 & 0.516 - 1.422 & 1 & 1 - 1 & 1.025 & 0.875 - 1.227 & 1 & 1 - 1\\
 \hline
 Overall & 1.057 & 0.225 - 1 ,  1 - 1.896 & 1 & 1 - 1 & 1.027 & 0.484 - 1 ,  1 - 1.573 & 1 & 1 - 1\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs2287498n}
+\caption{\label{tab:unnamed-chunk-33}rs2287498n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -962,13 +913,13 @@ USC & 1.375 & 1.102 - 1.846 & 1.375 & 1.053 - 1.924 & 1.097 & 0.923 - 1.298 & 1.
 \hline
 Overall & 1.296 & 1.087 - 1.537 & 1.3 & 1.037 - 1.582 & 1.138 & 0.984 - 1.323 & 1.306 & 1.114 - 1.544\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-39}rs8073498n}
+\caption{\label{tab:unnamed-chunk-33}rs8073498n}
 \centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
 \hline
   & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
 \hline
@@ -978,7 +929,7 @@ NCO & 0.844 & 0.695 - 0.989 & 1 & 1 - 1 & 0.96 & 0.824 - 1.045 & 1 & 0.962 - 1.0
 \hline
 Overall & 0.876 & 0.003 - 3.61 & 1 & 1 - 1 & 0.952 & 0.263 - 1.786 & 1 & 0.979 - 1.016\\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 

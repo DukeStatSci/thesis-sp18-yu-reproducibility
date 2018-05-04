@@ -51,6 +51,19 @@
 
 % \footnotetext{\textbf{Abbreviations:} ANA, anti-nuclear antibodies; APC, antigen-presenting cells; IRF, interferon regulatory factor} this is a title footnote
 
+<<>>=
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, cache=TRUE)
+mu<-I<-sd<-overall<-NULL
+
+library(knitr)
+library(ggplot2)
+library(ggthemes)
+require(reshape2)
+library(doParallel)
+library(R2jags)
+library(random)
+require(gridExtra)
+@
 
 \section{Introduction}\label{sec:intro}
 
@@ -84,11 +97,6 @@ The Bayesian framework is also applied to power calculations specifically, defin
 
 \section{Models}\label{sec:models}
 
-<<>>=
-knitr::opts_chunk$set(eval=FALSE)
-pind.dens<-function(x,y) {return(x)}
-mu<-I<-sd<-overall<-NULL
-@
 
 Following the structure of the motivating example, consider a binary dataset describing an event such as whether or not someone has ovarian cancer. This data is collected across different sites, which may have different sampling procedures (as well as simply different populations). The mean effect for each site can be thought of as normally distributed around a global effect if this exists. This is the alternative hypothesis. The null hypothesis is that there is no global effect. This also means that there must not be a site effect. We are interested in two things: whether or not there is a global effect (hypothesis testing), and what the effect's size is (inference). Let $Y_{ij}$ be the observed data. The $j$ index corresponds to the site to which the observation belongs. 
 
@@ -132,10 +140,35 @@ H\sim \textsf{Bernoulli}(\xi)\\
 \xi \sim \textsf{Beta}(a, b)
 \end{gather}
 
-<<>>=
+<<mixture>>=
+cond.likelihood<- function(ybar, mu, SE, q=1.96){
+  dnorm(ybar, mu, SE)/
+    (pnorm(-q*SE, mu, SE) +
+       1-pnorm(q*SE, mu, SE))
+}
+
+p = 0.00325
+LOR = log(1.65)
+q = -qnorm(p/2)
+# 1.21-2.25
+SE =  (log(2.25 ) - LOR)/1.96
+#exp(LOR + c(-1, 1)*1.96*SE)
+BF = 1/(-exp(1)*p*log(p))
+mu <- seq(-.2,1.25,.01)
+
+p<-ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
+  geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
+  labs(title= "Mixture Model with Point Mass at 0",x=expression(mu),y="density")+
+  theme_minimal() + scale_colour_few()
 
 @
 
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(p)
+@
+\end{figure}
 
 If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al. with slightly different priors.
 
@@ -160,9 +193,29 @@ p(\text{MLE}_i | B,\beta_i,\text{SE}_i,q_i) = \frac{\phi(\text{MLE}_i, \beta_i, 
 where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,\text{SE}_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $\text{MLE}_i$  be denoted as $\textsf{CL}(\beta_i,\text{SE}_i, q_i)$.
 
 <<>>=
+CLdata<-data.frame(mu, cond.likelihood(LOR, mu, SE, q = -qnorm(0.005/2)), 
+                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.05/2)),
+                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.01/2)),
+                   dnorm(LOR, mu, SE))
+colnames(CLdata)<- c("mu", "CL.005","CL.05","CL.01","uncond")
+melted <- melt(CLdata, id.vars=c("mu"))
+p<- ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)) +
+  labs(title = "Conditional vs. Unconditional Likelihood", 
+       x = expression(mu), y = "Likelihood")+  theme_minimal()+ 
+  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  scale_colour_few(name="", labels=c(expression(paste(alpha," = .005")), 
+                                     expression(paste(alpha," = .05")), 
+                                     expression(paste(alpha," = .01")),
+                                     "unconditional"))
 
 @
 
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(p)
+@
+\end{figure}
 We can see that as $\alpha$ decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0.
 
 The conditional likelihood of $\beta_{ j}, j\in \text{discovery}$ becomes the posterior of this variable if we use a uniform prior, since the likelihood will just be multiplied by one.
@@ -198,8 +251,39 @@ where $p$ is the p-value from the discovery data \cite{sellke2001calibration}. T
 Then $\xi'$ can be used in the fully Bayesian model, but only with the validation data.
 
 <<>>=
+pind.dens<-function(post.ind,p){
+  BF<- 1/(-exp(1)*p*log(p)) 
+  prior.odds<-post.ind/(1-post.ind)/BF
+  pind<- prior.odds/(1+prior.odds) #a/0
+  #eplogp is BF h0/h1
+  return(pind)
+  }
+postind.dens<-function(pind, p=.0035){
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  return(post.ind)
+}
+pind<- seq(.001, .999,by=.001)
 
+BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
+                         postind.dens(pind, .005),postind.dens(pind, 1e-5),
+                   dbeta(pind,.5,.5))
+colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","xi")
+p<- ggplot(data=melt(BFapproxdata,id.vars = "xi"), aes(y=xi))+
+  geom_line(aes(x=value, group=variable,color=variable))+
+  labs(title = "Distribution of Transformed Probability of Effect\n with Bayes Factor Approximation", 
+       x = expression(xi), y = "Density")+  theme_minimal()+ 
+  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  scale_colour_few(name="p-value")
 @
+
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(p)
+@
+\end{figure}
 
 In this case, the discovery data will have an effect on the amount of zero-valued global effects sampled because it skews the distribution to the right. However, since in this specific model we do not use the effect estimates from the discovery data, we essentially throw away any information regarding the size of the effect. These can be added in future models to better utilize the discovery data.
 
@@ -231,10 +315,6 @@ This simulation study addresses on the first goal outlined in the introduction: 
 
 \subsection{Data Generation}
 
-<<>>=
-
-@
-
 To test the hypothesis $H_0: \mu = 0$ versus  $H_1: \mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $\mu_i = 0$ in the null scenario and $\mu_i \sim \textsf{N}(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $\mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $\alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the conditional likelihood, which requires the data to be significant. The Bayes factor model as it is specified cannot be used in this scenario, since it only uses the p-value from the discovery site(s).
 
 \subsection{Conditional Likelihood}
@@ -245,6 +325,35 @@ The credible intervals were estimated by treating the conditional likelihood as 
 
 <<>>=
 
+cond.posterior<- function(Y, n.samp){
+  cond.likelihood<- function(Y, mu){
+    ybar = mean(Y)
+    N = length(Y)
+    #(abs(ybar-mu)/(sqrt(1/N))>1.96)*
+    dnorm(ybar, mu, sqrt(1/N))/
+      (pnorm((-1.96*sqrt(1/N)), mu, sqrt(1/N))
+       +1-pnorm((1.96*sqrt(1/N)), mu, sqrt(1/N)))
+    #not symmetric other than mu = 0
+  }
+  #x<- seq(-2,2,.01)
+  #plot(x, cond.likelihood(Y, x), type="l")
+  #metropolis hasting with flat prior
+  c=1
+  mu <- 0
+  MU <- NULL
+  
+  for(s in 1:n.samp){
+    mu.star <- rnorm(1, mu, c)
+    r = cond.likelihood(Y,mu.star)/cond.likelihood(Y,mu)
+    if(runif(1)<r){
+      mu <- mu.star
+    }
+    MU <- c(MU, mu)
+  }
+  #plot(MU, type="l")
+  #ggplot(data = data.frame(MU))+geom_density(aes(x=MU))
+  (MU)
+}
 @
 
 
@@ -277,25 +386,148 @@ This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \s
 Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate credible intervals. 
 
 <<>>=
+getposterior <- function(Y,n.samp, pi = .5){
+  n = length(Y)
+  odds = (1-pi)/pi
+  #bf.approx <- -exp(1)*p*log(p)
+  bf <-  (n+1)^(-.5)*exp(n^2*mean(Y)^2/(2*(n+1)))
+  alt.prob <- odds*bf/(1+odds*bf)
+  #alt.prob.approx <- odds*bf.approx/(1+odds*bf.approx)
+
+  #draws from posterior-flip a coin (ber w prob P(H given Y) and then use that to get draw
+  draws = sapply(runif(n.samp), function(x)  {
+    ifelse(x<(1-alt.prob), rnorm(1, 0, 0), rnorm(1,mean(Y)*n/(n+1), sqrt(1/(n+1))))
+  })
+  #ggplot(data = data.frame(draws))+geom_density(aes(x=draws))
+  (list(alt.prob=alt.prob, draws=draws)) 
+  
+}
+
+HPD <-function(post, prob  = .95){
+  
+  #HPD interval- copied from BAS/coda
+  obj <- as.matrix(post)
+  vals <- apply(obj, 2, sort)
+  if (!is.matrix(vals))
+    stop("obj must have nsamp > 1")
+  nsamp <- nrow(vals)
+  npar <- ncol(vals)
+  gap <- max(1, min(nsamp - 1, round(nsamp * prob)))
+  init <- 1:(nsamp - gap)
+  inds <- apply(vals[init + gap, , drop = FALSE] - vals[init,
+                                                        , drop = FALSE], 2, which.min)
+  (cbind(vals[cbind(inds, 1:npar)], vals[cbind(inds +
+                                                 gap, 1:npar)]))
+  #look into this and check about continuity of cdf, etc
+}
 
 @
 
 \subsection{Results}
 <<>>=
 
+all <- function(H, N, n.samp, interval,alpha){
+  mu <- ifelse(H==0, 0, rnorm(1, 0, 1)) ### normally distributed mu
+  Y <- rnorm(N, mu, 1)
+  count=0
+  while(abs(abs(mean(Y))/sqrt(1/N)-qnorm(1-alpha/2))>interval){ #if Z is not in (1.94, 1.98)
+    if(count>1000){ #had to add this bc it wouldn't run
+      return (c(H, mu , mean(Y), NA  , 
+                NA  , NA  , 
+                NA , NA , 
+                NA , NA , NA, NA  , NA  , 
+                NA , NA, NA, NA ))
+    }
+    
+    Y <- rnorm(N, mu, 1)
+    count<- count+1
+  }
+  post <- getposterior(Y,  n.samp)
+  alt.prob = post$alt.prob
+  cred <- HPD(post$draws)
+  cred.lower = cred[1]
+  cred.upper = cred[2]
+  bayes.cov =  (cred.upper>=mu&&cred.lower<=mu)
+  
+  cond <-cond.posterior(Y, n.samp)
+  conf <- HPD(cond)
+  conf.lower = conf[1]
+  conf.upper = conf[2]
+  
+  freq.cov =  (conf.upper>=mu&&conf.lower<=mu)
+  naive.cov <- mean(Y)+1.96*sqrt(1/N)>=mu&&mean(Y)-1.96*sqrt(1/N)<=mu 
+  expected.cov <- .95*alt.prob+(conf.upper>=0&&conf.lower<=0)*(1-alt.prob)
+  
+  
+  Bayes.est = mean(post$draws)
+  Bayes.median.est = median(post$draws)
+  Bayes.mode.est = as.numeric(names(sort(-table(post$draws)))[1])
+  cond.mean.est = mean(cond)
+  d <- density(cond)
+  cond.mode.est = d$x[which.max(d$y)]
+  
+  (c(H, mu , mean(Y), alt.prob  , 
+     cred.lower  , cred.upper  , 
+     conf.lower , conf.upper , 
+     bayes.cov , freq.cov , naive.cov, expected.cov, 
+     Bayes.est, Bayes.median.est,
+     Bayes.mode.est,cond.mean.est,cond.mode.est))
+  
+}
+
+
+N=100; n.samp = 10000; n.sim=1000; pi = .5
+
+results <-data.frame(t(apply(matrix(as.numeric(runif(n.sim)<pi)),1, function(x) all(x, N, n.samp, .2, .05))))
+colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" , 
+        "cred.lower"  , "cred.upper"  , 
+        "conf.lower" , "conf.upper" , 
+        "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
+        "Bayes.est","Bayes.median.est","Bayes.mode.est",
+        "cond.mean.est","cond.mode.est")
+save(results, file="normalsim.RData")
+
 @
 
 \subsubsection{Estimators}
 
 <<>>=
+load("normalsim.RData")
+results<-na.omit(results)
+estimators <- data.frame(Bayes.mean = abs(results$Bayes.est-results$mu),
+              naive = abs(results$Ybar-results$mu), 
+              Bayes.median = abs(results$Bayes.median.est-results$mu),
+              Bayes.mode = abs(results$Bayes.mode.est-results$mu),
+              cond.mean = abs(results$cond.mean.est-results$mu),
+              cond.mode = abs(results$cond.mode.est-results$mu))
 
+p<- ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|", title= "Bias Distribution by Estimator")+theme_minimal() + scale_colour_few()
+
+kable(t(c(Bayes.mean = sqrt(sum(estimators$Bayes.mean^2)), Bayes.median= sqrt(sum(estimators$Bayes.median^2)), Bayes.mode = sqrt(sum(estimators$Bayes.mode^2)),cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2)))), caption = "RMSE of 100 simulations", digits=3)
 @
 
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(p)
+@
+\end{figure}
 
 The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error) for $\mu$ out of the frequentist estimators, while the Bayesian median and mode (which end up being the same) the smallest bias in the Bayesian framework. The RMSE for the Bayesian estimator (mean of the posterior) is the lowest, followed by the conditional mean and mode.
 
 \subsubsection{Credible Intervals}
 
+<<>>=
+p<-ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))+labs(x="Length of (Conditional) Confidence Interval",y="Length of (Bayesian) Credible Interval", title="Interval Size Comparison",color="|Ybar|")+theme_minimal() 
+
+@
+
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(p)
+@
+\end{figure}
 
 The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes.
 
@@ -316,7 +548,15 @@ However, conditioning on the alternative hypothesis does not lead to an empirica
 We can see that both methods are still significantly better than the naive one.
 
 <<>>=
-
+results <- na.omit(results)
+b <- which(results$H==0)
+# 
+# kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov),mean(results[-b,]$naive.cov)),
+#         conditional = c(mean(results$freq.cov), mean(results[b,]$freq.cov), mean(results[-b,]$freq.cov)),
+#         Bayesian = c(mean(results$bayes.cov), mean(results[b,]$bayes.cov), mean(results[-b,]$bayes.cov)))),
+#       col.names = c("Unconditional Coverage","Coverage Conditional on H0", "Coverage Conditional on H1"),
+#       row.names = TRUE,
+#       caption = "Empirical Coverage for 95% Credible Intervals", digits=3)
 @
 
 \subsubsection{Hypothesis Testing}
@@ -325,15 +565,38 @@ We can see that both methods are still significantly better than the naive one.
 Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95\% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
 
 <<>>=
+kable(table(results$H,abs(results$Ybar)/sqrt(1/100)<qnorm(1-0.05/2))/dim(results)[1], col.names = c("Do not reject null", "Reject null"), row.names = TRUE, caption = "Naive method", digits=3)
 
+@
+
+<<>>=
+kable(table(results$H,results$conf.upper>=0&results$conf.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Conditional Likelihood Method", digits=3)
+
+@
+
+<<>>=
+kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Bayesian Mixture Model", digits=3)
 @
 
 Despite never rejecting the null, the conditional likelihood and the Bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
 
 \section{Hierarchical Simulations}\label{sec:hierarchical}
 
-<<>>=
+---------
 
+<<>>=
+knitr::opts_chunk$set(eval=FALSE)
+
+@
+
+<<>>=
+load("p53sim_processeddata.RData")
+mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp-------redo this
+assoc<-c(0,1,1,1,1)
+muvec<-c(0,mu,mu,mu,mu)
+sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
+I = 100
+pvals=c(.05,.01,.005,.001, 1e-7)
 @
 
 
@@ -341,7 +604,92 @@ Despite never rejecting the null, the conditional likelihood and the Bayesian me
 This simulation study aims to deal with the second goal specified in the introduction. After an effect has been discovered, how can data from replication studies be combined with the original? In this scenario, we must account for the heterogeneity between sites; neglecting the uncertainty that comes from replication studies would lead to erroneously confident estimates of significance and effect size.
 
 <<>>=
+get.cond.likelihood.data<- function(data, p = 0.00325){
+  freq = glm(CaseCon ~ factor(site), data=data,family=binomial, x=T)
+  #get "discovery" with smallest p value (that is significant)
+  coefs = coef(summary(freq))
+  discovery.site = which.min(coefs[,4])
+  if(coefs[discovery.site,4]>p){
+    return(NULL)
+  }
+  
+  MLE = coefs[discovery.site,1]
+  SE = coefs[discovery.site,2]
+  p.value = coefs[discovery.site,4]
+  #make new data for model
+  exclude <- which(data$site==discovery.site)
+  newdata = list(MLE=MLE, SE=SE, n.discovery= 1, zeroes= 0, 
+                 discovery.sites=discovery.site,
+                 CaseCon= data$CaseCon[-exclude], 
+                 site= data$site[-exclude], n.sites = data$n.sites,
+                 q=qnorm(1-p/2),
+                 p = coefs[discovery.site,4])
+  newdata$J<- length(newdata$CaseCon)
+  return(newdata)
+  
+}
 
+
+sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ 
+  #assoc is H
+  beta.p53 = rnorm(n.sites,mu,sd)*assoc 
+  Y <-site <- rep(NA, observations*n.sites)
+  for(i in 1:n.sites){
+    Y[((i-1)*observations+1):(i*observations)]<-rbinom(observations, 1, exp(beta.p53[i])/(1+exp(beta.p53[i])))
+    site[((i-1)*observations+1):(i*observations)]<- rep(i, observations)
+  }
+  return(list(beta.p53=beta.p53, simdata = list(CaseCon=Y, site=site,  J=n.sites*observations ,n.sites=n.sites, one=1)))
+}
+
+run.all<- function(assoc,mu, sd, inits,n.sites){
+  cond.data = NULL;count=0
+  while(is.null(cond.data) & count<1000){
+    data <- sample(assoc, mu, sd,n.sites)
+    cond.data<-get.cond.likelihood.data(data$simdata)
+    count=count+1
+  }
+  #run jags
+  latent.cauchy <- jags(data=data$simdata, inits=inits,
+                        parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
+                        model = latent.cauchy.model)
+  cond.likelihood<-NULL
+  if(!is.null(cond.data)){
+    cond.likelihood<- jags(data=cond.data ,inits=inits,
+                           parameters.to.save =c("mu.p53", "sigma.p53"), 
+                           model = cond.likelihood.re.model)
+    bf.approx<- jags(data=cond.data, inits=inits,
+                     parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
+                     model = bf.model)
+  }
+  original<- jags(data=data$simdata, inits=inits,
+                  parameters.to.save =c("mu.p53", "sigma.p53"),
+                  model = original.model)
+  
+  return(list(latent.cauchy = latent.cauchy,
+              cond.likelihood = cond.likelihood,
+              bf=bf.approx,
+              original= original,
+              beta.p53 = data$beta.p53))
+}
+
+run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the same data so hopefully better
+  cond.data = NULL;count=0
+  while(is.null(cond.data) & count<1000){
+    data <- sample(assoc, mu, sd)
+    cond.data<-get.cond.likelihood.data(data$simdata, min(pvals))
+    count=count+1
+  }
+  if(!is.null(cond.data)){
+    cond.likelihood<- lapply(pvals, function(p){
+      cond.data$q<-qnorm(1-p/2)
+      return(jags(data=cond.data ,inits=inits,
+                  parameters.to.save =c("mu.p53", "sigma.p53"), 
+                  #rerun also with random effect?
+                  model = cond.likelihood.re.model))
+    })
+  }
+  return(cond.likelihood)
+}
 @
 
 \subsection{Data Generation}
@@ -359,8 +707,124 @@ In this simulation study, a logistic regression with fixed effects for sites was
 
 \subsection{Results}
 
-<<>>=
+<<eval=FALSE>>=
+cl = makeCluster(8)
+registerDoParallel(cl)
 
+system.time({
+  allsim<- foreach(j = 1:5) %:%
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
+    }
+})
+save.image()
+
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.1<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(1,mu,sd, NULL,pvals))
+    }
+})
+save.image()
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.4<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(1,mu,sd*4, NULL,pvals))
+    }
+})
+save.image()
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.0<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(0,0,sd, NULL,pvals[1:4]))
+    }
+})
+save.image()
+@
+
+
+<<>>=
+getstatsitems<-c("hasmu","haszero","mean","median",
+                 "ismultimodal", "intervallength","probneqzero",
+                 "hassd","sdmean","sdmedian","sdintlen",
+                 "haspind","pindmean","pindmedian","pindg.5")
+
+modelnames<- c("Bayesian",
+               "Cond Likelihood","BF Approx", "Original")
+
+getstatsloop<-function(simlist,mu,sd,modelnames){
+  I<-length(simlist)
+  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd))
+  return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
+}
+
+getstats<-function(jagsoutput, mu, sd){
+  mu.samples<- jagsoutput$BUGSoutput$sims.list$mu.p53
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$mu.p53.notzero)){
+    mu.samples<-mu.samples*jagsoutput$BUGSoutput$sims.list$mu.p53.notzero
+  }
+  cred<-HPDM(mu.samples)
+  upper<- cred[2]
+  lower<- cred[1]
+  if(length(cred)>2){
+    #assume 2 modes max
+    upper <- c(upper,cred[4])
+    lower <- c(lower,cred[3])
+  }
+  sd.samples<-sd.cred<-NA
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$sigma.p53)){
+    sd.samples <- (jagsoutput$BUGSoutput$sims.list$sigma.p53)
+    sd.cred<- HPDM(sd.samples)
+  }
+  
+  pind.samples<-pind.cred<-NA
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$pind)){
+    pind.samples<- jagsoutput$BUGSoutput$sims.list$pind
+    # pind.cred<- HPDM(pind.samples)
+  }
+  return(c(hasmu = any(upper>=mu&lower<=mu), 
+           haszero = any(upper>=0&lower<=0), 
+           mean = mean(mu.samples),
+           median = median(mu.samples),
+           ismultimodal=length(cred)>2,
+           intervallength = sum(upper-lower),
+           probneqzero = sum(mu.samples!=0)/length(mu.samples),
+           hassd= sd.cred[2]>=sd&sd.cred[1]<=sd,
+           sdmean= mean(sd.samples),
+           sdmedian= median(sd.samples),
+           sdintlen=sd.cred[2]-sd.cred[1],
+           haspind=pind.cred[2]>=0&pind.cred[1]<=1,
+           pindmean =mean(pind.samples),
+           pindmedian=median(pind.samples),
+           # pindintlen=pind.cred[2]-pind.cred[1]
+           pindgreater.5=mean(pind.samples>.5)
+           
+  ))
+}
+@
+
+
+<<>>=
+sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames)
+sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames)
+sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames)
+sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames)
+sim.4<-getstatsloop(allsim[[5]],mu,sd*4,modelnames)
+
+sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
+sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
+sim.cl.stats.better0<-getstatsloop(cl.sim.better.0 ,0,1, pvals) 
+
+save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better4,sim.cl.stats.better0, file = "p53sim_processeddata.RData")
 @
 
 \subsubsection{RMSE of $\mu$}
@@ -371,8 +835,76 @@ As expected, the models performed more poorly as $\sigma$ increased. Out of the 
 At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.
 
 <<>>=
+df1<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
+simslist<-list(sim.half,sim.1,sim.2,sim.4)
+for (i in 1:4){
+  df1<-rbind(df1,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
+}
+mseplot = ggplot(data = (df1), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
+  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
+rmse<- cbind(sapply(1:4, function(x) sqrt(mean((sim.0[4,x,])^2))),
+             sapply(simslist, function(sim) 
+               sapply(1:4, function(x) sqrt(mean((sim[4,x,]-mu)^2)))))
+rownames(rmse)<-modelnames
+colnames(rmse)<-c("mu=0","s/2", "s", "2s", "4s")
+
+
+pindmed<- cbind(sapply(c(1,3), function(x) sqrt(mean((sim.0[14,x,])^2))),
+                sapply(simslist, function(sim) 
+                  sapply(c(1,3), function(x) sqrt(mean((sim[14,x,])^2)))))
+rownames(pindmed)<-modelnames[c(1,3)]
+colnames(pindmed)<-c("mu=0","s/2", "s", "2s", "4s")
+
+zeromu<- cbind(sapply(c(1,3), function(x) sqrt(mean((sim.0[7,x,])^2))),
+               sapply(simslist, function(sim) 
+                 sapply(c(1,3), function(x) sqrt(mean((sim[7,x,])^2)))))
+rownames(zeromu)<-modelnames[c(1,3)]
+colnames(zeromu)<-c("mu=0","s/2", "s", "2s", "4s")
+
+
+df<- data.frame(melt(t(abs(sim.0[6,,])))[,2:3], simulation=0)
+simslist<-list(sim.half,sim.1,sim.2,sim.4)
+for (i in 1:4){
+  df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][6,,])))[,2:3], simulation=i))
+}
+
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
+  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
+
+
+hasm<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+              sapply(simslist, function(sim) 
+  sapply(1:4, function(x) mean(sim[1,x,]))))
+rownames(hasm)<-modelnames
+colnames(hasm)<-c("mu=0","s/2", "s", "2s", "4s")
+
+has0<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+              sapply(simslist, function(sim) 
+  sapply(1:4, function(x) mean(sim[2,x,]))))
+rownames(has0)<-modelnames
+colnames(has0)<-c("mu=0","s/2", "s", "2s", "4s")
+@
+
+
+<<>>=
+kable(rmse, caption="RMSE of $\\mu$",digits=3)
 
 @
+
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(mseplot)
+@
+\end{figure}
 
 \subsubsection{Coverage of $\mu$}
 
@@ -380,13 +912,40 @@ The conditional likelihood and BF approximation models are the most conservative
 
 The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with $\sigma=4s$, because $4s>\mu$, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations. 
 
+
+<<>>=
+kable(hasm, ,format='latex',caption="Proportion of Credible Intervals containing $\\mu$", digits=3)
+
+@
+
+<<>>=
+
+kable(has0, ,format='latex',caption="Proportion of Credible Intervals containing 0", digits=3)
+@
+
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(intlenplot)
+@
+\end{figure}
+
 \subsubsection{Probability of Association $\xi$}
 
 While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
 
 For the simulations that had no true effect, the Bayes Factor approximation model has much larger median $\xi$ and greater proportion of sampled $H_1$ because the mass of the distribution of $\xi$ is shifted towards 1 by the Bayes Factor transformation. Thus, even though the proportion of $H_1$ is quite low (and the median of $\mu$ is 0), the mean of $\xi$ is greater than $0.5$.
+
+
+<<>>=
+kable(pindmed,caption="Average of Posterior Median $\\xi$", digits=3)
+
+
+@
+
 <<>>=
 
+kable(zeromu,caption="Average Proportion of $H_1$", digits=3)
 @
 
 
@@ -395,9 +954,51 @@ For the simulations that had no true effect, the Bayes Factor approximation mode
 The conditional likelihood method with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. \Sexpr{I} datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
 
 <<>>=
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[4,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.better1[4,,]-mu)))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[4,,]-mu)))[,2:3], simulation=2))
+
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "0", "s", "4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
+  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
+rmse<- cbind(c(sapply(1:4, function(x) sqrt(mean((sim.cl.stats.better0[4,x,])^2))), NA),
+             sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
+               sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
+rownames(rmse)<-pvals
+
+colnames(rmse)<-c("0","s", "4s")
+
+
+
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[6,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
+
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
+  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+kable(rmse,caption="RMSE of $\\mu$", digits=3)
 
 @
 
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(mseplot)
+@
+\end{figure}
+
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+print(intlenplot)
+@
+\end{figure}
 This model shows little difference across levels of $\alpha$.
 
 \section{Analysis of TP53}\label{sec:tp53}
