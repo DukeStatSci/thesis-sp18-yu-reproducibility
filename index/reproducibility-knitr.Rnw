@@ -805,7 +805,9 @@ get.cond.likelihood.data<- function(data, p = 0.00325){
                  CaseCon= data$CaseCon[-exclude], 
                  site= data$site[-exclude], n.sites = data$n.sites,
                  q=qnorm(1-p/2),
-                 p = coefs[discovery.site,4])
+                 p = coefs[discovery.site,4],
+                 allMLE = coefs[,1],
+                 allSE = coefs[,2])
   newdata$J<- length(newdata$CaseCon)
   return(newdata)
   
@@ -842,6 +844,12 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
     bf.approx<- jags(data=cond.data, inits=inits,
                      parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
                      model = bf.model)
+    approxdata<- cond.data
+    approxdata$MLE<- cond.data$allMLE
+    approxdata$SE <- cond.data$allSE
+    approx <-jags(data=approxdata, inits=inits,####???
+                     parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
+                     model = approx.model)
   }
   original<- jags(data=data$simdata, inits=inits,
                   parameters.to.save =c("mu.p53", "sigma.p53"),
@@ -850,6 +858,7 @@ run.all<- function(assoc,mu, sd, inits,n.sites){
   return(list(latent.cauchy = latent.cauchy,
               cond.likelihood = cond.likelihood,
               bf=bf.approx,
+              approx = approx,
               original= original,
               beta.p53 = data$beta.p53))
 }
@@ -1078,6 +1087,27 @@ bf.model = function() {
   pind<-prior.odds*BF/(1+prior.odds*BF)
   prior.pind ~ dbeta(.9,.9)
 }
+approx.model = function() {
+  for (k in 1:n.sites){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[k], tau[k])
+  }
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dt(0,1,1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.p53.notzero~dbern(pind)
+  prior.odds<- (1-prior.pind)/prior.pind
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  pind<-prior.odds*BF/(1+prior.odds*BF)
+  prior.pind ~ dbeta(.9,.9)
+}
 
 @
 
@@ -1093,6 +1123,10 @@ system.time({
 })
 save.image()
 
+
+@
+
+<<eval=FALSE>>=
 
 cl = makeCluster(8)
 registerDoParallel(cl)
@@ -1133,7 +1167,7 @@ getstatsitems<-c("hasmu","haszero","mean","median",
                  "haspind","pindmean","pindmedian","pindg.5")
 
 modelnames<- c("HSS",
-               "CL","AHSS", "HB")
+               "CL","AHSS", "APPROX","HB")
 
 getstatsloop<-function(simlist,mu,sd,modelnames){
   I<-length(simlist)
@@ -1210,7 +1244,6 @@ At small variances (s/2, s,  2s), the HB and HSS models outperform the others. T
 
 <<>>=
 load("p53sim_processeddata.RData")
-
 df1<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
 simslist<-list(sim.half,sim.1,sim.2,sim.4)
 for (i in 1:4){
