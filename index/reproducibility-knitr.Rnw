@@ -47,10 +47,10 @@ Parameter estimates from initial discovery data in genome-wide association studi
 library(knitr)
 
 opts_chunk$set(
-concordance=TRUE
+  concordance=TRUE
 )
 
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, cache=TRUE,echo=FALSE,  fig.width=6, fig.height = 3, out.width='4in',fig.align='center', dpi = 600)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, cache=TRUE,echo=FALSE,  fig.width=12, fig.height = 8, out.width='6in' ,fig.align='center', dpi = 600)
 mu<-I<-sd<-overall<-NULL
 
 library(kableExtra)
@@ -147,7 +147,7 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, pointmass = 0, plot=FALSE,
   mm <- apply(obj, 2, is.multimodal, min.size)
   if(any(mm)) {
     if(print) {cat("\n\nPotentially multimodal column vectors:\n",
-        which(mm),"\n")}
+                   which(mm),"\n")}
     vals <- apply(obj, 2, sort)
     if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
     for (m in which(mm)) {
@@ -173,7 +173,8 @@ HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, pointmass = 0, plot=FALSE,
           dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
                         data.frame(x = rep(pointmass,(n-length(d))),y= rep(0,(n-length(d)))))
           #mix of normals
-          dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, pointmass, epsilon)/dnorm(pointmass, pointmass, epsilon)
+          #dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, pointmass, epsilon)/dnorm(pointmass, pointmass, epsilon)
+          dens$mix<- pi*dens$y+(1-pi)*as.numeric(abs(dens$x-pointmass)<=e)
         }
         
         dens<-dens[order(dens$x),]
@@ -276,8 +277,8 @@ plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE,gg=FA
   
   ##ggplot
   if(gg==TRUE){
-  return(
-                  data.frame(maxy = maxyy, x = xx, y = yy, xl=pointmass, xu=pointmass,yl=0,yu=prob0))
+    return(
+      data.frame(maxy = maxyy, x = xx, y = yy, xl=pointmass, xu=pointmass,yl=0,yu=prob0))
   }
   
   #invisible()
@@ -335,16 +336,16 @@ P(Y_{i}=1|\mu) = \textsf{logit}^{-1}(\mu)
 
 We propose three different Bayesian approaches: 
 
-1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al. \cite{xu2011bayesian}, and Jiang et al. \cite{jiang2016power}, which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
+1. Hierarchical spike and slab model (HSS): A fully Bayesian mixed effects hierarchical model with a spike and slab prior that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al. \cite{xu2011bayesian}, and Jiang et al. \cite{jiang2016power}, which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
 
-2. A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size. This model incorporates the conditional likelihood introduced by Zollner and Pritchard as well as Zhong and Prentice, and Ghosh et al.)\cite{zollner2007overcoming, zhong2008bias, ghosh2008estimating} and incorporates it into the Bayesian hierarchical framework.
+2. Conditional likelihood model (CL): this model incorporates the conditional likelihood introduced by Zollner and Pritchard as well as Zhong and Prentice, and Ghosh et al.)\cite{zollner2007overcoming, zhong2008bias, ghosh2008estimating} and incorporates it into the Bayesian hierarchical framework to take into account the probability of finding a significant result in the discovery sites when estimating effect size. 
 
-3. A Bayes factor-based model that uses an upper bound on the Bayes factor from the discovery sites, which is more reliable than the p-value \cite{benjamin2017redefine} to quantify the uncertainty of the significant result.
+3. Approximate hierarchical spike and slab model (AHSS): This uses the estimates and p-value from the discovery sites to create a prior for the validation sites using the same hierarchical framework as HSS. The upper bound on the Bayes factor from the discovery sites, which is more reliable than the p-value on its own \cite{benjamin2017redefine}, is used to quantify the probability of the significant result.
 
 While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, $\alpha$) are available. 
 
 
-\subsection{Fully Bayesian Model}
+\subsection{Hierarchical Spike-and-Slab Model}
 
 Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. Then, $P( \mu|H_0) = \delta_0 ( \mu )$,  and $P( \mu|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable drawn from a Bernoulli($\xi$), which is equivalent to selecting $H_1$ or $H_0$. Site means $\beta_{j}|\mu, \sigma^2,H_1 \sim N(\mu, \sigma^2)$, and $\beta_{j}|H_0 = 0$. In this case the prior for  $\mu| H_1$ was chosen to be a Cauchy distribution. The prior for $\sigma$ was a truncated Cauchy, with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta distribution.  The complete model is as follows:
 
@@ -376,12 +377,12 @@ mu <- seq(-.2,1.25,.01)
 ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
   geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
   labs(title= "Mixture Model with Point Mass at 0",x=expression(mu),y="density")+
-  theme_minimal() + scale_colour_few()
+  theme_classic() + scale_colour_few()
 
 @
 
 
-If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al. with slightly different priors. There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
+If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al.\cite{xu2011bayesian} with slightly different priors. There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
 
 \subsection{Conditional Likelihood Model}
 
@@ -408,8 +409,8 @@ colnames(CLdata)<- c("mu", "CL.005","CL.05","CL.01","uncond")
 melted <- melt(CLdata, id.vars=c("mu"))
 p<- ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)) +
   labs(title = "Conditional vs. Unconditional Likelihood", 
-       x = expression(mu), y = "Likelihood")+  theme_minimal()+ 
-  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+       x = expression(mu), y = "Likelihood")+  theme_classic()+ 
+  #theme(legend.justification=c(1,1), legend.position=c(1,1)) +
   scale_colour_few(name="", labels=c(expression(paste(alpha," = .005")), 
                                      expression(paste(alpha," = .05")), 
                                      expression(paste(alpha," = .01")),
@@ -437,7 +438,7 @@ In the hierarchical setting, the posteriors for the discovery sites are used as 
 Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
 
 
-\subsection{Bayes Factor Model}
+\subsection{Approximate Hierarchical Spike and Slab}
 
 The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu$), but in estimating the distribution of the probability of the effect itself ($\xi = P(H_1)$). To make this model easily generalizable, we use the upper bound on the Bayes Factor
 
@@ -450,7 +451,7 @@ where $p$ is the p-value from the discovery data \cite{sellke2001calibration}. T
 \xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF_{H_1}}{1+o*BF_{H_1}}
 \end{equation}
 
-Then $\xi'$ can be used in the fully Bayesian model, but only with the validation data.
+Then $\xi'$ can be used in the HSS model, but only with the validation data.
 
 <<>>=
 pind.dens<-function(post.ind,p){
@@ -459,7 +460,7 @@ pind.dens<-function(post.ind,p){
   pind<- prior.odds/(1+prior.odds) #a/0
   #eplogp is BF h0/h1
   return(pind)
-  }
+}
 postind.dens<-function(pind, p=.0035){
   prior.odds<- (pind)/(1-pind) #a/0
   BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
@@ -470,13 +471,13 @@ pind<- seq(.001, .999,by=.001)
 
 BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
                          postind.dens(pind, .005),postind.dens(pind, 1e-5),
-                   dbeta(pind,.5,.5))
+                         dbeta(pind,.5,.5))
 colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","xi")
 p<- ggplot(data=melt(BFapproxdata,id.vars = "xi"), aes(y=xi))+
   geom_line(aes(x=value, group=variable,color=variable))+
   labs(title = "Distribution of Transformed Probability of Effect\n with Bayes Factor Approximation", 
-       x = expression(xi), y = "Density")+  theme_minimal()+ 
-  theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+       x = expression(xi), y = "Density")+  theme_classic()+ 
+  #theme(legend.justification=c(1,1), legend.position=c(1,1)) +
   scale_colour_few(name="p-value")
 @
 
@@ -587,7 +588,7 @@ getposterior <- function(Y,n.samp, pi = .5){
   bf <-  (n+1)^(-.5)*exp(n^2*mean(Y)^2/(2*(n+1)))
   alt.prob <- odds*bf/(1+odds*bf)
   #alt.prob.approx <- odds*bf.approx/(1+odds*bf.approx)
-
+  
   #draws from posterior-flip a coin (ber w prob P(H given Y) and then use that to get draw
   draws = sapply(runif(n.samp), function(x)  {
     ifelse(x<(1-alt.prob), rnorm(1, 0, 0), rnorm(1,mean(Y)*n/(n+1), sqrt(1/(n+1))))
@@ -674,11 +675,11 @@ N=100; n.samp = 10000; n.sim=1000; pi = .5
 
 results <-data.frame(t(apply(matrix(as.numeric(runif(n.sim)<pi)),1, function(x) all(x, N, n.samp, .2, .05))))
 colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" , 
-        "cred.lower"  , "cred.upper"  , 
-        "conf.lower" , "conf.upper" , 
-        "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
-        "Bayes.est","Bayes.median.est","Bayes.mode.est",
-        "cond.mean.est","cond.mode.est")
+                      "cred.lower"  , "cred.upper"  , 
+                      "conf.lower" , "conf.upper" , 
+                      "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
+                      "Bayes.est","Bayes.median.est","Bayes.mode.est",
+                      "cond.mean.est","cond.mode.est")
 save(results, file="normalsim.RData")
 
 @
@@ -689,13 +690,13 @@ save(results, file="normalsim.RData")
 load("normalsim.RData")
 results<-na.omit(results)
 estimators <- data.frame(Bayes.mean = abs(results$Bayes.est-results$mu),
-              naive = abs(results$Ybar-results$mu), 
-              Bayes.median = abs(results$Bayes.median.est-results$mu),
-              Bayes.mode = abs(results$Bayes.mode.est-results$mu),
-              cond.mean = abs(results$cond.mean.est-results$mu),
-              cond.mode = abs(results$cond.mode.est-results$mu))
+                         naive = abs(results$Ybar-results$mu), 
+                         Bayes.median = abs(results$Bayes.median.est-results$mu),
+                         Bayes.mode = abs(results$Bayes.mode.est-results$mu),
+                         cond.mean = abs(results$cond.mean.est-results$mu),
+                         cond.mode = abs(results$cond.mode.est-results$mu))
 
-p<- ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|", title= "Bias Distribution by Estimator")+theme_minimal() + scale_colour_few()
+p<- ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|", title= "Bias Distribution by Estimator")+theme_classic() + scale_colour_few()
 
 kable(t(c(Bayes.mean = sqrt(sum(estimators$Bayes.mean^2)), Bayes.median= sqrt(sum(estimators$Bayes.median^2)), Bayes.mode = sqrt(sum(estimators$Bayes.mode^2)),cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2)))), caption = "RMSE of 100 simulations", digits=3)
 @
@@ -712,7 +713,7 @@ The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error
 \subsubsection{Credible Intervals}
 
 <<>>=
-p<-ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))+labs(x="Length of (Conditional) Credible Interval",y="Length of (Bayesian) Credible Interval", title="Interval Size Comparison",color="|Ybar|")+theme_minimal() 
+p<-ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))+labs(x="Length of (Conditional) Credible Interval",y="Length of (Bayesian) Credible Interval", title="Interval Size Comparison",color="|Ybar|")+theme_classic() 
 
 @
 
@@ -723,7 +724,7 @@ print(p)
 @
 \end{figure}
 
-The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes. The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the fully Bayesian credible intervals, but still mostly smaller than the naive ones. 
+The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes. The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the HSS credible intervals, but still mostly smaller than the naive ones. 
 
 \subsubsection{Coverage}
 
@@ -1131,8 +1132,8 @@ getstatsitems<-c("hasmu","haszero","mean","median",
                  "hassd","sdmean","sdmedian","sdintlen",
                  "haspind","pindmean","pindmedian","pindg.5")
 
-modelnames<- c("Bayesian",
-               "Cond Likelihood","BF Approx", "Original")
+modelnames<- c("HSS",
+               "CL","AHSS", "HB")
 
 getstatsloop<-function(simlist,mu,sd,modelnames){
   I<-length(simlist)
@@ -1202,10 +1203,10 @@ save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better
 
 \subsubsection{RMSE of $\mu$}
 
-As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.
+As expected, the models performed more poorly as $\sigma$ increased. The three models are compared to the original model used in Sch et. al, a mixed-effects hierarchical Bayesian model (HB). The HSS and AHSS models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the AHSS model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the HSS model.
 
 
-At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.
+At small variances (s/2, s,  2s), the HB and HSS models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The HSS model actually has a slightly higher lower RMSE than the other models when there is a true association.
 
 <<>>=
 load("p53sim_processeddata.RData")
@@ -1216,9 +1217,9 @@ for (i in 1:4){
   df1<-rbind(df1,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
 }
 mseplot = ggplot(data = (df1), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
-  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  geom_boxplot(aes(color=Var2))+  theme_classic() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
-  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+  scale_colour_few(name="Model") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
 
 rmse<- cbind(sapply(1:4, function(x) sqrt(mean((sim.0[4,x,])^2))),
@@ -1248,22 +1249,22 @@ for (i in 1:4){
 }
 
 intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
-  geom_boxplot(aes(color=Var2))+  theme_minimal() +
+  geom_boxplot(aes(color=Var2))+  theme_classic() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
-  scale_colour_few(name="Model") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+  scale_colour_few(name="Model") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
 
 
 
 hasm<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
               sapply(simslist, function(sim) 
-  sapply(1:4, function(x) mean(sim[1,x,]))))
+                sapply(1:4, function(x) mean(sim[1,x,]))))
 rownames(hasm)<-modelnames
 colnames(hasm)<-c("mu=0","s/2", "s", "2s", "4s")
 
 has0<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
               sapply(simslist, function(sim) 
-  sapply(1:4, function(x) mean(sim[2,x,]))))
+                sapply(1:4, function(x) mean(sim[2,x,]))))
 rownames(has0)<-modelnames
 colnames(has0)<-c("mu=0","s/2", "s", "2s", "4s")
 @
@@ -1283,7 +1284,7 @@ print(mseplot)
 
 \subsubsection{Coverage of $\mu$}
 
-The conditional likelihood and BF approximation models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
+The CL and AHSS models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
 
 The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with $\sigma=4s$, because $4s>\mu$, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations. 
 
@@ -1307,7 +1308,7 @@ print(intlenplot)
 
 \subsubsection{Probability of Association $\xi$}
 
-While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
+While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the HSS model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
 
 For the simulations that had no true effect, the Bayes Factor approximation model has much larger median $\xi$ and greater proportion of sampled $H_1$ because the mass of the distribution of $\xi$ is shifted towards 1 by the Bayes Factor transformation. Thus, even though the proportion of $H_1$ is quite low (and the median of $\mu$ is 0), the mean of $\xi$ is greater than $0.5$.
 
@@ -1326,7 +1327,7 @@ kable(zeromu,caption="Average Proportion of $H_1$", digits=3)
 
 \subsubsection{Sensitivity of Conditional Likelihood Method to Changes in $\alpha$}
 
-The conditional likelihood method with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. \Sexpr{I} datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
+The CL model with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. \Sexpr{I} datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The model with random effects and without was then fitted for each level. 
 
 <<>>=
 df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[4,,])))[,2:3], simulation=0),
@@ -1334,14 +1335,14 @@ df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[4,,])))[,2:3], simulation=
            data.frame(melt(t(abs(sim.cl.stats.better4[4,,]-mu)))[,2:3], simulation=2))
 
 mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "0", "s", "4s")), y=value)) +
-  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_classic() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error", title=expression(paste("Absolute Error of Simulation ",mu )))+
-  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+  scale_colour_few(name="p-value") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
 
 
 rmse<- cbind(c(sapply(1:4, function(x) sqrt(mean((sim.cl.stats.better0[4,x,])^2))), NA),
              sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
-               sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
+             sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
 rownames(rmse)<-pvals
 
 colnames(rmse)<-c("0","s", "4s")
@@ -1353,9 +1354,9 @@ df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[6,,])))[,2:3], simulation=
            data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
 
 intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")), y=value)) +
-  geom_boxplot(aes(color=factor(Var2)))+  theme_minimal() +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_classic() +
   labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length", title=expression(paste("Credible Intervals of Simulation ",mu )))+
-  scale_colour_few(name="p-value") +  theme( legend.justification=c(0,1), legend.position=c(0,1))
+  scale_colour_few(name="p-value") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
 @
 
 <<>>=
@@ -1394,7 +1395,7 @@ P(Y_{ij}=1| \beta^{site}_{ j}, \beta^{p53}_{j}, \beta^{age}_{j},\beta^{BC}) = \t
 \sigma_{age},\sigma_{site} \sim \textsf{invGamma}(1, 0.05)
 \end{gather}
 
-The p53 variable's site-specific log OR priors were defined using the models described previously. The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
+The p53 variable's site-specific log OR priors were defined using the models described previously. The HSS model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
 
 \subsection{Results}
 <<JAGS2>>=
@@ -1556,8 +1557,6 @@ p53.bf.approx = function() {
 @
 
 <<p53>>=
-load("p53OR.RData")
-load("tp53.RData")
 
 getdata<- function(snp.name, iter=5000, drop.sites= NULL){
   load("tp53.Rdata")
@@ -1690,20 +1689,26 @@ OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir=
   p53.data.normal$q<-qnorm(1-p/2)
   bfdata <- p53.data.normal
   bfdata$p <- freq$p.value
+  freq.all<-OR.freq(snp.name, psdir="ps",
+                    drop=NULL,iter=5000, debug=F)
   
+  approxdata <- list(n.sites = p53.data$n.sites, MLE = freq.all$OR[,1] , SE = freq.all$SE, q = qnorm(1-p/2), p = freq$p.value)
   #run all 
   parameters = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind","beta.site", "beta.p53","phi.site","phi.p53")
+
   
-  p53.sim = jags(data=p53.data, inits=NULL,n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.model)
-  p53.simnew = jags(data=p53.data ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)), n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.newmodel) 
-  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=10000,n.chains=5, parameters.to.save =parameters.normal, model = p53.normal)
-  p53.bfsim = jags(data=bfdata, inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)),n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.bf.approx)
+  p53.approxsim = jags(data=approxdata ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=1)), n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.mle.approx)
+  p53.sim = jags(data=p53.data, inits=NULL,n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.model)
+  p53.simnew = jags(data=p53.data ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=1)), n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.newmodel) 
+  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=50000,n.chains=3, parameters.to.save =parameters.normal, model = p53.normal)
+  p53.bfsim = jags(data=bfdata, inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=1)),n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.bf.approx)
   
   #OR
   return(list(original= (p53.sim),
               bayes= (p53.simnew),
               cond= (p53.simnormal),
               bf= (p53.bfsim),
+              approx=p53.approxsim,
               n.sites = p53.data$n.sites,
               n.discovery = p53.data.normal$discovery.sites))
 }
@@ -1739,24 +1744,28 @@ save(ORbySNP, snps, file="p53OR.RData")
 @
 
 <<>>=
-
+load("p53OR.RData")
 overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
 
 #overall=data.frame(t(sapply(ORbySNP[[2]], function(x) x[dim(x)[1],])))
 colnames(overall) = c("X","L","U", "L1","U1")
-overall$model = rep(c("original","bayesian","conditional","bf approx"),length(snps))
-overall$model<- factor(overall$model, levels= c("bf approx", "conditional","bayesian","original"))
-overall$snp = rep(snps, each = 4)
+overall$model = rep(c("HB","HSS","CL","AHSS","APPROX"),length(snps))
+overall$model<- factor(overall$model, levels= c("HSS","CL","AHSS","APPROX","HB"))
+overall$snp = rep(snps, each = 5)
 ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+ 
   geom_hline(yintercept=1, alpha=.3)+
   geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = .7))+
   geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = .7))+ 
-  geom_point(aes(x=snp, y=X),size=3, shape=4,position = position_dodge(width = .7)) +theme_minimal() + scale_colour_few()+labs(y="Odds Ratio", title= "OR and 95% CI for p53 SNPs")+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  
+  geom_point(aes(x=snp, y=X),size=3, shape=13,position = position_dodge(width = .7)) +theme_classic() + scale_colour_few()+labs(y="Odds Ratio", title= "OR and 95% CI for p53 SNPs")+ theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  geom_point(aes(x=snp, y=L),size=3, shape=4,position = position_dodge(width = .7))+
+  geom_point(aes(x=snp, y=L1),size=3, shape=4,position = position_dodge(width = .7))+
+  geom_point(aes(x=snp, y=U),size=3, shape=4,position = position_dodge(width = .7))+
+  geom_point(aes(x=snp, y=U1),size=3, shape=4,position = position_dodge(width = .7))
+
 @
 
-The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (\Sexpr{overall$snp[which(overall$X!=1 &overall$model=="bayesian")]}) 
-that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the fully Bayesian credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
+The new models shrunk estimates towards 0 for all SNPs. The AHSS model set all point estimates to zero, as did the HSS model with the exception of one. This is the same SNP (\Sexpr{overall$snp[which(overall$X!=1 &overall$model=="bayesian")]}) 
+that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the HSS credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
 
 Below are the full tables of OR by site and SNP.
 
@@ -1774,32 +1783,91 @@ formatCI<- function(ORvec){
 makeORtable<-function(OR, sitenames){
   est<-sapply(OR, function(x) paste(round(x[,1], 3)))
   CI<-sapply(OR, function(x) apply(round(x, 3),1, formatCI))
-  ret<-matrix(NA, nrow = dim(est)[1],ncol=8)
-  ret[,-c(2,4,6,8)]<-est
-  ret[,c(2,4,6,8)]<-CI
-  colnames(ret)<- c("original estimate","original CI",
-                    "bayesian estimate","bayesian CI",
-                    "CL estimate","CL CI",
-                    "BF estimate","BF CI")
+  ret<-matrix(NA, nrow = dim(est)[1],ncol=10)
+  ret[,-c(2,4,6,8,10)]<-est
+  ret[,c(2,4,6,8,10)]<-CI
+  colnames(ret)<- c("HB median","HB CI",
+                    "HSS median","HSS CI",
+                    "CL median","CL CI",
+                    "AHSS median","AHSS CI","APPROX median","APPROX CI")
   rownames(ret)<- c(sitenames, "Overall")
   return(ret)
 }
 
 for(i in 1:length(snps)){
-  print(kable_styling(kable(makeORtable(ORbySNP[[i]], all.sitenames[[i]]), caption=snps[i]),latex_options = "scale_down"))
+  print(kable_styling(kable(makeORtable(ORbySNP[[i]], all.sitenames[[i]]), caption=paste0("\\label{tab:", snps[i],"}")),latex_options = "scale_down"))
 }
+@
+
+
+<<>>=
+p53.mle.approx = function() {
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(assoc)
+  }
+  
+  for (k in 1:n.sites){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[k], tau[k])
+  }
+  
+  #E[prec] 20
+  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+  mu.p53.1 ~ dt(0,.1,1)
+  mu.p53<-mu.p53.1*assoc
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  assoc~dbern(post.ind)
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  pind ~ dbeta(.9,.9)
+}
+
+runapprox<-function(snp.name, discovery.sitenames){
+  p53.data<- getdata(snp.name, drop.sites=NULL)
+  validation.sitenames = setdiff(p53.data$site.names, discovery.sitenames)
+  freq<-OR.freq(snp.name, psdir="ps",
+                drop=validation.sitenames,iter=5000, debug=F) #for p-val
+  freq.all<-OR.freq(snp.name, psdir="ps",
+                    drop=NULL,iter=5000, debug=F)
+  
+  approxdata <- list(n.sites = p53.data$n.sites, MLE = freq.all$OR[,1] , SE = freq.all$SE, q = qnorm(1-p/2), p = freq$p.value)
+  p53.approxsim = jags(data=approxdata ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=0),list("assoc"=1),list("assoc"=1)), n.iter=10000,n.chains=5, parameters.to.save =parameters, model = p53.mle.approx)
+  return(p53.approxsim)
+}
+
+
+test<-runapprox(snps[1], discovery.siteslist[[1]])
+allapprox<-list()
+for(i in 1:length(snps)){
+  allapprox[[i]]<- runapprox(snps[i],discovery.sitenames= discovery.siteslist[[i]])
+  
+}
+
+getH1<-function(sim){
+  
+  return(mean(sim$BUGSoutput$sims.list$assoc))
+}
+H1bySNP<- sapply(allSNP, function(snplist)
+  lapply(snplist[1:(length(snplist)-2)],function(x)
+    getH1(x)))
+
 @
 
 \section{Conclusion}\label{sec:conclusion}
 
 
-We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The fully Bayesian model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
+We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The HSS model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
 
-One clear advantage of the fully Bayesian model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
+One clear advantage of the HSS model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
 
 The conditional likelihood and Bayes factor approximation methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The Bayes factor model has a quasi-testing feature since it accounts for the probability of a true association, but is very sensitive to the p-value as well as the choice of prior, and can be illogical for a prior such as the uniform.
 
-Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the fully Bayesian model may actually be more computationally feasible.
+Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the HSS model may actually be more computationally feasible.
 
 
 

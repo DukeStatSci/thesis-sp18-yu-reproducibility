@@ -147,16 +147,16 @@ P(Y_{i}=1|\mu) = \textsf{logit}^{-1}(\mu)
 
 We propose three different Bayesian approaches: 
 
-1. A fully Bayesian mixed effects hierarchical model that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al. \cite{xu2011bayesian}, and Jiang et al. \cite{jiang2016power}, which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
+1. Hierarchical spike and slab model (HSS): A fully Bayesian mixed effects hierarchical model with a spike and slab prior that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al. \cite{xu2011bayesian}, and Jiang et al. \cite{jiang2016power}, which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
 
-2. A conditional likelihood model that can take into account the probability of finding a significant result in the discovery sites when estimating effect size. This model incorporates the conditional likelihood introduced by Zollner and Pritchard as well as Zhong and Prentice, and Ghosh et al.)\cite{zollner2007overcoming, zhong2008bias, ghosh2008estimating} and incorporates it into the Bayesian hierarchical framework.
+2. Conditional likelihood model (CL): this model incorporates the conditional likelihood introduced by Zollner and Pritchard as well as Zhong and Prentice, and Ghosh et al.)\cite{zollner2007overcoming, zhong2008bias, ghosh2008estimating} and incorporates it into the Bayesian hierarchical framework to take into account the probability of finding a significant result in the discovery sites when estimating effect size. 
 
-3. A Bayes factor-based model that uses an upper bound on the Bayes factor from the discovery sites, which is more reliable than the p-value \cite{benjamin2017redefine} to quantify the uncertainty of the significant result.
+3. Approximate hierarchical spike and slab model (AHSS): This uses the estimates and p-value from the discovery sites to create a prior for the validation sites using the same hierarchical framework as HSS. The upper bound on the Bayes factor from the discovery sites, which is more reliable than the p-value on its own \cite{benjamin2017redefine}, is used to quantify the probability of the significant result.
 
 While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, $\alpha$) are available. 
 
 
-\subsection{Fully Bayesian Model}
+\subsection{Hierarchical Spike-and-Slab Model}
 
 Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. Then, $P( \mu|H_0) = \delta_0 ( \mu )$,  and $P( \mu|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable drawn from a Bernoulli($\xi$), which is equivalent to selecting $H_1$ or $H_0$. Site means $\beta_{j}|\mu, \sigma^2,H_1 \sim N(\mu, \sigma^2)$, and $\beta_{j}|H_0 = 0$. In this case the prior for  $\mu| H_1$ was chosen to be a Cauchy distribution. The prior for $\sigma$ was a truncated Cauchy, with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta distribution.  The complete model is as follows:
 
@@ -172,7 +172,7 @@ H\sim \textsf{Bernoulli}(\xi)\\
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/mixture-1} 
+{\centering \includegraphics[width=6in]{figure/mixture-1} 
 
 }
 
@@ -181,7 +181,7 @@ H\sim \textsf{Bernoulli}(\xi)\\
 \end{knitrout}
 
 
-If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al. with slightly different priors. There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
+If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al.\cite{xu2011bayesian} with slightly different priors. There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
 
 \subsection{Conditional Likelihood Model}
 
@@ -206,7 +206,7 @@ where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-3-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-3-1} 
 
 }
 
@@ -228,7 +228,7 @@ In the hierarchical setting, the posteriors for the discovery sites are used as 
 Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
 
 
-\subsection{Bayes Factor Model}
+\subsection{Approximate Hierarchical Spike and Slab}
 
 The discovery data can be used not only in estimating the distribution of the size of a preestablished effect ($\mu$), but in estimating the distribution of the probability of the effect itself ($\xi = P(H_1)$). To make this model easily generalizable, we use the upper bound on the Bayes Factor
 
@@ -241,7 +241,7 @@ where $p$ is the p-value from the discovery data \cite{sellke2001calibration}. T
 \xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF_{H_1}}{1+o*BF_{H_1}}
 \end{equation}
 
-Then $\xi'$ can be used in the fully Bayesian model, but only with the validation data.
+Then $\xi'$ can be used in the HSS model, but only with the validation data.
 
 
 
@@ -250,7 +250,7 @@ Then $\xi'$ can be used in the fully Bayesian model, but only with the validatio
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-5-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-5-1} 
 
 }
 
@@ -349,7 +349,7 @@ Bayes.mean & Bayes.median & Bayes.mode & cond.mean & cond.mode & naive\\
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-9-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-9-1} 
 
 }
 
@@ -369,7 +369,7 @@ The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-11-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-11-1} 
 
 }
 
@@ -378,7 +378,7 @@ The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error
 \end{knitrout}
 \end{figure}
 
-The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes. The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the fully Bayesian credible intervals, but still mostly smaller than the naive ones. 
+The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes. The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the HSS credible intervals, but still mostly smaller than the naive ones. 
 
 \subsubsection{Coverage}
 
@@ -493,10 +493,10 @@ In this simulation study, a logistic regression with fixed effects for sites was
 
 \subsubsection{RMSE of $\mu$}
 
-As expected, the models performed more poorly as $\sigma$ increased. Out of the three proposed models (compared with the original), the fully bayesian and BF approximation models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the bayes factor model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the bayesian model.
+As expected, the models performed more poorly as $\sigma$ increased. The three models are compared to the original model used in Sch et. al, a mixed-effects hierarchical Bayesian model (HB). The HSS and AHSS models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the AHSS model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the HSS model.
 
 
-At small variances (s/2, s,  2s), the original and bayesian models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The Bayesian model actually has a slightly higher lower RMSE than the other models when there is a true association.
+At small variances (s/2, s,  2s), the HB and HSS models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The HSS model actually has a slightly higher lower RMSE than the other models when there is a true association.
 
 
 
@@ -510,13 +510,13 @@ At small variances (s/2, s,  2s), the original and bayesian models outperform th
 \hline
   & mu=0 & s/2 & s & 2s & 4s\\
 \hline
-Bayesian & 0.000 & 0.025 & 0.037 & 0.053 & 0.099\\
+HSS & 0.000 & 0.025 & 0.037 & 0.053 & 0.099\\
 \hline
-Cond Likelihood & 0.018 & 0.027 & 0.034 & 0.055 & 0.098\\
+CL & 0.018 & 0.027 & 0.034 & 0.055 & 0.098\\
 \hline
-BF Approx & 0.012 & 0.024 & 0.031 & 0.053 & 0.097\\
+AHSS & 0.012 & 0.024 & 0.031 & 0.053 & 0.097\\
 \hline
-Original & 0.024 & 0.025 & 0.031 & 0.052 & 0.099\\
+HB & 0.024 & 0.025 & 0.031 & 0.052 & 0.099\\
 \hline
 \end{tabular}
 \end{table}
@@ -529,7 +529,7 @@ Original & 0.024 & 0.025 & 0.031 & 0.052 & 0.099\\
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-21-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-21-1} 
 
 }
 
@@ -540,7 +540,7 @@ Original & 0.024 & 0.025 & 0.031 & 0.052 & 0.099\\
 
 \subsubsection{Coverage of $\mu$}
 
-The conditional likelihood and BF approximation models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
+The CL and AHSS models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
 
 The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with $\sigma=4s$, because $4s>\mu$, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations. 
 
@@ -554,13 +554,13 @@ The Bayesian model had the shortest intervals, and the original model had the la
 \hline
   & mu=0 & s/2 & s & 2s & 4s\\
 \hline
-Bayesian & 1.00 & 1 & 0.98 & 0.98 & 0.97\\
+HSS & 1.00 & 1 & 0.98 & 0.98 & 0.97\\
 \hline
-Cond Likelihood & 0.71 & 1 & 0.95 & 0.95 & 0.96\\
+CL & 0.71 & 1 & 0.95 & 0.95 & 0.96\\
 \hline
-BF Approx & 0.98 & 1 & 0.97 & 0.98 & 0.97\\
+AHSS & 0.98 & 1 & 0.97 & 0.98 & 0.97\\
 \hline
-Original & 0.96 & 1 & 1.00 & 0.99 & 0.95\\
+HB & 0.96 & 1 & 1.00 & 0.99 & 0.95\\
 \hline
 \end{tabular}
 \end{table}
@@ -577,13 +577,13 @@ Original & 0.96 & 1 & 1.00 & 0.99 & 0.95\\
 \hline
   & mu=0 & s/2 & s & 2s & 4s\\
 \hline
-Bayesian & 1.00 & 0.02 & 0.08 & 0.13 & 0.50\\
+HSS & 1.00 & 0.02 & 0.08 & 0.13 & 0.50\\
 \hline
-Cond Likelihood & 0.71 & 0.00 & 0.01 & 0.11 & 0.51\\
+CL & 0.71 & 0.00 & 0.01 & 0.11 & 0.51\\
 \hline
-BF Approx & 0.98 & 0.00 & 0.00 & 0.11 & 0.51\\
+AHSS & 0.98 & 0.00 & 0.00 & 0.11 & 0.51\\
 \hline
-Original & 0.96 & 0.00 & 0.01 & 0.14 & 0.42\\
+HB & 0.96 & 0.00 & 0.01 & 0.14 & 0.42\\
 \hline
 \end{tabular}
 \end{table}
@@ -596,7 +596,7 @@ Original & 0.96 & 0.00 & 0.01 & 0.14 & 0.42\\
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-24-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-24-1} 
 
 }
 
@@ -607,7 +607,7 @@ Original & 0.96 & 0.00 & 0.01 & 0.14 & 0.42\\
 
 \subsubsection{Probability of Association $\xi$}
 
-While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the fully bayesian model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
+While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the HSS model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
 
 For the simulations that had no true effect, the Bayes Factor approximation model has much larger median $\xi$ and greater proportion of sampled $H_1$ because the mass of the distribution of $\xi$ is shifted towards 1 by the Bayes Factor transformation. Thus, even though the proportion of $H_1$ is quite low (and the median of $\mu$ is 0), the mean of $\xi$ is greater than $0.5$.
 
@@ -621,9 +621,9 @@ For the simulations that had no true effect, the Bayes Factor approximation mode
 \hline
   & mu=0 & s/2 & s & 2s & 4s\\
 \hline
-Bayesian & 0.210 & 0.836 & 0.830 & 0.832 & 0.837\\
+HSS & 0.210 & 0.836 & 0.830 & 0.832 & 0.837\\
 \hline
-BF Approx & 0.847 & 0.991 & 0.992 & 0.994 & 0.998\\
+AHSS & 0.847 & 0.991 & 0.992 & 0.994 & 0.998\\
 \hline
 \end{tabular}
 \end{table}
@@ -640,9 +640,9 @@ BF Approx & 0.847 & 0.991 & 0.992 & 0.994 & 0.998\\
 \hline
   & mu=0 & s/2 & s & 2s & 4s\\
 \hline
-Bayesian & 0.132 & 0.998 & 0.989 & 0.989 & 0.996\\
+HSS & 0.132 & 0.998 & 0.989 & 0.989 & 0.996\\
 \hline
-BF Approx & 0.501 & 1.000 & 1.000 & 1.000 & 1.000\\
+AHSS & 0.501 & 1.000 & 1.000 & 1.000 & 1.000\\
 \hline
 \end{tabular}
 \end{table}
@@ -653,7 +653,7 @@ BF Approx & 0.501 & 1.000 & 1.000 & 1.000 & 1.000\\
 
 \subsubsection{Sensitivity of Conditional Likelihood Method to Changes in $\alpha$}
 
-The conditional likelihood method with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The conditional likelihood model with random effects and without was then fitted for each level. 
+The CL model with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. 100 datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The model with random effects and without was then fitted for each level. 
 
 
 
@@ -688,7 +688,7 @@ The conditional likelihood method with random effects is robust to changes in th
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-29-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-29-1} 
 
 }
 
@@ -702,7 +702,7 @@ The conditional likelihood method with random effects is robust to changes in th
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-30-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-30-1} 
 
 }
 
@@ -727,7 +727,7 @@ P(Y_{ij}=1| \beta^{site}_{ j}, \beta^{p53}_{j}, \beta^{age}_{j},\beta^{BC}) = \t
 \sigma_{age},\sigma_{site} \sim \textsf{invGamma}(1, 0.05)
 \end{gather}
 
-The p53 variable's site-specific log OR priors were defined using the models described previously. The fully Bayesian model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
+The p53 variable's site-specific log OR priors were defined using the models described previously. The HSS model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
 
 \subsection{Results}
 
@@ -740,7 +740,7 @@ The p53 variable's site-specific log OR priors were defined using the models des
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=4in]{figure/unnamed-chunk-32-1} 
+{\centering \includegraphics[width=6in]{figure/unnamed-chunk-32-1} 
 
 }
 
@@ -748,201 +748,213 @@ The p53 variable's site-specific log OR priors were defined using the models des
 
 \end{knitrout}
 
-The new models shrunk estimates towards 0 for all SNPs. The BF approximation model set all point estimates to zero, as did the fully Bayesian model with the exception of one. This is the same SNP (rs2287498n) 
-that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the fully Bayesian credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
+The new models shrunk estimates towards 0 for all SNPs. The AHSS model set all point estimates to zero, as did the HSS model with the exception of one. This is the same SNP () 
+that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the HSS credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
 
 Below are the full tables of OR by site and SNP.
 
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs9894946n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs9894946n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-AUS & 0.969 & 0.737 - 1.245 & 1 & 1 - 1 & 0.985 & 0.769 - 1.197 & 1 & 0.886 - 1.097\\
+AUS & 0.978 & 0.739 - 1.226 & 1 & 1 - 1 & 0.984 & 0.77 - 1.199 & 1 & 0.884 - 1.077 & 1 & 0.892 - 1.048\\
 \hline
-HAW & 0.943 & 0.405 - 1 ,  1 - 1.485 & 1 & 1 - 1 & 0.987 & 0.565 - 1.35 & 1 & 0.753 - 1.181\\
+HAW & 0.941 & 0.416 - 1 ,  1 - 1.469 & 1 & 1 - 1 & 0.98 & 0.562 - 1.36 & 1 & 0.79 - 1.164 & 1 & 0.681 - 1.05\\
 \hline
-MAY & 0.962 & 0.714 - 1.258 & 1 & 1 - 1 & 0.978 & 0.746 - 1.2 & 1 & 0.869 - 1.101\\
+MAY & 0.963 & 0.709 - 1.227 & 1 & 1 - 1 & 0.979 & 0.728 - 1.183 & 1 & 0.864 - 1.089 & 1 & 0.844 - 1.026\\
 \hline
-POL & 1.486 & 0.965 - 2.198 & 1 & 1 - 1 & 1.079 & 0.878 - 1 ,  1 - 1.461 & 1 & 0.93 - 1.128 ,  1.204 - 1.621\\
+POL & 1.467 & 0.963 - 2.158 & 1 & 1 - 1 & 1.077 & 0.897 - 1.468 & 1 & 1 - 1 ,  1.116 - 1.618 & 1 & 1 - 1 ,  1.279 - 1.697\\
 \hline
-Overall & 1.058 & 0.385 - 1.82 & 1 & 1 - 1 & 1.008 & 0.691 - 1.396 & 1 & 0.862 - 1.249\\
+Overall & 1.06 & 0.418 - 1 ,  1 - 1.903 & 1 & 1 - 1 & 1.008 & 0.676 - 1 ,  1 - 1.338 & 1 & 0.883 - 1.211 & 1 & 0.886 - 1.225\\
 \hline
 \end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs12951053n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs12951053n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-AUS & 1.239 & 1.029 - 1.513 & 1 & 0.97 - 1.065 ,  1.067 - 1.386 & 1.139 & 0.975 - 1 ,  1.001 - 1.405 & 1 & 0.983 - 1.375\\
+AUS & 1.235 & 1.034 - 1.509 & 1 & 1 - 1 ,  1.085 - 1.38 & 1.133 & 0.963 - 1.395 & 1.01 & 1 - 1 ,  1.052 - 1.439 & 1.211 & 1 - 1 ,  1.039 - 1.503\\
 \hline
-HAW & 1.185 & 0.842 - 1 ,  1 - 1.497 & 1 & 0.933 - 1.372 & 1.093 & 0.859 - 1.343 & 1 & 0.934 - 1.364\\
+HAW & 1.185 & 0.84 - 1.494 & 1 & 1 - 1 ,  1.015 - 1.36 & 1.088 & 0.836 - 1 ,  1 - 1.335 & 1 & 0.955 - 1.403 & 1.167 & 0.94 - 1.48\\
 \hline
-MAL & 1.19 & 0.931 - 1.445 & 1 & 0.953 - 1.348 & 1.108 & 0.929 - 1.339 & 1 & 0.959 - 1.335\\
+MAL & 1.188 & 0.929 - 1.428 & 1 & 1 - 1 ,  1.039 - 1.346 & 1.101 & 0.933 - 1.344 & 1 & 1 - 1 ,  1.004 - 1.407 & 1.174 & 0.977 - 1.474\\
 \hline
-MAY & 1.209 & 0.975 - 1.524 & 1 & 0.951 - 1.378 & 1.113 & 0.941 - 1 ,  1 - 1.338 & 1 & 0.954 - 1.343\\
+MAY & 1.208 & 0.959 - 1.504 & 1 & 1 - 1 ,  1.037 - 1.348 & 1.107 & 0.937 - 1.356 & 1 & 1 - 1 ,  1.011 - 1.401 & 1.179 & 0.969 - 1.507\\
 \hline
-NCO & 1.261 & 1.036 - 1.626 & 1 & 0.958 - 1.439 & 1.074 & 0.818 - 1 ,  1 - 1.295 & 1 & 0.893 - 1.357\\
+NCO & 1.254 & 1.034 - 1.624 & 1 & 1 - 1 ,  1.09 - 1.407 & 1.068 & 0.83 - 1.304 & 1 & 0.874 - 1.357 & 1.221 & 1 - 1 ,  1.045 - 1.565\\
 \hline
-NEC & 1.199 & 0.973 - 1.477 & 1 & 0.955 - 1.349 & 1.076 & 0.885 - 1.257 & 1 & 0.941 - 1.297\\
+NEC & 1.2 & 0.953 - 1.463 & 1 & 1 - 1 ,  1.044 - 1.345 & 1.069 & 0.896 - 1.266 & 1 & 0.945 - 1.326 & 1.176 & 0.979 - 1.483\\
 \hline
-NHS & 1.148 & 0.742 - 1.407 & 1 & 0.897 - 1.35 & 1.099 & 0.888 - 1 ,  1 - 1.337 & 1 & 0.938 - 1.35\\
+NHS & 1.141 & 0.762 - 1.416 & 1 & 0.95 - 1.34 & 1.094 & 0.887 - 1.35 & 1 & 0.999 - 1.42 & 1.145 & 0.883 - 1.456\\
 \hline
-POL & 1.183 & 0.897 - 1.44 & 1 & 0.946 - 1.344 & 1.099 & 0.91 - 1.338 & 1 & 0.937 - 1.341\\
+POL & 1.18 & 0.91 - 1.443 & 1 & 1 - 1 ,  1.024 - 1.345 & 1.09 & 0.883 - 1.323 & 1 & 0.968 - 1.394 & 1.154 & 0.931 - 1.467\\
 \hline
-SEA & 1.136 & 0.844 - 1.35 & 1 & 0.93 - 1.301 & 1.117 & 0.929 - 1 ,  1 - 1.381 & 1 & 0.946 - 1.379\\
+SEA & 1.133 & 0.861 - 1.333 & 1 & 0.98 - 1.297 & 1.109 & 0.927 - 1 ,  1 - 1.383 & 1 & 1 - 1 ,  1.004 - 1.439 & 1.119 & 0.901 - 1.406\\
 \hline
-STA & 1.188 & 0.896 - 1 ,  1 - 1.471 & 1 & 0.94 - 1.365 & 1.117 & 0.944 - 1 ,  1 - 1.352 & 1 & 0.949 - 1.35\\
+STA & 1.189 & 0.904 - 1.448 & 1 & 1 - 1 ,  1.018 - 1.359 & 1.112 & 0.94 - 1 ,  1 - 1.368 & 1 & 1 - 1 ,  1.025 - 1.41 & 1.166 & 0.964 - 1.482\\
 \hline
-UCI & 1.18 & 0.89 - 1.45 & 1 & 0.948 - 1.352 & 1.08 & 0.931 - 1.24 & 1 & 0.942 - 1.367\\
+UCI & 1.177 & 0.903 - 1.434 & 1 & 1 - 1 ,  1.019 - 1.332 & 1.078 & 0.926 - 1.241 & 1 & 1 - 1 ,  1.011 - 1.42 & 1.161 & 0.95 - 1.458\\
 \hline
-UKO & 1.209 & 0.915 - 1.514 & 1 & 0.954 - 1.386 & 1.098 & 0.959 - 1.285 & 1 & 0.965 - 1.432\\
+UKO & 1.207 & 0.933 - 1 ,  1.001 - 1.495 & 1 & 1 - 1 ,  1.038 - 1.376 & 1.094 & 0.956 - 1 ,  1 - 1.287 & 1.013 & 1 - 1 ,  1.054 - 1.488 & 1.187 & 1 - 1 ,  1.002 - 1.531\\
 \hline
-USC & 1.207 & 0.982 - 1.488 & 1 & 0.954 - 1.35 & 1.07 & 0.932 - 1.234 & 1 & 0.943 - 1.334\\
+USC & 1.206 & 0.982 - 1.483 & 1 & 1 - 1 ,  1.057 - 1.366 & 1.068 & 0.92 - 1.232 & 1 & 0.975 - 1.373 & 1.18 & 1 - 1 ,  1.004 - 1.496\\
 \hline
-Overall & 1.19 & 1.023 - 1.36 & 1 & 0.988 - 1.32 & 1.1 & 0.989 - 1 ,  1 - 1.235 & 1 & 0.983 - 1.312\\
+Overall & 1.191 & 1.024 - 1.347 & 1 & 1 - 1 ,  1.082 - 1.291 & 1.096 & 0.99 - 1.231 & 1.004 & 1 - 1 ,  1.049 - 1.335 & 1.184 & 1 - 1 ,  1.028 - 1.411\\
 \hline
 \end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs1625895n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs1625895n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-AUS & 1.005 & 0.803 - 1.216 & 1 & 1 - 1 & 1.006 & 0.826 - 1.166 & 1 & 1 - 1\\
+AUS & 1.007 & 0.798 - 1.21 & 1 & 1 - 1 & 1.004 & 0.81 - 1.163 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-HAW & 1.012 & 0.699 - 1.287 & 1 & 1 - 1 & 1.011 & 0.751 - 1 ,  1 - 1.23 & 1 & 1 - 1\\
+HAW & 1.013 & 0.687 - 1.316 & 1 & 1 - 1 & 1.011 & 0.719 - 0.726 ,  0.766 - 1 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-MAL & 1.051 & 0.844 - 1.303 & 1 & 1 - 1 & 1.033 & 0.859 - 1 ,  1 - 1.234 & 1 & 1 - 1\\
+MAL & 1.052 & 0.863 - 1.301 & 1 & 1 - 1 & 1.033 & 0.872 - 1.25 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-MAY & 1.043 & 0.843 - 1.295 & 1 & 1 - 1 & 1.031 & 0.856 - 1.229 & 1 & 1 - 1\\
+MAY & 1.045 & 0.847 - 1.299 & 1 & 1 - 1 & 1.032 & 0.848 - 1 ,  1 - 1.227 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-NCO & 0.991 & 0.789 - 1 ,  1 - 1.184 & 1 & 1 - 1 & 1.001 & 0.818 - 1.158 & 1 & 1 - 1\\
+NCO & 0.992 & 0.799 - 1.19 & 1 & 1 - 1 & 0.997 & 0.806 - 1.145 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-POL & 1.099 & 0.856 - 1.535 & 1 & 1 - 1 & 1.033 & 0.863 - 1 ,  1 - 1.238 & 1 & 1 - 1\\
+POL & 1.107 & 0.882 - 1.592 & 1 & 1 - 1 & 1.029 & 0.87 - 1.237 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-SEA & 1.042 & 0.832 - 1.266 & 1 & 1 - 1 & 1.015 & 0.811 - 1.208 & 1 & 1 - 1\\
+SEA & 1.046 & 0.848 - 1.281 & 1 & 1 - 1 & 1.012 & 0.81 - 1.206 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-STA & 1.019 & 0.78 - 1 ,  1 - 1.268 & 1 & 1 - 1 & 1.037 & 0.912 - 1.222 & 1 & 1 - 1\\
+STA & 1.02 & 0.775 - 1.257 & 1 & 1 - 1 & 1.038 & 0.907 - 1.219 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-Overall & 1.034 & 0.878 - 1.218 & 1 & 1 - 1 & 1.02 & 0.889 - 1.151 & 1 & 1 - 1\\
+Overall & 1.035 & 0.87 - 1.223 & 1 & 1 - 1 & 1.018 & 0.877 - 1.149 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
 \end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs1042522n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs1042522n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-AUS & 1.047 & 0.85 - 1.217 & 1 & 1 - 1 & 1.032 & 0.857 - 1.179 & 1 & 1 - 1\\
+AUS & 1.044 & 0.842 - 1.209 & 1 & 1 - 1 & 1.03 & 0.871 - 1.182 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-HAW & 1.053 & 0.773 - 1 ,  1 - 1.272 & 1 & 1 - 1 & 1.038 & 0.833 - 1 ,  1 - 1.246 & 1 & 1 - 1\\
+HAW & 1.058 & 0.765 - 1 ,  1 - 1.286 & 1 & 1 - 1 & 1.034 & 0.833 - 1.226 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-MAL & 1.086 & 0.934 - 1.26 & 1 & 1 - 1 & 1.062 & 0.935 - 1.218 & 1 & 1 - 1\\
+MAL & 1.087 & 0.933 - 1.257 & 1 & 1 - 1 & 1.059 & 0.928 - 1.219 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-MAY & 1.099 & 0.939 - 1.308 & 1 & 1 - 1 & 1.07 & 0.935 - 1.255 & 1 & 1 - 1\\
+MAY & 1.099 & 0.921 - 1.308 & 1 & 1 - 1 & 1.066 & 0.923 - 1 ,  1 - 1.26 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-NCO & 1.067 & 0.899 - 1.244 & 1 & 1 - 1 & 1.048 & 0.897 - 1.206 & 1 & 1 - 1\\
+NCO & 1.065 & 0.894 - 1 ,  1 - 1.239 & 1 & 1 - 1 & 1.044 & 0.899 - 1.197 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-POL & 1.117 & 0.927 - 1.409 & 1 & 1 - 1 & 1.045 & 0.905 - 1.199 & 1 & 1 - 1\\
+POL & 1.119 & 0.93 - 1.384 & 1 & 1 - 1 & 1.041 & 0.896 - 1 ,  1 - 1.184 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-SEA & 1.063 & 0.881 - 1.227 & 1 & 1 - 1 & 1.048 & 0.886 - 1.212 & 1 & 1 - 1\\
+SEA & 1.061 & 0.888 - 1.223 & 1 & 1 - 1 & 1.043 & 0.879 - 1.209 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-STA & 1.068 & 0.878 - 1.261 & 1 & 1 - 1 & 1.051 & 0.941 - 1.186 & 1 & 1 - 1\\
+STA & 1.068 & 0.888 - 1.288 & 1 & 1 - 1 & 1.047 & 0.934 - 1.178 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-Overall & 1.073 & 0.938 - 1.216 & 1 & 1 - 1 & 1.048 & 0.936 - 1.163 & 1 & 1 - 1\\
+Overall & 1.075 & 0.936 - 1.207 & 1 & 1 - 1 & 1.045 & 0.941 - 1.167 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
 \end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs8079544n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs8079544n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-MAY & 1.092 & 0.685 - 1.645 & 1 & 1 - 1 & 1.063 & 0.728 - 1.602 & 1 & 1 - 1\\
+MAY & 1.09 & 0.69 - 1.662 & 1 & 1 - 1 & 1.065 & 0.707 - 1.586 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-NCO & 1.093 & 0.779 - 1.481 & 1 & 1 - 1 & 0.991 & 0.583 - 1.376 & 1 & 1 - 1\\
+NCO & 1.1 & 0.751 - 1.475 & 1 & 1 - 1 & 0.985 & 0.576 - 1.389 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-POL & 0.986 & 0.516 - 1.422 & 1 & 1 - 1 & 1.025 & 0.875 - 1.227 & 1 & 1 - 1\\
+POL & 0.989 & 0.526 - 1.413 & 1 & 1 - 1 & 1.025 & 0.864 - 1.217 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-Overall & 1.057 & 0.225 - 1 ,  1 - 1.896 & 1 & 1 - 1 & 1.027 & 0.484 - 1 ,  1 - 1.573 & 1 & 1 - 1\\
+Overall & 1.063 & 0.27 - 2.212 & 1 & 1 - 1 & 1.025 & 0.509 - 1 ,  1 - 1.642 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
 \end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs2287498n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs2287498n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-HAW & 1.284 & 0.887 - 1.734 & 1.287 & 0.806 - 1 ,  1.001 - 1.764 & 1.126 & 0.829 - 1.475 & 1.293 & 0.896 - 1.66\\
+HAW & 1.286 & 0.897 - 1 ,  1.001 - 1.69 & 1.231 & 0.942 - 1.641 & 1.131 & 0.843 - 1 ,  1 - 1.463 & 1.288 & 0.892 - 1.701 & 1.302 & 0.907 - 1 ,  1.003 - 1.697\\
 \hline
-MAL & 1.259 & 0.991 - 1.531 & 1.271 & 0.931 - 0.999 ,  1.002 - 1.566 & 1.144 & 0.928 - 1.395 & 1.276 & 1.012 - 1.548\\
+MAL & 1.267 & 1.01 - 1.537 & 1.221 & 0.993 - 1.556 & 1.148 & 0.959 - 1.399 & 1.274 & 1.004 - 1.541 & 1.281 & 0.999 - 0.999 ,  1.003 - 1.554\\
 \hline
-MAY & 1.347 & 1.057 - 1.844 & 1.346 & 0.984 - 0.998 ,  1.003 - 1.87 & 1.121 & 0.904 - 1.357 & 1.247 & 0.959 - 1.523\\
+MAY & 1.36 & 1.031 - 1.809 & 1.302 & 1 - 1 ,  1.074 - 1.758 & 1.122 & 0.915 - 1 ,  1 - 1.35 & 1.246 & 0.937 - 1.516 & 1.353 & 1.067 - 1.806\\
 \hline
-NCO & 1.353 & 1.073 - 1.717 & 1.353 & 1.049 - 1.771 & 1.141 & 0.889 - 1 ,  1 - 1.465 & 1.289 & 0.973 - 1.647\\
+NCO & 1.354 & 1.076 - 1.701 & 1.303 & 1 - 1 ,  1.094 - 1.717 & 1.141 & 0.889 - 1.45 & 1.295 & 0.922 - 1.64 & 1.355 & 1.098 - 1.703\\
 \hline
-POL & 1.278 & 0.932 - 1.597 & 1.284 & 0.895 - 0.999 ,  1 - 1.69 & 1.137 & 0.902 - 1.448 & 1.291 & 0.96 - 0.999 ,  1.001 - 1.625\\
+POL & 1.287 & 0.962 - 1.629 & 1.223 & 0.951 - 1.584 & 1.139 & 0.909 - 1.458 & 1.289 & 0.969 - 1.631 & 1.286 & 0.946 - 1.597\\
 \hline
-SEA & 1.226 & 0.909 - 1.477 & 1.236 & 0.873 - 1 ,  1 - 1.533 & 1.207 & 0.981 - 1.623 & 1.38 & 1.092 - 1.802\\
+SEA & 1.231 & 0.913 - 1.483 & 1.174 & 0.904 - 1.502 & 1.207 & 0.977 - 1.637 & 1.385 & 1.087 - 1.808 & 1.243 & 0.943 - 1.512\\
 \hline
-STA & 1.284 & 0.935 - 1.628 & 1.287 & 0.896 - 1 ,  1 - 1.717 & 1.123 & 0.951 - 1.38 & 1.362 & 1.061 - 1.777\\
+STA & 1.284 & 0.942 - 1.632 & 1.233 & 0.954 - 1.604 & 1.127 & 0.946 - 1 ,  1.001 - 1.358 & 1.359 & 1.05 - 1.806 & 1.304 & 0.96 - 1 ,  1.002 - 1.631\\
 \hline
-UKO & 1.28 & 0.909 - 1.594 & 1.285 & 0.887 - 0.998 ,  1 - 1.667 & 1.124 & 0.966 - 1.364 & 1.358 & 1.088 - 1.691\\
+UKO & 1.282 & 0.937 - 1.619 & 1.226 & 0.963 - 1.621 & 1.128 & 0.972 - 1.365 & 1.362 & 1.094 - 1.705 ,  1.706 - 1.731 & 1.286 & 0.962 - 1.637\\
 \hline
-USC & 1.375 & 1.102 - 1.846 & 1.375 & 1.053 - 1.924 & 1.097 & 0.923 - 1.298 & 1.289 & 0.972 - 1.612\\
+USC & 1.382 & 1.093 - 1.848 & 1.321 & 1 - 1 ,  1.095 - 1.777 & 1.097 & 0.905 - 1.297 & 1.288 & 0.971 - 1.637 & 1.378 & 1.112 - 1.825\\
 \hline
-Overall & 1.296 & 1.087 - 1.537 & 1.3 & 1.037 - 1.582 & 1.138 & 0.984 - 1.323 & 1.306 & 1.114 - 1.544\\
+Overall & 1.299 & 1.085 - 1.535 & 1.26 & 1 - 1 ,  1.084 - 1.566 & 1.141 & 0.991 - 1.327 & 1.309 & 1.095 - 1.541 & 1.311 & 1.105 - 1.557\\
 \hline
 \end{tabular}}
 \end{table}
 \begin{table}
 
-\caption{\label{tab:unnamed-chunk-33}rs8073498n}
+\caption{\label{tab:unnamed-chunk-33}\label{tab:rs8073498n}}
 \centering
-\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l}
+\resizebox{\linewidth}{!}{\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
-  & original estimate & original CI & bayesian estimate & bayesian CI & CL estimate & CL CI & BF estimate & BF CI\\
+  & HB median & HB CI & HSS median & HSS CI & CL median & CL CI & AHSS median & AHSS CI & APPROX median & APPROX CI\\
 \hline
-MAY & 0.921 & 0.724 - 1.144 & 1 & 1 - 1 & 0.952 & 0.762 - 1.158 & 1 & 0.989 - 1.003\\
+MAY & 0.921 & 0.731 - 1.159 & 1 & 1 - 1 & 0.953 & 0.757 - 1.171 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-NCO & 0.844 & 0.695 - 0.989 & 1 & 1 - 1 & 0.96 & 0.824 - 1.045 & 1 & 0.962 - 1.023\\
+NCO & 0.843 & 0.704 - 1.003 & 1 & 1 - 1 & 0.961 & 0.84 - 1.048 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
-Overall & 0.876 & 0.003 - 3.61 & 1 & 1 - 1 & 0.952 & 0.263 - 1.786 & 1 & 0.979 - 1.016\\
+Overall & 0.885 & 0.005 - 3.705 & 1 & 1 - 1 & 0.956 & 0.292 - 1.976 & 1 & 1 - 1 & 1 & 1 - 1\\
 \hline
 \end{tabular}}
 \end{table}
 
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in as.vector(y): object 'discovery.siteslist' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in as.vector(y): object 'discovery.siteslist' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in lapply(X = X, FUN = FUN, ...): object 'allSNP' not found}}\end{kframe}
+\end{knitrout}
 
 \section{Conclusion}\label{sec:conclusion}
 
 
-We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The fully Bayesian model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
+We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The HSS model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
 
-One clear advantage of the fully Bayesian model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
+One clear advantage of the HSS model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
 
 The conditional likelihood and Bayes factor approximation methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The Bayes factor model has a quasi-testing feature since it accounts for the probability of a true association, but is very sensitive to the p-value as well as the choice of prior, and can be illogical for a prior such as the uniform.
 
-Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the fully Bayesian model may actually be more computationally feasible.
+Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the HSS model may actually be more computationally feasible.
 
 
 
