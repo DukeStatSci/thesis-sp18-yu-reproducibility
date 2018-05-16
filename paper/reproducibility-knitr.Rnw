@@ -1,0 +1,1928 @@
+\documentclass[AMA,STIX1COL]{WileyNJD-v2}
+
+\articletype{Research Article}%???
+
+\received{26 April 2016}
+\revised{6 June 2016}
+\accepted{6 June 2016}
+
+\raggedbottom
+
+\begin{document}
+
+\title{Bayesian Reproducibility %\protect\thanks{This is an example for title footnote.}
+}
+
+\author[1]{Huijia Yu}
+
+\author[2]{Merlise Clyde*}
+
+
+\authormark{HUIJIA YU \textsc{et al}}
+
+
+\address[1]{\orgdiv{Department of Statistical Science}, \orgname{Duke University}, \orgaddress{\state{North Carolina}, \country{USA}}}
+\address[2]{\orgdiv{Department of Statistical Science}, \orgname{Duke University}, \orgaddress{\state{North Carolina}, \country{USA}}}
+
+
+\corres{*Merlise Clyde, Department of Statistical Science, Duke University, Durham, North Carolina, USA. \email{clyde@duke.edu}}
+
+\abstract[Summary]{
+Parameter estimates from initial discovery data in genome-wide association studies (GWAS) often have upward bias compared to subsequent validation studies, which are underpowered due to the inflated effect estimate. This effect, known as the winner's curse, can be attributed to the double use of data, which must first pass a significance test. We propose three Bayesian approaches to discovery reporting and validation analysis: a fully Bayesian hierarchical model with a spike and slab prior, a conditional likelihood approach that only requires sufficient statistics from the discovery data, and an empirical approximation for the spike and slab prior using a Bayes factor approximation of the discovery data. We examine these methods with simulation studies and a real data example. All three proposed methods perform better than a naive models in the simulation studies, and produce results congruent with recent findings in the real example.
+
+}
+
+\keywords{p value, bayes factor,winner's curse, hierarchical Bayes model, meta-analysis}
+
+\jnlcitation{\cname{ %this is the citation for this article!
+\author{Yu H.}, 
+\author{Clyde M,}} (\cyear{2018}), 
+\ctitle{Bayesian Reproducibility}, \cjournal{Q.J.R. Meteorol. Soc.}, \cvol{2017;00:1--6}.} %????
+
+\maketitle
+
+% \footnotetext{\textbf{Abbreviations:} ANA, anti-nuclear antibodies; APC, antigen-presenting cells; IRF, interferon regulatory factor} this is a title footnote
+
+<<include=FALSE, message=FALSE, warning=FALSE>>=
+library(knitr)
+
+opts_chunk$set(
+  concordance=TRUE
+)
+
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, cache=TRUE,echo=FALSE,  fig.width=6, fig.height = 4, out.width='6in' ,fig.align='center', dpi = 600)
+mu<-I<-sd<-overall<-NULL
+
+library(kableExtra)
+library(rmeta)
+library(lme4)
+library(ggplot2)
+library(ggthemes)
+require(reshape2)
+library(doParallel)
+library(R2jags)
+library(random)
+require(gridExtra)
+@
+
+
+<<HPD>>=
+
+####not sure if this is necessary
+Modes <- function(x, min.size) {
+  ### Initial Checks
+  if(missing(x)) stop("The x argument is required.")
+  x <- as.vector(as.numeric(as.character(x)))
+  x <- x[is.finite(x)]
+  ### Amodal
+  if(sd(x)==0)
+    return(list(modes=NA, mode.dens=NA, size=1))
+  ### Differentiate kernel density by x
+  length(density(x)$y)
+  dens.y.diff <- density(x)$y[-1] - density(x)$y[-length(density(x)$y)]
+  incr <- dens.y.diff
+  incr[which(dens.y.diff > 0)] <- 1
+  incr[which(dens.y.diff <= 0)] <- 0
+  ### Kernel density by increasing/decreasing density regions
+  begin <- 1; count <- 1
+  for (i in 2:length(incr)) {
+    if(incr[i] != incr[i-1]) {
+      count <- count + 1
+      begin <- c(begin, i)}
+  }
+  begin <- c(begin, length(incr))
+  size <- modes <- mode.dens <- rep(0, count/2)
+  init <- 1
+  dens <- density(x); sumdens <- sum(dens$y)
+  if(incr[1] == 0) {
+    size[1] <- sum(dens$y[1:begin[2]]) / sumdens
+    init <- 2}
+  j <- init
+  for (i in init:length(size)) {
+    size[i] <- sum(dens$y[begin[j]:begin[j+2]]) / sumdens
+    kde <- dens
+    kde$x <- kde$x[begin[j]:begin[j+2]]
+    kde$y <- kde$y[begin[j]:begin[j+2]]
+    modes[i] <- kde$x[kde$y == max(kde$y)]
+    mode.dens[i] <- kde$y[kde$y == max(kde$y)]
+    j <- j + 2
+  }
+  ### Order everything by density
+  size <- size[order(mode.dens, decreasing=TRUE)]
+  modes <- modes[order(mode.dens, decreasing=TRUE)]
+  mode.dens <- mode.dens[order(mode.dens, decreasing=TRUE)]
+  ### Remove modes with size < 10%
+  if(any(size < min.size)) {
+    modes <- modes[-which(size < min.size)]
+    mode.dens <- mode.dens[-which(size < min.size)]
+    size <- size[-which(size < min.size)]
+  }
+  if(sum(size) > 1) size <- size / sum(size)
+  #Output
+  return(list(modes=modes, mode.dens=mode.dens, size=size))
+}
+
+is.multimodal <- function(x, min.size=0.01)
+{
+  if(length(Modes(x, min.size)[[1]]) > 1) return(TRUE)
+  else return(FALSE)
+}
+
+
+
+HPDM <- function(obj, e = 0, prob=0.95, min.size=.01, pointmass = 0, plot=FALSE, print=FALSE){
+  if(is.vector(obj)) obj<-as.matrix(obj)
+  vals <- apply(obj, 2, sort)
+  if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
+  nsamp <- nrow(vals)
+  npar <- ncol(vals)
+  gap <- max(1, min(nsamp - 1, round(nsamp * prob)))
+  init <- 1:(nsamp - gap)
+  inds <- apply(vals[init + gap, , drop=FALSE] -
+                  vals[init, , drop=FALSE], 2, which.min)
+  ansmm <- cbind(vals[cbind(inds, 1:npar)],
+                 vals[cbind(inds + gap, 1:npar)])
+  dimnames(ansmm) <- list(colnames(obj), c("Lower", "Upper"))
+  
+  mm <- apply(obj, 2, is.multimodal, min.size)
+  if(any(mm)) {
+    if(print) {cat("\n\nPotentially multimodal column vectors:\n",
+                   which(mm),"\n")}
+    vals <- apply(obj, 2, sort)
+    if(!is.matrix(vals)) stop("obj must have nsamp > 1.")
+    for (m in which(mm)) {
+      X<- vals[,m]
+      n<- length(X)
+      zeroes<- which(abs(X-pointmass)<=e)
+      if(length(zeroes)>=length(X)-1){ #because need 2 points for density
+        ansmm[m,]<-c(pointmass,pointmass)
+      }
+      else{
+        if(length(zeroes)==0){ 
+          pi<- length(X)/n
+          kde<-density(X)
+          dens <- rbind(data.frame(approx(kde$x, kde$y, X)),data.frame(x=pointmass,y=0))
+          dens$mix <- dens$y
+        }
+        else{ 
+          d<-X[-zeroes]
+          epsilons<-c(abs(X[min(max(zeroes)+1,length(X))]),abs(X[max(min(zeroes)-1,1)]))
+          epsilon<-ifelse(min(epsilons)==0, max(epsilons),min(epsilons))/20
+          pi<- length(d)/n
+          kde <- density(d)
+          dens <- rbind(data.frame(approx(kde$x, kde$y, d)), 
+                        data.frame(x = rep(pointmass,(n-length(d))),y= rep(0,(n-length(d)))))
+          #mix of normals
+          #dens$mix<- pi*dens$y+(1-pi)*dnorm(dens$x, pointmass, epsilon)/dnorm(pointmass, pointmass, epsilon)
+          dens$mix<- pi*dens$y+(1-pi)*as.numeric(abs(dens$x-pointmass)<=e)
+        }
+        
+        dens<-dens[order(dens$x),]
+        dens.ind <- dens$mix >= as.vector(quantile(dens$mix,
+                                                   probs=1-prob)) * 1
+        
+        ints <- ""
+        count <- 1
+        for (i in 1:nrow(vals)) {
+          if((i == 1) & (dens.ind[i] == 1)) {
+            ints <- paste("(",round(vals[i,m],3),",",sep="")
+            if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+            ansmm[m,count] <- vals[i,m]
+            count <- count + 1
+          }
+          if(i > 1) {
+            if((dens.ind[i] == 0) & (dens.ind[i-1] == 1)) {
+              ints <- paste(ints,round(vals[i-1,m],3),")",sep="")
+              if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+              ansmm[m,count] <- vals[i-1,m]
+              count <- count + 1
+            }
+            if((dens.ind[i] == 1) & (dens.ind[i-1] == 0))  {
+              ints <- paste(ints," (",round(vals[i,m],3),",",sep="")
+              if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+              ansmm[m,count] <- vals[i,m]
+              count <- count + 1
+            }
+          }
+        }
+        if((dens.ind[i] == 1) & (dens.ind[i-1] == 1)) {
+          ints <- paste(ints,round(vals[i,m],3),")",sep="")
+          if(count > ncol(ansmm)) ansmm <- cbind(ansmm,NA)
+          ansmm[m,count] <- vals[i,m]
+          count <- count + 1
+        }
+        if(print){cat("\nColumn", m, "multimodal intervals:", ints, "\n")}
+        if(plot){
+          plot(dens$x, dens$mix, type = "l")
+          #plotvar(X,e)
+          points(ansmm, dens$mix[sapply(ansmm, function(a) which(dens$x==a)[1])], col="red")
+        }
+      }
+      
+    }
+    return(ansmm)
+  }
+  else{
+    return(ansmm)
+  }
+}
+
+plotvar = function(x, e = 1e-04, nsteps = 500, pointmass = 0, newplot=TRUE,gg=FALSE) {
+  zeroes = which(abs(x-pointmass)<e)
+  prob0=length(zeroes)/length(x)
+  xne0= x
+  if(prob0>0){
+    xne0=x[-zeroes]
+  }
+  if(prob0==1){
+    xlower = pointmass-e
+    xupper = pointmass+e
+    xmax = 1
+  }
+  m=mean(xne0)
+  s= sd(xne0)
+  #qmin = min(qnorm(e/2, m, s ))
+  #qmax = max(qnorm(1 - e/2, m, s))
+  #xlower = min(qmin, 0)
+  #xupper = max(0, qmax)
+  xlower=min(max(qnorm(e/2, m, s ),min(x)),pointmass)
+  xupper=max(min(max(x),qnorm(1 - e/2, m, s)),pointmass)
+  
+  xx = seq(xlower, xupper, length.out = nsteps)
+  yy = rep(0, times = length(xx))
+  maxyy = 1
+  if (prob0 < 1 ) {
+    # kdeneg<- density(xne0[xne0<0])
+    # kdepos<-density(xne0[xne0>0])
+    # yyneg<- approx(kdeneg$x, kdeneg$y, xx)$y*length(xne0[xne0<0])/length(xne0)
+    # yyneg[is.na(yyneg)]<-0
+    # 
+    # yypos<- approx(kdepos$x, kdepos$y, xx)$y*length(xne0[xne0>0])/length(xne0)
+    # yypos[is.na(yypos)]<-0
+    # yy = yyneg+yypos
+    kde<- density(xne0)
+    yy= approx(kde$x, kde$y, xx,yleft=0, yright=0)$y
+    
+    #yy = dt(x=(x-m)/s, df=)/s
+    maxyy = max(yy)/(1-prob0)
+  }
+  
+  ymax = max(prob0, 1 - prob0)
+  if(newplot){
+    plot(c(xlower, xupper), c(0, ymax), type = "n",
+         xlab = "", ylab = "")
+  }
+  lines(c(pointmass, pointmass), c(0, prob0), lty = 1, lwd = 3,col=as.numeric(newplot)+1)
+  lines(xx, (1 - prob0) * yy/maxyy, lty = 1, lwd = 1,col=as.numeric(newplot)+1)
+  
+  ##ggplot
+  if(gg==TRUE){
+    return(
+      data.frame(maxy = maxyy, x = xx, y = yy, xl=pointmass, xu=pointmass,yl=0,yu=prob0))
+  }
+  
+  #invisible()
+}
+
+
+@
+
+\section{Introduction}\label{sec:intro}
+
+P-values have been on of the reasons behind lack of reproducibility in scientific discoveries and especially in replicated studies and multiple testing\cite{benjamin2017redefine}. This problem is especially prevalent in Genome-Wide Association Studies (GWAS), where estimated effects have upward bias and often fail to replicate in validation studies. This phenomenon is known as the winner's curse  \cite{zollner2007overcoming}. To account for this discrepancy, previous studies perform two analyses: one with all the data together, and one only using the validation site data. However, this approach is based on the underlying assumption that the association found in discovery sites is true, which is problematic for multiple testing applications such as genome-wide association studies. Furthermore, if there is a true effect, leaving out the discovery data, which could be a large portion of the total dataset, reduces power.
+
+One example of the winner's curse in action is the analysis of the association between single nucleotide polymorphisms (SNPs) in the p53 protein, which is needed for cell growth and DNA repair, and invasive ovarian cancer. Three independent discovery studies focused on TP53 polymorphisms and risk of ovarian cancer: the North Carolina Ovarian Cancer Study (NCOCS), the Mayo Clinic Case-Control Study (MAYO), and the Polish Ovarian Cancer Study (POCS). These were restricted to non-Hispanic white women with newly diagnosed, histologically confirmed, primary invasive epithelial ovarian cancer and to non-Hispanic white controls. 23 SNPs were genotyped in total, with some overlap between sites. Ten other sites contributed data: the Australian Ovarian Cancer Study (AOCS) and the Australian Cancer Study (ACS) presented together as AUS, the Family Registry for Ovarian Cancer (FROC, presented as STA), the Hawaiian Ovarian Cancer Study (HAW), the Malignant Ovarian Cancer Study Denmark (MALOVA), the New England Case-Control Study (NEC), the Nurses' Health Study (NHS), SEARCH Cambridge (SEA), the Los Angeles County Case-Control Study of Ovarian Cancer (LAC-CCOC, presented here as USC), the University of California at Irvine study (UCI), and the United Kingdom Ovarian Cancer Population Study (UKOPS, presented here as UKO). The combined data set (discovery and replication) comprised 5,206 white, non-Hispanic invasive epithelial ovarian cancer cases, of which 2,829 were classified as serous invasive ovarian cancer, and 8,790 white non-Hispanic controls. Analysis was restricted to white, non-Hispanic invasive serous ovarian cancer cases and white, non-Hispanic controls.
+
+Mixed effect SNP-at-a-time analysis of 5 SNPs that were chosen for replication resulted in associations between 2 SNPs and serous invasive cancer \cite{Schildkraut2349}. Only one of these was strongly supported to be associated in a follow-up analysis using Multi-level Inference for SNP Association (MISA), which employs Bayesian Model Averaging and Bayes Factors for selection \cite{schildkraut2010association}. However, most recent studies with added data have not found evidence of association between any TP53 SNPs and cancer \cite{phelan2017identification}.
+
+The aim of this project is twofold: to explore ways in which discovery findings can be reported to avoid the winner's curse, and to combine discovery results with validation data in a coherent manner accounting for the selection effect. 
+
+After a review of existing literature, we propose three approaches to adress this: a fully Bayesian hierarchical model with a spike-and-slab prior (HSS), a conditional likelihood prior for discovery site data (CL), and an approximate Bayesian model that only requires summary statistics (AHSS). The performance of these methods is tested on normal simulations, and then on hierarchical simulations split into discovery and validation "sites". All three proposed methods provide improvements over naive models. Finally, the models are used to reanalyze the tp53 SNPs; only one of them is found to be significant.
+
+\section{Literature Review}\label{sec:lit}
+
+Misuse of p-values and lack of reproducibility in scientific discoveries have been a cause for concern in the scientic world, leading to proposals of new ways to define significance. Benjamin et. al have shown that the Bayes factor equivalents for commonly used p-values only correspond to "weak" evidence in the Bayes factor characterization \cite{benjamin2017redefine}. They suggest reducing the p-value threshold in studies with less power, but acknowledge that hypothesis testing with thresholding is still an issue. Another approach proposes two calibrations of the p-value: as the lower bound of the Bayes factor under any alternative hypothesis, and as a posterior probability of the type 1 error in a Bayesian framework \cite{sellke2001calibration}.
+
+This problem has become a major issue in replicated studies, an effect known as the "winner's curse" \cite{zollner2007overcoming} or the Beavis effect \cite{xu2003theoretical}. Zollner and Pritchard first define this in the context of genome-wide association scans (GWAS), which use stringent thresholds for significance, resulting in inflated effect sizes after selection, especially since these are calculated with the same data. Thus, replication studies underestimate the sample size necessary and do not have enough power to detect an effect. They suggest a conditional-likelihood based method to address this issue, proposing a computational algorithm to maximize over the the likelihood of the parameters conditional on the significance association at level $\alpha$, which results in less biased coefficient estimates (albeit with larger variance) and sample size estimates centered at the true value \cite{zollner2007overcoming}.
+
+Zhong and Prentice also propose a similar method, but use a different parametrization and an asymptotic approximation instead of a computational one to find the estimators, which is more computationally efficient \cite{zhong2008bias}. Ghosh et al. also define an approximate conditional likelihood, and propose two more estimators (other than the MLE): the mean of the (normalized) conditional likelihood, which can be interpreted as a posterior mean of the parameters under a flat prior, and a "compromise" estimator which is the average of the mean and MLE \cite{ghosh2008estimating}. The combination estimator proves to have the most stable MSE accross the range of true values for the parameters. Their approach only requires summary statistics, so they further apply it to published datasets. The results are similar for the three conditional likelihood approaches.
+
+Another method proposed to create bias-reduced estimates uses bootstrap re-sampling to correct for both the thresholding effect and the ranking effect, which is not addressed in the conditional likelihood methods because of the difficulty of specifying joint likelihoods for correlated variables \cite{sun2011br}. By using a sample-split approach, the detection and estimation datasets can be virtually independent. This is repeated multiple times in order to reduce variance in the results. The main drawback of this approach is its computational intensity.
+
+Several authors have also proposed shrinkage-based methods in the effect detection step. Bacanu and Kendler use a soft threshold method to scale statistics such that their sum of squares do not overestimate the true mean and then find "suggestive" signals in a GWAS context by setting a threshold. This method does not address the winner's curse directly, but provides a subset of the genome which can be futher analyzed or used in future studies \cite{bacanu2013extracting}. Bigdelli et al. propose shrinking coefficient estimates by drawing a comparison between "winner's curse adjustments" for effect sizes and multiple testing approaches for p-values, since both are used on the tail of their respective distributions. Their method transforms False Discovery Rate (FDR) adjusted p-values into the corresponding Z-score and uses that as the estimator \cite{bigdeli2016simple}. Both Bigdelli and Bacanu assume the data is normally distributed. Storey and Tibshirani, on the other hand, propose to adjust the value used for significance testing rather than the coefficients, choosing the FDR value as an alternative to the p-valu e\cite{storey2003statistical}.
+
+Multiple Bayesian methods have also been proposed: Xu et al use a Bayesian approach to a logistic regression, selecting a spike and slab prior for the mean and an inverse gamma prior for the variance \cite{xu2011bayesian}. A beta prior for the proportion of each component in the prior, and the hyperparameters were estimated empirically. They also propose a Bayesian Model Average approach, which they recommend for instances with little prior information. Their results show that the Bayesian models had smaller variance than conditional likelihood methods, but still do not address the "ranking effect" \cite{sun2011br}, or implement a fully Bayesian approach because of the dependence on the threshold $\alpha$.
+
+Ferguson et al propose an Empirical Bayes approach, which estimate the prior density distribution with the data \cite{ferguson2013empirical}. This is a nonparametric estimate, but still depends on other specifications such as the number of bins, type of splines, etc. Using the empirical prior, the posterior is then calculated, from which the estimate and pseudo-Bayesian credible intervals are derived by considering the 5\% and 95\% points. This method resulted in better estimates in the higher density regions, but performed worse than conditional likelihood methods on the tails. Thus, the authors propose a combined method, which calculates both the empirical Bayes and the conditional likelihood confidence intervals, and picks the shortest one. One possible problem with this approach is the use of non-HPD intervals, which could change the tail behavior.
+
+The Bayesian framework is also applied to power calculations specifically, defining "Bayesian power" as the marginal probability of finding significance in a replicated study given the original and the data. In this paper, a spike and slab prior is also used, but the hyperparameters are estimated empirically. The resulting power estimators are improved, but lead to downwards bias in the effect size \cite{jiang2016power}.
+
+\section{Models}\label{sec:models}
+
+
+Following the structure of the motivating example, consider a binary dataset describing an event such as whether or not someone has ovarian cancer. This data is collected across different sites, which may have different sampling procedures (as well as simply different populations). The mean effect for each site can be thought of as normally distributed around a global effect if this exists. This is the alternative hypothesis. The null hypothesis is that there is no global effect. This also means that there must not be a site effect. We are interested in two things: whether or not there is a global effect (hypothesis testing), and what the effect's size is (inference). Let $Y_{ij}$ be the observed data. The $j$ index corresponds to the site to which the observation belongs. 
+
+\begin{gather}\label{eq1}
+P(Y_{ij}=1| \beta_j) = \textsf{logit}^{-1}(\beta_{j})\\
+\beta_{j}|\mu, \sigma^2,H_1 \sim \textsf{N}(\mu, \sigma^{2})\\
+\beta_{j}|H_0 = 0
+\end{gather}
+
+In the case where we have multiple sites' information, we can use this hierarchical model, but if we only have data from one discovery site, then the site effect becomes meaningless, and we can use the following model:
+
+\begin{equation}\label{eq2}
+P(Y_{i}=1|\mu) = \textsf{logit}^{-1}(\mu)
+\end{equation}
+
+We propose three different Bayesian approaches: 
+
+1. Hierarchical spike and slab model (HSS): A fully Bayesian mixed effects hierarchical model with a spike and slab prior that can jointly perform significance testing and effect estimation. By combining the testing and estimate steps, we can overcome the winner's curse and account for the uncertainty that arises when selecting an SNP. This model builds on Xu et al. \cite{xu2011bayesian}, and Jiang et al. \cite{jiang2016power}, which introduce the spike-and-slab prior, with the addition of random effects to account for heterogeneity between sites.
+
+2. Conditional likelihood model (CL): this model incorporates the conditional likelihood introduced by Zollner and Pritchard as well as Zhong and Prentice, and Ghosh et al.)\cite{zollner2007overcoming, zhong2008bias, ghosh2008estimating} and incorporates it into the Bayesian hierarchical framework to take into account the probability of finding a significant result in the discovery sites when estimating effect size. 
+
+3. Approximate hierarchical spike and slab model (AHSS): This uses the estimates and p-value from the discovery sites to create a prior for the validation sites using the same hierarchical framework as HSS. The upper bound on the Bayes factor from the discovery sites, which is more reliable than the p-value on its own \cite{benjamin2017redefine}, is used to quantify the probability of the significant result.
+
+While the first approach is truly Bayesian and requires all the data, the second and third can be used as long as the sufficient statistics (MLE, SE, p-value, $\alpha$) are available. 
+
+
+\subsection{Hierarchical Spike-and-Slab Model}
+
+Let $\delta_a(x)$ be the Dirac delta function: $\delta_a(x) = 1$ for $x = a$ and $\delta_a(x)=0$ otherwise. Then, $P( \mu|H_0) = \delta_0 ( \mu )$,  and $P( \mu|H_1) = N(0,1)$ or some other diffuse prior. We can define a hyperparameter $\xi$ such that $P(H_1) = \xi$. This gives rise to a latent variable drawn from a Bernoulli($\xi$), which is equivalent to selecting $H_1$ or $H_0$. Site means $\beta_{j}|\mu, \sigma^2,H_1 \sim N(\mu, \sigma^2)$, and $\beta_{j}|H_0 = 0$. In this case the prior for  $\mu| H_1$ was chosen to be a Cauchy distribution. The prior for $\sigma$ was a truncated Cauchy, with support only on the positive real line. The prior for $\xi$, the probability of the alternative, was a Beta distribution.  The complete model is as follows:
+
+\begin{gather}\label{eq3}
+\beta_{j}|H_ 1,\mu, \sigma_{\beta}^{2} \sim \textsf{N}(\mu, \sigma_{\beta}^{2}) \\
+\mu|H_1,\sigma_{\mu}^{2} \sim \textsf{Cauchy}(0,\sigma_{\mu}^{2})\\
+\mu, \beta_{j}|H_0  =0\\
+\sigma_{\beta}| \sigma_{\sigma}^{2}\sim \textsf{Cauchy}^+(0,\sigma_{\sigma}^{2})\\
+H|\xi\sim \textsf{Bernoulli}(\xi)\\
+\xi|a, b \sim \textsf{Beta}(a, b)
+\end{gather}
+
+<<mixture>>=
+cond.likelihood<- function(ybar, mu, SE, q=1.96){
+  dnorm(ybar, mu, SE)/
+    (pnorm(-q*SE, mu, SE) +
+       1-pnorm(q*SE, mu, SE))
+}
+
+p = 0.00325
+LOR = log(1.65)
+q = -qnorm(p/2)
+# 1.21-2.25
+SE =  (log(2.25 ) - LOR)/1.96
+#exp(LOR + c(-1, 1)*1.96*SE)
+BF = 1/(-exp(1)*p*log(p))
+mu <- seq(-.2,1.25,.01)
+
+g <- ggplot(data = data.frame(maxy = dnorm(.4, .4,.2)/.6, x = mu, y = dnorm(mu, .4,.2), xl=0, xu=0,yl=0,yu=.4))+
+  geom_line(aes(x,y/maxy))+geom_segment(aes(x=xl,y=yl,xend=xu,yend=yu))+
+  labs(x=expression(mu),y="density")+
+  theme_classic() + scale_colour_few()
+
+@
+
+\begin{figure}
+\caption{Mixture model with point mass at 0.}
+<<>>=
+g
+@
+\end{figure}
+
+If we only consider discovery data from one site, this model becomes the same as the one proposed by Xu et al.\cite{xu2011bayesian} with slightly different priors. There is no difference between discovery and validation sites in the Bayesian framework. Even considering them separately, one could consider the posterior distributions of the parameters given only discovery site data as the priors given the validation data, which would result in exactly the same results. 
+
+\subsection{Conditional Likelihood Model}
+
+In this case, the results from the discovery sites are used as a prior for the validation data analysis, which is why only the sufficient statistics are needed. Given the discovery sites' MLE and SE, we can use the CLT and definition of MLE to state that $\text{MLE}_i \sim N(\beta_i, \text{SE}_i)$. Let $B$ indicate that the data is significant at the level $\alpha$. The conditional likelihood is:
+
+\begin{equation}\label{eq4}
+L(\mu | Y,B) = \frac{p(Y| \mu)p(B| Y,\mu)}{p(B|\mu)} =  \frac{p(Y| \mu)}{\int_{\textsf{significant Y}} p(t| \mu) dt }
+\end{equation}
+
+Conditioning on finding a significant estimate using a Normal approximation, 
+
+\begin{equation}\label{eq5}
+p(\text{MLE}_i | B,\beta_i,\text{SE}_i,q_i) = \frac{\phi(\text{MLE}_i, \beta_i, \text{SE}_i)}{\Phi(-q_i, \beta_i, \text{SE}_i)+1-\Phi(q_i, \beta_i, \text{SE}_i)}
+\end{equation}
+
+where $\phi(x, \beta_i, \sigma)$ is the pdf of a normal distribution with mean $\beta_i$ and variance $\sigma^2$, and $\Phi(x, \beta_i, \sigma)$ is the cdf of the same distribution. The value of $q_i$ is $\Phi^{-1}(1-\frac{\alpha}{2}, 0 ,\text{SE}_i)$, where $\alpha$ is the power of the test (i.e. p-values that are smaller than $\alpha$ are considered significant). This is cutoff for an MLE value to be considered significant. Let the conditional likelihood of $\text{MLE}_i$  be denoted as $\textsf{CL}(\beta_i,\text{SE}_i, q_i)$.
+
+\begin{figure}
+\caption{caption = Conditional vs. Unconditional Likelihood.}
+<<>>=
+CLdata<-data.frame(mu, cond.likelihood(LOR, mu, SE, q = -qnorm(0.005/2)), 
+                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.05/2)),
+                   cond.likelihood(LOR, mu, SE, q = -qnorm(0.01/2)),
+                   dnorm(LOR, mu, SE))
+colnames(CLdata)<- c("mu", "CL.005","CL.05","CL.01","uncond")
+melted <- melt(CLdata, id.vars=c("mu"))
+ggplot(melted, aes(mu, value, color = variable)) + geom_line(aes(group=variable)) +
+  labs(x = expression(mu), y = "Likelihood")+  theme_classic()+ 
+  #theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  scale_colour_few(name="", labels=c(expression(paste(alpha," = .005")), 
+                                     expression(paste(alpha," = .05")), 
+                                     expression(paste(alpha," = .01")),
+                                     "unconditional"))
+
+@
+\end{figure}
+
+We can see that as $\alpha$ decreases (i.e. the tests are more strict), the likelihood becomes more skewed towards 0. The conditional likelihood of $\beta_{ j}, j\in \text{discovery}$ becomes the posterior of this variable if we use a uniform prior, since the likelihood will just be multiplied by one. In the discovery-only case, this is enough to create credible intervals for $\mu$ by sampling from the posterior (as opposed to maximizing the conditional likelihood or approximating the surface).
+
+
+In the hierarchical setting, the posteriors for the discovery sites are used as the priors for the validation data; that is, $p(\mu| \beta_i, \text{MLE}_i,\text{SE}_i, q_i, i \in  \text{discovery})$ is the prior for the hierarchical model using validation data. The updated model is:
+
+\begin{gather} \label{eq6}
+\beta_{j}|\mu, \sigma_{\beta}^{2} \sim \textsf{N}(\mu, \sigma_{\beta}^{2}) , j \in \text{validation}\\
+\text{MLE}_{j}|\beta_{j},\text{SE}_{j}, q_j \sim \textsf{CL}(\beta_{j},\text{SE}_{j}, q_j) , j \in \text{discovery}\\
+\sigma_{\beta}\sim \textsf{Cauchy}^+(0,\sigma^2_{\sigma})
+\end{gather}
+
+Note that the selection uncertainty is somewhat accounted for through the conditional likelihood, but there is no measure of this uncertainty. By using the discovery MLEs, we are already assuming that there is a nonzero effect.
+
+
+\subsection{Approximate Hierarchical Spike and Slab}
+
+In the case where we only have summary statistics from discovery as well as validation sites (i.e. full meta-analysis), we can use a Normal approximation and the Central Limit Theorem for the site effects. To fit this in the HSS framework, the discovery estimate of distribution of the probability of having an effect ($\xi = P(H_1)$) is also needed. To make this model easily generalizable, we use the upper bound on the Bayes Factor
+
+\begin{equation}\label{eq7}
+BF_{H_1:H_0} = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} \leq \frac{1}{-e p log(p)}
+\end{equation}
+
+where $p$ is the p-value from the discovery data \cite{sellke2001calibration}. This is a "best-case scenario" of how much evidence there is from data given a particular p-value. Since this value is fixed given the discovery data, we can then consider the "posterior"" probability of true association $\xi$ given the discovery p-value as a transformation of $\xi$, which is parametrized with prior Beta(.5,.5). Let $o$ be the prior odds $\frac{1-\xi}{\xi}$.
+\begin{equation}\label{eq8}
+\xi' = \frac{P(H_1)*L(Y|H_1)}{P(H_0)*L(Y|H_0)+P(H_1)*L(Y|H_1)} = \frac{o*BF_{H_1}}{1+o*BF_{H_1}}
+\end{equation}
+
+Then $\xi'$ can be used in the approximate HSS model, defined as follows:
+
+
+\begin{gather}\label{eq3.1}
+\text{MLE}_j | \beta_j,\text{SE}_j \sim \textsf{N}(\beta_j,\text{SE}_j^2)\\
+\beta_{j}|H_ 1,\mu, \sigma_{\beta}^{2} \sim \textsf{N}(\mu, \sigma_{\beta}^{2}) \\
+\mu|H_1,\sigma_{\mu}^{2} \sim \textsf{Cauchy}(0,\sigma_{\mu}^{2})\\
+\mu, \beta_{j}|H_0  =0\\
+\sigma_{\beta}| \sigma_{\sigma}^{2}\sim \textsf{Cauchy}^+(0,\sigma_{\sigma}^{2})\\
+H|\xi\sim \textsf{Bernoulli}(\xi)\\
+\xi|a, b \sim \textsf{Beta}(a, b)
+\end{gather}
+
+\begin{figure}
+\caption{Distribution of transformed probability of effect with Bayes factor approximation.}
+<<>>=
+pind.dens<-function(post.ind,p){
+  BF<- 1/(-exp(1)*p*log(p)) 
+  prior.odds<-post.ind/(1-post.ind)/BF
+  pind<- prior.odds/(1+prior.odds) #a/0
+  #eplogp is BF h0/h1
+  return(pind)
+}
+postind.dens<-function(pind, p=.0035){
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  return(post.ind)
+}
+pind<- seq(.001, .999,by=.001)
+
+BFapproxdata<-data.frame(pind, postind.dens(pind, .05),postind.dens(pind, .01),
+                         postind.dens(pind, .005),postind.dens(pind, 1e-5),
+                         dbeta(pind,.5,.5))
+colnames(BFapproxdata)<-c("prior", "p = .05", "p = .01", "p = .005", "p = 1e-5","xi")
+ggplot(data=melt(BFapproxdata,id.vars = "xi"), aes(y=xi))+
+  geom_line(aes(x=value, group=variable,color=variable))+
+  labs(x = expression(xi), y = "Density")+  theme_classic()+ 
+  #theme(legend.justification=c(1,1), legend.position=c(1,1)) +
+  scale_colour_few(name="p-value")
+@
+\end{figure}
+
+
+\subsection{Prior Specifications}
+
+
+The choice of Cauchy priors for $\mu$ and $\sigma^2_{\beta}$ is based on simulation results. Both priors had mean zero and variance 1, based on the usual range of effect sizes in GWAS. The hyperparameters for $\xi$ were set to $a = b= \frac{1}{2}$. This distribution has a U-shape so that it favors extreme probabilities (0 or 1) more heavily than the values between them.  The normal approximation for the conditional likelihood model was chosen for its simplicity and because of the large sample sizes of GWAS, which allow for CLT assumptions.
+
+For the AHSS model, $a = b= \frac{9}{10}$. This is because for small p-values, the transformation of $\xi$ can be very extreme. For a GWAS p-value $p = 10^{-7}$ and $\xi \sim \textsf{Beta}(.5,.5)$ , $P( \xi' \leq 0.5) =$  $\Sexpr{signif(qbeta(pind.dens(0.5,1e-7),.5,.5),3)}$ . For the flatter prior: $\xi \sim \textsf{Beta}(.9,.9)$, $P( \xi' \leq 0.5) =$ $\Sexpr{signif(qbeta(pind.dens(0.5,1e-7),.9,.9),3)}$. The AHSS model is extremely sensitive to the choice of prior as well as to the p-value. While the skew is appropriate for this particular prior, it would not necessarily make sense with a flat or informative prior.
+
+\subsection{Methods}
+
+Models were fit using R2jags and in the simpler cases, with original Metropolis Hastings algorithms. To specify distributions that are not part of the R2jags library, such as the conditional likelihood, we use the "ones trick", which is implement by creating artificial observations of a Bernoulli variable. Consider a prior for $\theta$ that is proportional to $\pi(\theta)$. If we set that Bernoulli variable "ones" is equal to 1 with probability $\pi(\theta)$, create an observation "ones"$= 1$, and set a uniform prior for $\theta$, then we are effectively creating a "posterior" for theta that is proportional to  $\pi(\theta)$ as intended. JAGS model functions for the hierarchical simulations can be found in the supplement.
+
+All computed credible intervals are HPD (highest posterior density) intervals. A 95\% HPD interval is the 95\% of the sampled values with the highest density. HPD intervals are guaranteed to be the shortest intervals for that scale (they are not scale-invariant), and can give more reasonable answers for multimodal distributions than quantile-based intervals because they can be disjoint. Point estimates were calculated used the posterior median, so that these estimates would be invariant to transformations (e.g. log).
+
+\section{Normal Simulation}\label{sec:normal}
+
+This simulation study addresses on the first goal outlined in the introduction: if the data from one site is found to be significant, how can we report this discovery in a way that takes into account the winner's curse? 
+
+\subsection{Data Generation}
+
+To test the hypothesis $H_0: \mu = 0$ versus  $H_1: \mu \neq 0$, a fixed proportion (set at 0.5) of null vs. alternative hypotheses are generated. For each hypothesis $H_i$, let $\mu_i = 0$ in the null scenario and $\mu_i \sim \textsf{N}(0,1)$ in the alternative. The data $Y_i$ is generated from a normal distribution with mean $\mu_i$ and known variance 1, with sample size 100. If $Y_i$ is not significant at $\alpha = .05$, it is sampled again from the same distribution until the sufficient statistic is significant. This is done in order to properly compare the Bayesian approach with the conditional likelihood, which requires the data to be significant. The Bayes factor model as it is specified cannot be used in this scenario, since it only uses the p-value from the discovery site(s).
+
+\subsection{Conditional Likelihood}
+
+The credible intervals were estimated by treating the conditional likelihood as if it were a posterior distribution with an improper prior $p(\mu) = 1$, and obtaining the HPD region covering 95\%. Sampling was done through a Metropolis-Hastings algorithm.
+
+\subsection{Posterior Distribution}
+
+<<>>=
+
+cond.posterior<- function(Y, n.samp){
+  cond.likelihood<- function(Y, mu){
+    ybar = mean(Y)
+    N = length(Y)
+    #(abs(ybar-mu)/(sqrt(1/N))>1.96)*
+    dnorm(ybar, mu, sqrt(1/N))/
+      (pnorm((-1.96*sqrt(1/N)), mu, sqrt(1/N))
+       +1-pnorm((1.96*sqrt(1/N)), mu, sqrt(1/N)))
+    #not symmetric other than mu = 0
+  }
+  #x<- seq(-2,2,.01)
+  #plot(x, cond.likelihood(Y, x), type="l")
+  #metropolis hasting with flat prior
+  c=1
+  mu <- 0
+  MU <- NULL
+  
+  for(s in 1:n.samp){
+    mu.star <- rnorm(1, mu, c)
+    r = cond.likelihood(Y,mu.star)/cond.likelihood(Y,mu)
+    if(runif(1)<r){
+      mu <- mu.star
+    }
+    MU <- c(MU, mu)
+  }
+  #plot(MU, type="l")
+  #ggplot(data = data.frame(MU))+geom_density(aes(x=MU))
+  (MU)
+}
+@
+
+
+In the Bayesian case, the prior was set to the mixture model $p(\mu|\xi) = (1-\xi ) \delta_0(\mu)+ \xi\phi(\mu)$. In this case, $\xi = 0.5$ is a constant. Note that this is also the true data generating model. 
+
+The marginal posterior distribution is 
+\begin{equation}
+P(\mu | Y ) = P(H_0|Y)P(\mu|Y, H_0) + P(H_1|Y)P(\mu|Y, H_1)
+\end{equation}
+
+The separate posteriors for $\mu$ are:
+\begin{gather}
+P(\mu|Y, H_0) = \delta_0(\mu)\\
+P(\mu|Y, H_1) \sim \textsf{N}(\frac{n}{n+1}\bar Y, \frac{1}{n+1})
+\end{gather}
+
+The posterior for the alternative hypothesis can be calculated using its Bayes factor, BF and the prior odds, $\pi = \frac{(1-\xi)}{\xi}$: 
+\begin{equation}
+P(H_1| Y ) = \frac{\pi BF}{1+\pi BF}
+\end{equation}
+
+For this example, the prior odds are 1 (because the probability of $H_1 = \xi = 0.5$). The Bayes factor is
+\begin{equation}
+BF = \frac{L(\bar Y | H_1)}{L(\bar Y | H_0)} = \sqrt{n+1}* e^{\frac{n^2}{2(n+1)}(\bar Y)^2}
+\end{equation}
+
+This result comes from the fact that the marginal likelihood $L(\bar Y | H_1) \sim \textsf{N}(0, \frac{n}{n+1})$.
+
+
+Putting these pieces together results in the marginal posterior for $\mu$, which can be used to generate samples to calculate credible intervals. 
+
+<<>>=
+getposterior <- function(Y,n.samp, pi = .5){
+  n = length(Y)
+  odds = (1-pi)/pi
+  #bf.approx <- -exp(1)*p*log(p)
+  bf <-  (n+1)^(-.5)*exp(n^2*mean(Y)^2/(2*(n+1)))
+  alt.prob <- odds*bf/(1+odds*bf)
+  #alt.prob.approx <- odds*bf.approx/(1+odds*bf.approx)
+  
+  #draws from posterior-flip a coin (ber w prob P(H given Y) and then use that to get draw
+  draws = sapply(runif(n.samp), function(x)  {
+    ifelse(x<(1-alt.prob), rnorm(1, 0, 0), rnorm(1,mean(Y)*n/(n+1), sqrt(1/(n+1))))
+  })
+  #ggplot(data = data.frame(draws))+geom_density(aes(x=draws))
+  (list(alt.prob=alt.prob, draws=draws)) 
+  
+}
+
+HPD <-function(post, prob  = .95){
+  
+  #HPD interval- copied from BAS/coda
+  obj <- as.matrix(post)
+  vals <- apply(obj, 2, sort)
+  if (!is.matrix(vals))
+    stop("obj must have nsamp > 1")
+  nsamp <- nrow(vals)
+  npar <- ncol(vals)
+  gap <- max(1, min(nsamp - 1, round(nsamp * prob)))
+  init <- 1:(nsamp - gap)
+  inds <- apply(vals[init + gap, , drop = FALSE] - vals[init,
+                                                        , drop = FALSE], 2, which.min)
+  (cbind(vals[cbind(inds, 1:npar)], vals[cbind(inds +
+                                                 gap, 1:npar)]))
+  #look into this and check about continuity of cdf, etc
+}
+
+@
+
+\subsection{Results}
+<<normalsim,eval=FALSE>>=
+
+all <- function(H, N, n.samp, interval,alpha){
+  mu <- ifelse(H==0, 0, rnorm(1, 0, 1)) ### normally distributed mu
+  Y <- rnorm(N, mu, 1)
+  count=0
+  while(abs(abs(mean(Y))/sqrt(1/N)-qnorm(1-alpha/2))>interval){ #if Z is not in (1.94, 1.98)
+    if(count>1000){ #had to add this bc it wouldn't run
+      return (c(H, mu , mean(Y), NA  , 
+                NA  , NA  , 
+                NA , NA , 
+                NA , NA , NA, NA  , NA  , 
+                NA , NA, NA, NA ))
+    }
+    
+    Y <- rnorm(N, mu, 1)
+    count<- count+1
+  }
+  post <- getposterior(Y,  n.samp)
+  alt.prob = post$alt.prob
+  cred <- HPD(post$draws)
+  cred.lower = cred[1]
+  cred.upper = cred[2]
+  bayes.cov =  (cred.upper>=mu&&cred.lower<=mu)
+  
+  cond <-cond.posterior(Y, n.samp)
+  conf <- HPD(cond)
+  conf.lower = conf[1]
+  conf.upper = conf[2]
+  
+  freq.cov =  (conf.upper>=mu&&conf.lower<=mu)
+  naive.cov <- mean(Y)+1.96*sqrt(1/N)>=mu&&mean(Y)-1.96*sqrt(1/N)<=mu 
+  expected.cov <- .95*alt.prob+(conf.upper>=0&&conf.lower<=0)*(1-alt.prob)
+  
+  
+  Bayes.est = mean(post$draws)
+  Bayes.median.est = median(post$draws)
+  Bayes.mode.est = as.numeric(names(sort(-table(post$draws)))[1])
+  cond.mean.est = mean(cond)
+  d <- density(cond)
+  cond.mode.est = d$x[which.max(d$y)]
+  
+  (c(H, mu , mean(Y), alt.prob  , 
+     cred.lower  , cred.upper  , 
+     conf.lower , conf.upper , 
+     bayes.cov , freq.cov , naive.cov, expected.cov, 
+     Bayes.est, Bayes.median.est,
+     Bayes.mode.est,cond.mean.est,cond.mode.est))
+  
+}
+
+
+N=100; n.samp = 10000; n.sim=1000; pi = .5
+
+results <-data.frame(t(apply(matrix(as.numeric(runif(n.sim)<pi)),1, function(x) all(x, N, n.samp, .2, .05))))
+colnames(results)<- c("H", "mu" , "Ybar", "alt.prob" , 
+                      "cred.lower"  , "cred.upper"  , 
+                      "conf.lower" , "conf.upper" , 
+                      "bayes.cov" , "freq.cov" ,  "naive.cov", "expected.cov", 
+                      "Bayes.est","Bayes.median.est","Bayes.mode.est",
+                      "cond.mean.est","cond.mode.est")
+save(results, file="normalsim.RData")
+
+@
+
+\subsubsection{Estimators}
+
+<<>>=
+load("normalsim.RData")
+results<-na.omit(results)
+estimators <- data.frame(Bayes.mean = abs(results$Bayes.est-results$mu),
+                         naive = abs(results$Ybar-results$mu), 
+                         Bayes.median = abs(results$Bayes.median.est-results$mu),
+                         Bayes.mode = abs(results$Bayes.mode.est-results$mu),
+                         cond.mean = abs(results$cond.mean.est-results$mu),
+                         cond.mode = abs(results$cond.mode.est-results$mu))
+
+g<-ggplot(data = melt(estimators), aes(x=variable, y=value)) + geom_boxplot()+labs(x= "Estimator", y="|Bias|")+theme_classic() + scale_colour_few()
+
+kable(t(c(Bayes.mean = sqrt(sum(estimators$Bayes.mean^2)), Bayes.median= sqrt(sum(estimators$Bayes.median^2)), Bayes.mode = sqrt(sum(estimators$Bayes.mode^2)),cond.mean = sqrt(sum(estimators$cond.mean^2)), cond.mode = sqrt(sum(estimators$cond.mode^2)), naive= sqrt(sum(estimators$naive^2)))), caption = "RMSE of 100 simulations", digits=3)
+@
+
+\begin{figure}
+\caption{Bias distribution by estimator.}
+<<fig1>>=
+g
+@
+\end{figure}
+
+
+The conditional likelihood mode (i.e. MLE) has the smallest bias (absolute error) for $\mu$ out of the frequentist estimators, while the Bayesian median and mode (which end up being the same) the smallest bias in the Bayesian framework. The RMSE for the Bayesian estimator (mean of the posterior) is the lowest, followed by the conditional mean and mode.
+
+\subsubsection{Credible Intervals}
+
+\begin{figure}
+\caption{Interval size comparison.}
+
+<<>>=
+ggplot(data = results)+ geom_point(aes(x = conf.upper-conf.lower, y = cred.upper-cred.lower, colour = abs(Ybar)))+geom_abline(intercept = 0, slope = 1)+geom_hline(yintercept=2*1.96*sqrt(1/100))+geom_vline(xintercept=2*1.96*sqrt(1/100))+labs(x="Length of (Conditional) Credible Interval",y="Length of (Bayesian) Credible Interval", color="|Ybar|")+theme_classic() 
+
+@
+
+\end{figure}
+
+The lines mark the $y = x$ line, and the length of naive confidence intervals (which are constant for fixed number of samples) on the x and y axes. The largest values for the significant statistic also correspond to the largest intervals in both cases. Note that the conditional likelihood credible intervals are almost always larger than the HSS credible intervals, but still mostly smaller than the naive ones. 
+
+\subsubsection{Coverage}
+
+
+The marginal coverage of the conditional likelihood credible interval C is 
+\begin{equation}
+P(\mu \in C|Y) = P(\mu \in C|H_0) P(H_0|Y)+P(\mu \in C|H_1) P(H_1|Y)
+\end{equation}
+
+This will be significantly higher than .95 for the cases in which $0 \in C$, since $P(\mu \in C|H_1) =0.95$ by definition, and  $P(\mu \in C|H_0) = I_{0 \in C}$. In this experiment, the expected coverage is $0.98$ for intervals with 0, and only $0.38$ for those that do not contain 0.  However, conditioning on the alternative hypothesis does not lead to an empirical coverage of 95\%. We can see that both methods are still significantly better than the naive one.
+
+<<>>=
+results <- na.omit(results)
+b <- which(results$H==0)
+# 
+# kable(t(data.frame(naive = c(mean(results$naive.cov),mean(results[b,]$naive.cov),mean(results[-b,]$naive.cov)),
+#         conditional = c(mean(results$freq.cov), mean(results[b,]$freq.cov), mean(results[-b,]$freq.cov)),
+#         Bayesian = c(mean(results$bayes.cov), mean(results[b,]$bayes.cov), mean(results[-b,]$bayes.cov)))),
+#       col.names = c("Unconditional Coverage","Coverage Conditional on H0", "Coverage Conditional on H1"),
+#       row.names = TRUE,
+#       caption = "Empirical Coverage for 95% Credible Intervals", digits=3)
+@
+
+\subsubsection{Hypothesis Testing}
+
+
+Due to the nature of p-values, an $\alpha = 0.05$ corresponds to a marginal posterior probability $P(H_1 | Y )$ of only $0.4$ for $N = 100$. This means that the 95\% credible interval for $\mu| Y$ will contain 0 every time. In terms of hypothesis testing, if we consider the strategy of rejecting the null when the interval does not contain 0, this level for $\alpha$ leads to no rejections.
+
+<<>>=
+kable(table(results$H,abs(results$Ybar)/sqrt(1/100)<qnorm(1-0.05/2))/dim(results)[1], col.names = c("Do not reject null", "Reject null"), row.names = TRUE, caption = "Naive method", digits=3)
+
+@
+
+<<>>=
+kable(table(results$H,results$conf.upper>=0&results$conf.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Conditional Likelihood Method", digits=3)
+
+@
+
+<<>>=
+kable(table(results$H,results$cred.upper>=0&results$cred.lower<=0)/dim(results)[1], col.names = c("Do not reject null"), row.names = TRUE, caption = "Bayesian Mixture Model", digits=3)
+@
+
+Despite never rejecting the null, the conditional likelihood and the Bayesian methods both perform better than the naive one in terms of "predicting" accurately. The naive method is especially problematic in that it has a higher Type 1 error (false positives) than true positives OR true negatives in the region of the data.
+
+\section{Hierarchical Simulations}\label{sec:hierarchical}
+
+<<>>=
+load("p53sim_processeddata.RData")
+mu=0.203;sd= 0.05831085 #from glmer estimates using all data and one snp-------redo this
+assoc<-c(0,1,1,1,1)
+muvec<-c(0,mu,mu,mu,mu)
+sdvec<-c(1,.5*sd,sd,2*sd,4*sd)
+I = 100
+pvals=c(.05,.01,.005,.001, 1e-7)
+@
+
+
+
+This simulation study aims to deal with the second goal specified in the introduction. After an effect has been discovered, how can data from replication studies be combined with the original? In this scenario, we must account for the heterogeneity between sites; neglecting the uncertainty that comes from replication studies would lead to erroneously confident estimates of significance and effect size.
+
+<<>>=
+get.cond.likelihood.data<- function(data, p = 0.00325){
+  freq = glm(CaseCon ~ factor(site), data=data,family=binomial, x=T)
+  #get "discovery" with smallest p value (that is significant)
+  coefs = coef(summary(freq))
+  coefs[-1,1]<-coefs[-1,1]+coefs[1,1]
+  discovery.site = which.min(coefs[,4])
+  if(coefs[discovery.site,4]>p){
+    return(NULL)
+  }
+  
+  MLE = coefs[discovery.site,1]
+  SE = coefs[discovery.site,2]
+  p.value = coefs[discovery.site,4]
+  #make new data for model
+  exclude <- which(data$site==discovery.site)
+  newdata = list(MLE=MLE, SE=SE, n.discovery= 1, zeroes= 0, 
+                 discovery.sites=discovery.site,
+                 CaseCon= data$CaseCon[-exclude], 
+                 site= data$site[-exclude], n.sites = data$n.sites,
+                 q=qnorm(1-p/2),
+                 p = coefs[discovery.site,4],
+                 allMLE = coefs[,1],
+                 allSE = coefs[,2])
+  newdata$J<- length(newdata$CaseCon)
+  return(newdata)
+  
+}
+
+
+sample<- function(assoc, mu, sd, n.sites=7,observations = 1000){ 
+  #assoc is H
+  beta.p53 = rnorm(n.sites,mu,sd)*assoc 
+  Y <-site <- rep(NA, observations*n.sites)
+  for(i in 1:n.sites){
+    Y[((i-1)*observations+1):(i*observations)]<-rbinom(observations, 1, exp(beta.p53[i])/(1+exp(beta.p53[i])))
+    site[((i-1)*observations+1):(i*observations)]<- rep(i, observations)
+  }
+  return(list(beta.p53=beta.p53, simdata = list(CaseCon=Y, site=site,  J=n.sites*observations ,n.sites=n.sites, one=1)))
+}
+
+run.all<- function(assoc,mu, sd, inits,n.sites){
+  cond.data = NULL;count=0
+  while(is.null(cond.data) & count<1000){
+    data <- sample(assoc, mu, sd,n.sites)
+    cond.data<-get.cond.likelihood.data(data$simdata)
+    count=count+1
+  }
+  #run jags
+  latent.cauchy <- jags(data=data$simdata, inits=inits,
+                        parameters.to.save =c("pind", "mu.p53", "sigma.p53","mu.p53.notzero"),
+                        model = latent.cauchy.model)
+  cond.likelihood<-NULL
+  if(!is.null(cond.data)){
+    cond.likelihood<- jags(data=cond.data ,inits=inits,
+                           parameters.to.save =c("mu.p53", "sigma.p53"), 
+                           model = cond.likelihood.re.model)
+    # bf.approx<- jags(data=cond.data, inits=inits,
+    #                  parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
+    #                  model = bf.model)
+    approxdata<- cond.data
+    approxdata$MLE<- cond.data$allMLE
+    approxdata$SE <- cond.data$allSE
+    approx <-jags(data=approxdata, inits=inits,####???
+                     parameters.to.save =c("pind","mu.p53", "sigma.p53","mu.p53.notzero"),
+                     model = approx.model)
+  }
+  original<- jags(data=data$simdata, inits=inits,
+                  parameters.to.save =c("mu.p53", "sigma.p53"),
+                  model = original.model)
+  
+  return(list(latent.cauchy = latent.cauchy,
+              cond.likelihood = cond.likelihood,
+              approx = approx,
+              original= original,
+              beta.p53 = data$beta.p53))
+}
+
+run.cl.better<- function(assoc,mu, sd, inits, pvals){ #slower but will use the same data so hopefully better
+  cond.data = NULL;count=0
+  while(is.null(cond.data) & count<1000){
+    data <- sample(assoc, mu, sd)
+    cond.data<-get.cond.likelihood.data(data$simdata, min(pvals))
+    count=count+1
+  }
+  if(!is.null(cond.data)){
+    cond.likelihood<- lapply(pvals, function(p){
+      cond.data$q<-qnorm(1-p/2)
+      return(jags(data=cond.data ,inits=inits,
+                  parameters.to.save =c("mu.p53", "sigma.p53"), 
+                  #rerun also with random effect?
+                  model = cond.likelihood.re.model))
+    })
+  }
+  return(cond.likelihood)
+}
+@
+
+\subsection{Data Generation}
+
+The data are generated from a hierarchical (i.e. mixed effect) logistic model as discribed in the models section: if truly associated, $\mu$ and $\sigma^2$ have (fixed) nonzero values;$\beta_j \sim \textsf{N}(\mu, \sigma^2)$. Otherwise, $\mu=\beta_j = 0,  \forall j$. 
+
+To try to keep this simulation as close to the real data as possible, a preliminary logistic regression with random slope and random p53 coefficient by site was run. This led to the values of $\mu =\Sexpr{mu}, \sigma^2 = \Sexpr{round(sd^2, 3)}$. The value of $\mu$ remained fixed through all the simulations, but different values of $\sigma$ were used to test the sensitivity of the models: $\sigma$, $\sigma/2$, $2\sigma$, and  $4\sigma$. The number of sites was set to 7, since results using 30 sites were almost identical. Each site had 1000 observations. A total of \Sexpr{I} simulated datasets was created each time.
+
+
+\Sexpr{I} datasets were also simulated under the null hypothesis. They were fit with the models described previously. 
+
+\subsubsection{Finding "Discovery" Sites}
+
+In this simulation study, a logistic regression with fixed effects for sites was conducted to find the site with the smallest p-value less than $\alpha$. If no sites matched this description, the data was resampled until at least one site was viable. The maximum likelihood estimate of this effect and its variance were added as data for the conditional likelihood model, and the p-value was added to the bayes factor approximation model.  The observations for this site were then taken out of the data.
+
+\subsection{Results}
+
+<<JAGS1>>=
+cond.likelihood.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  mu.p53  }
+  
+  C<-1000
+  for (k in 1:n.discovery){
+    #zeroes trick for MLE~cond prob
+    tau[k]<- pow(SE[k], -2)
+    L[k]<- dnorm(MLE[k],mu.p53, tau[k])/(pnorm(-q*SE, mu.p53, tau[k]) +
+                                           1-pnorm(q*SE, mu.p53, tau[k]))
+    phi[k]<- -log(L[k])+C
+    zeroes[k]~dpois(phi[k])
+  }
+  
+  mu.p53 ~ dnorm(0,.1)
+  
+}
+
+cond.likelihood.re.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  C<-1000
+  for (k in 1:n.discovery){
+    #zeroes trick for MLE~cond prob
+    tau[k]<- pow(SE[k], -2)
+    L[k]<- dnorm(MLE[k],beta.p53[discovery.sites[k]], tau[k])/
+      (pnorm(-q*SE[k], beta.p53[discovery.sites[k]], tau[k]) +
+         1-pnorm(q*SE[k], beta.p53[discovery.sites[k]], tau[k]))
+    phi[k]<- -log(L[k])+C
+    zeroes[k]~dpois(phi[k])
+  }
+  for (i in 1:n.sites){ #total sites
+    beta.p53[i] ~dnorm(mu.p53,phi.p53)
+  }
+  
+  mu.p53 ~ dnorm(0,.1)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+}
+
+ones.cauchy.model= function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  #ones trick
+  C<-1e6
+  epsilon<-0.01
+  tau<- pow(epsilon,-2)
+  mu.p53.notzero<- step(temp)
+  temp<-dt(mu.p53,0,1, 1)-dnorm(mu.p53,0,tau) 
+  #cauchy is same as t with df=1
+  L<-(dnorm(mu.p53,0,tau)*(1-pind))+(dt(mu.p53,0,1,1)*pind)
+  p <- L/ C
+  one~ dbern(p)
+  mu.p53 ~ dunif(-10,10) 
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  pind ~ dbeta(.5,.5)
+}
+
+ones.normal.model= function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  #ones trick
+  C<-1e6
+  epsilon<-0.01
+  tau<- pow(epsilon,-2)
+  mu.p53.notzero<- step(temp)
+  temp<-dnorm(mu.p53,0,1)-dnorm(mu.p53,0,tau) 
+  L<-(dnorm(mu.p53,0,tau)*(1-pind))+(dnorm(mu.p53,0,1)*pind)
+  p <- L/ C
+  one ~ dbern(p)
+  mu.p53 ~ dunif(-10,10) 
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  pind ~ dbeta(.5,.5)
+}
+
+latent.normal.model= function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dnorm(0,1)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  mu.p53.notzero~dbern(pind)
+  pind ~ dbeta(.5,.5)
+}
+
+latent.cauchy.model= function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dt(0,1, 1)
+  # phi.p53 ~ dgamma(1, .05)
+  # sigma.p53 <- pow(phi.p53, -.5) #half cauchy, uniform to 1 or to 5, take a guess on sd
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  mu.p53.notzero~dbern(pind)
+  pind ~ dbeta(.5,.5)
+}
+
+fixed.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  mu.p53  
+  }
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dnorm(0,.1)
+  mu.p53.notzero~dbern(pind)
+  pind ~ dbeta(.5,.5)
+}
+
+original.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]]  }
+  
+  for (l in 1:n.sites) {
+    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
+  }
+  
+  mu.p53 ~ dnorm(0,1)
+  phi.p53 ~ dgamma(1, .05)
+  sigma.p53 <- pow(phi.p53, -.5)
+}
+
+bf.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <-  beta.p53[site[j]] }
+  C<-1000
+  for (k in 1:n.discovery){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[discovery.sites[k]], tau[k])
+  }
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dt(0,1,1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.p53.notzero~dbern(pind)
+  prior.odds<- (1-prior.pind)/prior.pind
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  pind<-prior.odds*BF/(1+prior.odds*BF)
+  prior.pind ~ dbeta(.9,.9)
+}
+approx.model = function() {
+  for (k in 1:n.sites){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[k], tau[k])
+  }
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(mu.p53.notzero)
+  }
+  
+  mu.p53<- mu1.p53*mu.p53.notzero
+  mu1.p53 ~ dt(0,1,1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.p53.notzero~dbern(pind)
+  prior.odds<- (1-prior.pind)/prior.pind
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  pind<-prior.odds*BF/(1+prior.odds*BF)
+  prior.pind ~ dbeta(.9,.9)
+}
+
+@
+
+<<hierarchicalsim1, eval=FALSE>>=
+cl = makeCluster(8)
+registerDoParallel(cl)
+
+system.time({
+  allsim<- foreach(j = 1:5) %:%
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.all(assoc[j],muvec[j],sdvec[j], NULL, 7))
+    }
+})
+save.image()
+
+
+@
+
+<<eval=FALSE>>=
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.1<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(1,mu,sd, NULL,pvals))
+    }
+})
+save.image()
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.4<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(1,mu,sd*4, NULL,pvals))
+    }
+})
+save.image()
+
+cl = makeCluster(8)
+registerDoParallel(cl)
+system.time({
+  cl.sim.better.0<-
+    foreach ( i = 1:I, .inorder=FALSE, .packages = c("R2jags"))  %dopar% {
+      return(run.cl.better(0,0,sd, NULL,pvals[1:4]))
+    }
+})
+save.image()
+@
+
+
+<<>>=
+getstatsitems<-c("hasmu","haszero","mean","median",
+                 "ismultimodal", "intervallength","probneqzero",
+                 "hassd","sdmean","sdmedian","sdintlen",
+                 "haspind","pindmean","pindmedian","pindg.5")
+
+modelnames<- c("HSS",
+               "CL","AHSS", "HB")
+
+getstatsloop<-function(simlist,mu,sd,modelnames){
+  I<-length(simlist)
+  vec<-sapply(simlist, function(outputlist) sapply(outputlist[-length(outputlist)],getstats,mu,sd))
+  return(array(data=vec,dim= c(length(getstatsitems),length(modelnames),I), dimnames=list(getstatsitems,modelnames,seq(1:I))))
+}
+
+getstats<-function(jagsoutput, mu, sd){
+  mu.samples<- jagsoutput$BUGSoutput$sims.list$mu.p53
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$mu.p53.notzero)){
+    mu.samples<-mu.samples*jagsoutput$BUGSoutput$sims.list$mu.p53.notzero
+  }
+  cred<-HPDM(mu.samples)
+  upper<- cred[2]
+  lower<- cred[1]
+  if(length(cred)>2){
+    #assume 2 modes max
+    upper <- c(upper,cred[4])
+    lower <- c(lower,cred[3])
+  }
+  sd.samples<-sd.cred<-NA
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$sigma.p53)){
+    sd.samples <- (jagsoutput$BUGSoutput$sims.list$sigma.p53)
+    sd.cred<- HPDM(sd.samples)
+  }
+  
+  pind.samples<-pind.cred<-NA
+  if(!is.null(jagsoutput$BUGSoutput$sims.list$pind)){
+    pind.samples<- jagsoutput$BUGSoutput$sims.list$pind
+    # pind.cred<- HPDM(pind.samples)
+  }
+  return(c(hasmu = any(upper>=mu&lower<=mu), 
+           haszero = any(upper>=0&lower<=0), 
+           mean = mean(mu.samples),
+           median = median(mu.samples),
+           ismultimodal=length(cred)>2,
+           intervallength = sum(upper-lower),
+           probneqzero = sum(mu.samples!=0)/length(mu.samples),
+           hassd= sd.cred[2]>=sd&sd.cred[1]<=sd,
+           sdmean= mean(sd.samples),
+           sdmedian= median(sd.samples),
+           sdintlen=sd.cred[2]-sd.cred[1],
+           haspind=pind.cred[2]>=0&pind.cred[1]<=1,
+           pindmean =mean(pind.samples),
+           pindmedian=median(pind.samples),
+           # pindintlen=pind.cred[2]-pind.cred[1]
+           pindgreater.5=mean(pind.samples>.5)
+           
+  ))
+}
+@
+
+
+<<hierarchicalsim2, eval=FALSE>>=
+sim.0<-getstatsloop(allsim[[1]],0, 1,modelnames)
+sim.half<-getstatsloop(allsim[[2]],mu, sd*.5,modelnames)
+sim.1<-getstatsloop(allsim[[3]],mu, sd, modelnames)
+sim.2<-getstatsloop(allsim[[4]],mu,sd*2,modelnames)
+sim.4<-getstatsloop(allsim[[5]],mu,sd*4,modelnames)
+
+sim.cl.stats.better1<-getstatsloop(cl.sim.better.1,mu,sd, pvals) 
+sim.cl.stats.better4<-getstatsloop(cl.sim.better.4,mu,sd, pvals) 
+sim.cl.stats.better0<-getstatsloop(cl.sim.better.0 ,0,1, pvals) 
+
+save(sim.0, sim.half,sim.1,sim.2,sim.4, sim.cl.stats.better1,sim.cl.stats.better4,sim.cl.stats.better0, file = "p53sim_processeddata.RData")
+@
+
+\subsubsection{RMSE of $\mu$}
+
+As expected, the models performed more poorly as $\sigma$ increased. The three models are compared to the original model used in Sch et. al, a mixed-effects hierarchical Bayesian model (HB). The HSS and AHSS models performed best when there was no true effect (since they were the only ones that that had this option). However, there were some simulated datasets where the AHSS model estimate was actually nonzero and quite large, which suggests that it is not nearly as reliable as the HSS model.
+
+
+At small variances (s/2, s,  2s), the HB and HSS models outperform the others. This is not surprising since the other models only have access to $\frac{6}{7}$ of the data. The HSS model actually has a slightly higher lower RMSE than the other models when there is a true association.
+
+<<>>=
+load("p53sim_processeddata.RData")
+df1<- data.frame(melt(t(abs(sim.0[4,,])))[,2:3], simulation=0)
+simslist<-list(sim.half,sim.1,sim.2,sim.4)
+for (i in 1:4){
+  df1<-rbind(df1,data.frame(melt(t(abs(simslist[[i]][4,,]-mu)))[,2:3], simulation=i))
+}
+mseplot = ggplot(data = (df1), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_classic() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error")+
+  scale_colour_few(name="Model") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+rmse<- cbind(sapply(1:4, function(x) sqrt(mean((sim.0[4,x,])^2))),
+             sapply(simslist, function(sim) 
+               sapply(1:4, function(x) sqrt(mean((sim[4,x,]-mu)^2)))))
+rownames(rmse)<-modelnames
+colnames(rmse)<-c("mu=0","s/2", "s", "2s", "4s")
+
+
+pindmed<- cbind(sapply(c(1,3,4), function(x) sqrt(mean((sim.0[14,x,])^2))),
+                sapply(simslist, function(sim) 
+                  sapply(c(1,3,4), function(x) sqrt(mean((sim[14,x,])^2)))))
+rownames(pindmed)<-modelnames[c(1,3,4)]
+colnames(pindmed)<-c("mu=0","s/2", "s", "2s", "4s")
+
+zeromu<- cbind(sapply(c(1,3,4), function(x) sqrt(mean((sim.0[7,x,])^2))),
+               sapply(simslist, function(sim) 
+                 sapply(c(1,3,4), function(x) sqrt(mean((sim[7,x,])^2)))))
+rownames(zeromu)<-modelnames[c(1,3,4)]
+colnames(zeromu)<-c("mu=0","s/2", "s", "2s", "4s")
+
+
+df<- data.frame(melt(t(abs(sim.0[6,,])))[,2:3], simulation=0)
+simslist<-list(sim.half,sim.1,sim.2,sim.4)
+for (i in 1:4){
+  df<-rbind(df,data.frame(melt(t(abs(simslist[[i]][6,,])))[,2:3], simulation=i))
+}
+
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c(0,"s/2", "s", "2s", "4s")), y=value)) +
+  geom_boxplot(aes(color=Var2))+  theme_classic() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length")+
+  scale_colour_few(name="Model") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
+
+
+hasm<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+              sapply(simslist, function(sim) 
+                sapply(1:4, function(x) mean(sim[1,x,]))))
+rownames(hasm)<-modelnames
+colnames(hasm)<-c("mu=0","s/2", "s", "2s", "4s")
+
+has0<-  cbind(sapply(1:4, function(x) mean(sim.0[1,x,])),
+              sapply(simslist, function(sim) 
+                sapply(1:4, function(x) mean(sim[2,x,]))))
+rownames(has0)<-modelnames
+colnames(has0)<-c("mu=0","s/2", "s", "2s", "4s")
+@
+
+
+<<>>=
+kable(rmse, caption="RMSE of $\\mu$",digits=3)
+
+@
+
+
+\begin{figure}
+\caption{Absolute error of simulation $\mu$.}
+<<echo=FALSE>>=
+print(mseplot) 
+@
+\end{figure}
+
+\subsubsection{Coverage of $\mu$}
+
+The CL and AHSS models are the most conservative, with the intervals covering 0 more times than the  others for large values of $\sigma$. All models have very high coverage in general.
+
+The Bayesian model had the shortest intervals, and the original model had the largest. Thus, even though the coverage and RMSE are around the same, the new models are preferable to the original. This does not apply to the simulation with $\sigma=4s$, because $4s>\mu$, which leads to more negative site effects. Thus, it makes sense for models to have wider credible intervals for these simulations. 
+
+
+<<>>=
+kable(hasm, ,format='latex',caption="Proportion of Credible Intervals containing $\\mu$", digits=3)
+
+@
+
+<<>>=
+
+kable(has0, ,format='latex',caption="Proportion of Credible Intervals containing 0", digits=3)
+@
+
+
+\begin{figure}
+\caption{Credible intervals of simulation $\mu$.}
+<<echo=FALSE>>=
+print(intlenplot) 
+@
+\end{figure}
+
+\subsubsection{Probability of Association $\xi$}
+
+While one would expect the probability of being associated ($\xi$) to also increase with $\sigma$, this was not true for either the HSS model nor the bayes factor approximation one, both of which had consistent posterior estimates of $\xi$. Similarly, the proportion of nonzero $\mu$ samples from the posterior (this is the same as the proportion of times the latent variable $i = 1$), was almost 1 for the truly associated cases, and close to zero for true null. One thing to consider is that under the null hypothesis, the variance across sites would actually be zero, which is why the models identified the association so decisively.
+
+For the simulations that had no true effect, the AHSS model has much larger median $\xi$ and greater proportion of sampled $H_1$ because the mass of the distribution of $\xi$ is shifted towards 1 by the Bayes Factor transformation. Thus, even though the proportion of $H_1$ is quite low (and the median of $\mu$ is 0), the mean of $\xi$ is greater than $0.5$.
+
+
+<<>>=
+kable(pindmed,caption="Average of Posterior Median $\\xi$", digits=3)
+@
+
+<<>>=
+kable(zeromu,caption="Average Proportion of $H_1$", digits=3)
+@
+
+
+\subsubsection{Sensitivity of Conditional Likelihood Method to Changes in $\alpha$}
+
+The CL model with random effects is robust to changes in the level $\alpha$. To test this, we consider 5 different levels: $0.05, 0.01, 0.005, 0.001, 10^{-7}$. \Sexpr{I} datasets were sampled, for which at least one location was significant at the smallest $\alpha$ level. The model with random effects and without was then fitted for each level. 
+
+<<>>=
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[4,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.better1[4,,]-mu)))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[4,,]-mu)))[,2:3], simulation=2))
+
+mseplot = ggplot(data = (df), aes(x=factor(simulation, labels=c( "0", "s", "4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_classic() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Absolute Error")+
+  scale_colour_few(name="p-value") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
+
+
+rmse<- cbind(c(sapply(1:4, function(x) sqrt(mean((sim.cl.stats.better0[4,x,])^2))), NA),
+             sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better1[4,x,]-mu)^2))),
+             sapply(1:5, function(x) sqrt(mean((sim.cl.stats.better4[4,x,]-mu)^2))))
+rownames(rmse)<-pvals
+
+colnames(rmse)<-c("0","s", "4s")
+
+
+
+df<- rbind(data.frame(melt(t(abs(sim.cl.stats.better0[6,,])))[,2:3], simulation=0),
+           data.frame(melt(t(abs(sim.cl.stats.better1[6,,])))[,2:3], simulation=1),
+           data.frame(melt(t(abs(sim.cl.stats.better4[6,,])))[,2:3], simulation=2))
+
+intlenplot = ggplot(data = (df), aes(x=factor(simulation, labels=c("0","s","4s")), y=value)) +
+  geom_boxplot(aes(color=factor(Var2)))+  theme_classic() +
+  labs(x=expression(paste(sigma^2, " used in simulation")),y="Credible Interval Length")+
+  scale_colour_few(name="p-value") #+  theme( legend.justification=c(0,1), legend.position=c(0,1))
+@
+
+<<>>=
+kable(rmse,caption="RMSE of $\\mu$", digits=3)
+
+@
+
+
+
+\begin{figure}
+\caption{Absolute error of CL simulation $\mu$.}
+
+<<echo=FALSE>>=
+print(mseplot) 
+@
+\end{figure}
+
+
+\begin{figure}
+\caption{Credible intervals of CL simulation $\mu$.}
+
+<<echo=FALSE>>=
+print(intlenplot) 
+@
+\end{figure}
+This model shows little difference across levels of $\alpha$.
+
+\section{Analysis of TP53}\label{sec:tp53}
+---------------
+\subsection{Models}
+
+
+Each model adjusts for study site, reference age, and personal history of breast cancer. History of breast cancer is treated as a fixed effect, and the rest of the covariates's coefficients are treated as normally distributed random effects. 
+
+\begin{gather}
+P(Y_{ij}=1| \beta^{site}_{ j}, \beta^{p53}_{j}, \beta^{age}_{j},\beta^{BC}) = \textsf{logit}^{-1}(\beta^{site}_{ j}+ \beta^{p53}_{j}*p53_{ij}+ \beta^{age}_{j}*age_{ij}+\beta^{BC}* BC_{ij})\\
+\beta^{site}_{ j}|\mu_{site}, \sigma_{site}^{2}\sim \textsf{N}(\mu_{site}, \sigma_{site}^{2})\\
+\beta^{age}_{j}|\mu_{age}, \sigma^{2}_{age}\sim \textsf{N}(\mu_{age}, \sigma^{2}_{age})\\
+\beta^{\text{BC}}, \mu_{age},\mu_{site}\sim \textsf{N}(0,0.1)\\
+\sigma_{age},\sigma_{site} \sim \textsf{invGamma}(1, 0.05)
+\end{gather}
+
+The p53 variable's site-specific log OR priors were defined using the models described previously. The HSS model was fit jointly as well as marginally. Since the results were very similar, the marginal models were used for computational efficiency and clarity of interpretation. Results from the joint analysis can be found in the supplement.
+
+\subsection{Results}
+<<JAGS2>>=
+p53.model = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]
+  }
+  for (k in 1:n.sites) {
+    beta.site[k] ~ dnorm(mu.site, phi.site)
+    beta.p53[k] ~ dnorm(mu.p53, phi.p53)
+    beta.Age[k] ~ dnorm(mu.Age, phi.Age)
+  }
+  
+  beta.BC ~ dnorm(0, 3)
+  
+  mu.site ~ dnorm(0, .1)
+  phi.site <- pow(sigma.site, -2)
+  sigma.site ~ dunif(0,5)
+  
+  mu.p53 ~ dnorm(0, .1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0, 5)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age <- pow(sigma.Age, -2)
+  sigma.Age  ~ dunif(0, 5)
+  
+}
+
+p53.newmodel = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
+  
+  for (l in 1:n.sites) {
+    beta.site[l] ~ dnorm(mu.site, phi.site)
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*assoc
+    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
+  }
+  beta.BC ~ dnorm(0, .1)
+  
+  mu.site ~ dnorm(0, .1)
+  phi.site ~ dgamma(1,.05)
+  sigma.site <- pow(phi.site, -.5)
+  
+  #E[prec] 20
+  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+  mu.p53<- mu1.p53*assoc
+  mu1.p53 ~ dt(0,.1, 1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age ~ dgamma(1, .05)
+  sigma.Age  <- pow(phi.Age, -.5)
+  
+  assoc ~ dbern(pind) 
+  pind ~ dbeta(.5,.5)
+}
+
+
+#mixed effect conditional likelihood
+p53.normal = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
+  
+  for (l in 1:n.sites) {
+    beta.site[l] ~ dnorm(mu.site, phi.site)
+    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
+    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
+  }
+  C<-1000
+  
+  for(m in (n.sites+1):(n.sites+n.discovery)){
+    beta.p53[m] ~ dnorm(mu.p53, phi.p53)
+  }
+  
+  for (k in 1:n.discovery){
+    #zeroes trick for MLE~cond prob
+    tau[k]<- pow(SE[k], -2)
+    L[k]<- dnorm(MLE[k],beta.p53[k+n.sites], tau[k])/
+      (pnorm(-q*SE[k], beta.p53[k+n.sites], tau[k]) +
+         1-pnorm(q*SE[k], beta.p53[k+n.sites], tau[k]))
+    phi[k]<- -log(L[k])+C
+    zeroes[k]~dpois(phi[k])
+  }
+  
+  beta.BC ~ dnorm(0, .1)
+  
+  mu.site ~ dnorm(0, .1)
+  phi.site ~ dgamma(1,.05)
+  sigma.site <- pow(phi.site, -.5)
+  
+  #E[prec] 20
+  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+  mu.p53 ~ dt(0,.1,1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age ~ dgamma(1, .05)
+  sigma.Age  <- pow(phi.Age, -.5)
+  #assoc~dbern(pind) *assoc
+  pind ~ dbeta(.5,.5)
+}
+
+
+#eplogp approximation of BF for posterior prob of association
+p53.bf.approx = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    
+  }
+  
+  for (l in 1:n.sites) {
+    beta.site[l] ~ dnorm(mu.site, phi.site)
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(assoc)
+    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
+  }
+  for(m in (n.sites+1):(n.sites+n.discovery)){
+    beta.p53.1[m] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[m] <- beta.p53.1[m]*(assoc)
+  }
+  for (k in 1:n.discovery){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[k+n.sites], tau[k])
+  }
+  beta.BC ~ dnorm(0, .1)
+  mu.site ~ dnorm(0, .1)
+  phi.site ~ dgamma(1,.05)
+  sigma.site <- pow(phi.site, -.5)
+  
+  #E[prec] 20
+  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+  mu.p53.1 ~ dt(0,.1,1)
+  mu.p53<-mu.p53.1*assoc
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age ~ dgamma(1, .05)
+  sigma.Age  <- pow(phi.Age, -.5)
+  
+  assoc~dbern(post.ind)
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  pind ~ dbeta(.9,.9)
+}
+p53.mle.approx = function() {
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(assoc)
+  }
+  
+  for (k in 1:n.sites){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[k], tau[k])
+  }
+  
+  #E[prec] 20
+  #(based on range .5 to 2 for OR => range = 1.4 = 6 sigma  sigma = 1.4/6 ~= .2 
+  mu.p53.1 ~ dt(0,.1,1)
+  mu.p53<-mu.p53.1*assoc
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  assoc~dbern(post.ind)
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  pind ~ dbeta(.9,.9)
+}
+
+@
+
+<<p53>>=
+getdata<- function(snp.name, iter=5000, drop.sites= NULL){
+  load("tp53.Rdata")
+  if(!is.null(drop.sites)) {
+    
+    use = !(tp53epi.wsi$site %in% drop.sites)
+  } else {
+    use = rep(TRUE, nrow(tp53epi.wsi))
+  }
+  #this is a new indicator
+  site.names = levels(factor(tp53epi.wsi[which(!is.na(tp53geno.wsi[,snp.name])),"site"]))
+  discovery.sites <- which(site.names%in% drop.sites)
+  
+  p53.snp = tp53geno.wsi[use, snp.name]
+  tp53epi.wsi = tp53epi.wsi[use,]
+  
+  missing.geno = is.na(p53.snp)
+  site.names = levels(factor(tp53epi.wsi[!missing.geno,"site"]))
+  
+  p53.data = list(CaseCon=tp53epi.wsi$casecon[!missing.geno], site=as.numeric(factor(tp53epi.wsi$site[!missing.geno])), BC = as.numeric(tp53epi.wsi$prev.BC[!missing.geno]), Age = tp53epi.wsi$refage[!missing.geno], p53 = p53.snp[!missing.geno])
+  
+  p53.df = data.frame(p53.data)
+  
+  J = length(p53.data$CaseCon)
+  n.sites = length(unique(p53.data$site))
+  p53.data$J = J
+  p53.data$n.sites = n.sites
+  
+  p53.data$discovery.sites<-discovery.sites
+  p53.data$missing.geno<-missing.geno
+  p53.data$site.names<-site.names
+  
+  return(p53.data)
+  
+}
+
+OR.freq = function(snp.name, psdir="ps", drop.sites=NULL,iter=5000, debug=F) {
+  load("tp53.Rdata")
+  if (!is.null(drop.sites)) {
+    use = !(tp53epi.wsi$site %in% drop.sites)}
+  else {
+    use = rep(TRUE, nrow(tp53epi.wsi))
+  }
+  
+  p53.snp = tp53geno.wsi[use, snp.name]
+  tp53epi.wsi = tp53epi.wsi[use,]
+  
+  missing.geno = is.na(p53.snp)
+  site.names = levels(factor(tp53epi.wsi[!missing.geno,"site"]))
+  
+  p53.data = list(CaseCon=tp53epi.wsi$casecon[!missing.geno], site=as.numeric(factor(tp53epi.wsi$site[!missing.geno])), BC = as.numeric(tp53epi.wsi$prev.BC[!missing.geno]), Age = tp53epi.wsi$refage[!missing.geno], p53 = p53.snp[!missing.geno])
+  
+  p53.df = data.frame(p53.data)
+  write.csv(p53.df, file=paste(snp.name, ".csv", sep=""))
+  if(length(site.names)>1){
+    p53.full = glm(CaseCon ~ factor(site) + factor(site)*p53 + factor(site)*Age + BC, data=p53.df, family=binomial, x=T)
+    p53.pooled = glm(CaseCon ~ factor(site) + p53 + factor(site)*Age + BC, data=p53.df, family=binomial)
+    p53.null = glm(CaseCon ~ factor(site) +  factor(site)*Age + BC, data=p53.df, family=binomial)
+    
+    p53.df$Site = factor(p53.df$site)
+    
+    p53.me = glmer(CaseCon ~ BC + p53 + Age + (1|site)  + (0 + p53 | site) + (0 + Age | site), start=c(site=1.0, p53=.1, Age=.01),nAGQ=1 , data=p53.df, family=binomial)
+    
+    test=anova(p53.full, p53.pooled, p53.null, test="Chi")
+    coef = summary(p53.full)$coef
+    ns = length(site.names)
+    OR = coef[c(ns+1, (ns+4):(ns+ns+2)),1]
+    x = p53.full$x
+    p = predict(p53.full, type="response")
+    var = solve(t(x)%*% diag(p*(1-p)) %*%x)[c(ns+1, (ns+4):(ns+ns+2)),c(ns+1, (ns+4):(ns+ns+2))]
+    
+    sqrt(diag(var))
+    
+    eff = matrix(0, ns,ns)
+    eff[,1] = 1
+    for (i in 2:ns) eff[i,i] = 1
+    
+    OR = eff %*% OR
+    OR.SE = sqrt(diag(eff %*% var %*% t(eff)))
+    
+    DS = meta.summaries(OR, OR.SE, method="random", names=site.names, logscale=F)
+    p.value = pnorm(-(abs(DS$summary/DS$se.summary)))*2
+    BF0 = -exp(1)*p.value*log(p.value)
+    return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0, test=test, p53.me=p53.me))}
+  else{
+    p53.full = glm(CaseCon ~ p53 + Age + BC, data=p53.df, family=binomial, x=T)
+    p53.null = glm(CaseCon ~ Age + BC, data=p53.df, family=binomial)
+    test=anova(p53.full, p53.null, test="Chi")
+    coef = summary(p53.full)$coef
+    ns = length(site.names)
+    OR = as.matrix(coef[2,1])
+    OR.SE = (coef[2,2])
+    p.value = coef[2,4]
+    BF0 = -exp(1)*p.value*log(p.value)
+    return(list(snp=snp.name, DS=DS, OR=OR, SE=OR.SE, p.value=p.value, BF.Ha = 1/BF0))
+  }
+}
+
+getOR<-function(sim, totalsites,discoverysites,multimodal=TRUE){
+  
+  OR = as.data.frame(sim$BUGSoutput$sims.matrix)%>%select( starts_with("beta.p53"), "mu.p53")
+  exp(OR)
+  #colnames(OR) = c(site.names, "Overall")
+  
+  sum.OR = t(apply(exp(OR), 2, function(x) {
+    if(multimodal){
+      PI = HPDM(as.matrix(x),pointmass=1)
+  return(c(median(x), PI[1], PI[2], PI[3],PI[4]))
+    }
+    else{
+      PI = HPD(as.matrix(x))
+      return(c(median(x), PI[1], PI[2], NA, NA))
+
+    }
+    } #how to deal w multi, change HPD to have point mass at 1
+  ))
+  if (dim(sum.OR)[1]!= totalsites+1){
+    sum.OR1<- matrix(NA, totalsites+1, dim(sum.OR)[2])
+    sum.OR1[-discoverysites,]<- sum.OR
+    sum.OR<- sum.OR1
+  } ###
+  #colnames(sum.OR)<-c("Median","2.5%","97.5%")
+  return(sum.OR)
+}
+
+OR.runall<-function(snp.name, discovery.sitenames, iter=5000,p = 0.00325, psdir="ps"){
+  #data
+  
+  p53.data<- getdata(snp.name, drop.sites=NULL)
+  p53.dataval<- getdata(snp.name, drop.sites=discovery.sitenames)
+  validation.sitenames = setdiff(p53.data$site.names, discovery.sitenames)
+  freq<-OR.freq(snp.name, psdir="ps",
+                drop=validation.sitenames,iter=5000, debug=F) 
+  p53.data.normal<-p53.dataval
+  p53.data.normal$n.discovery<- length(p53.data.normal$discovery.sites)
+  p53.data.normal$zeroes<- rep(0,p53.data.normal$n.discovery)
+  p53.data.normal$MLE<- freq$OR[,1] 
+  p53.data.normal$SE<- freq$SE 
+  p53.data.normal$q<-qnorm(1-p/2)
+  bfdata <- p53.data.normal
+  bfdata$p <- freq$p.value
+  freq.all<-OR.freq(snp.name, psdir="ps",
+                    drop=NULL,iter=5000, debug=F)
+  
+  approxdata <- list(n.sites = p53.data$n.sites, MLE = freq.all$OR[,1] , SE = freq.all$SE, q = qnorm(1-p/2), p = freq$p.value)
+  #run all 
+  parameters = c("beta.BC", "beta.Age", "mu.site","mu.p53", "mu.Age", "sigma.site", "sigma.p53",  "sigma.Age" ,"assoc", "pind","beta.site", "beta.p53","phi.site","phi.p53")
+
+  
+  p53.approxsim = jags(data=approxdata ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=1)), n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.mle.approx)
+  p53.sim = jags(data=p53.data, inits=NULL,n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.model)
+  p53.simnew = jags(data=p53.data ,inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=1)), n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.newmodel) 
+  p53.simnormal = jags(data=p53.data.normal, inits=NULL,n.iter=50000,n.chains=3, parameters.to.save =parameters.normal, model = p53.normal)
+  p53.bfsim = jags(data=bfdata, inits=list( list("assoc"=0),list("assoc"=0),list("assoc"=1)),n.iter=50000,n.chains=3, parameters.to.save =parameters, model = p53.bf.approx)
+  
+  #OR
+  return(list(original= (p53.sim),
+              bayes= (p53.simnew),
+              cond= (p53.simnormal),
+              approx=p53.approxsim,
+              n.sites = p53.data$n.sites,
+              n.discovery = p53.data.normal$discovery.sites))
+}
+
+@
+
+
+<<eval=FALSE>>=
+discovery.siteslist<-list(c("POL"),
+                          c("POL", "MAY", "NCO"),
+                          c("POL"),
+                          c("POL"), 
+                          c("NCO"),
+                          c("POL", "MAY", "NCO"),
+                          c("NCO")
+                          
+) 
+
+snps<- setdiff(unique(colnames(tp53geno.wsi)), c( "rs2909430n", "rs2287499n", "rs2078486n"))
+
+allSNP<- vector("list", length = length(snps))
+for(i in 1:length(snps)){
+  allSNP[[i]]<- OR.runall(snps[i],discovery.sitenames= discovery.siteslist[[i]])
+  
+}
+save.image()
+
+ORbySNP<- lapply(allSNP, function(snplist)
+  lapply(1:(length(snplist)-2),function(x)
+    getOR(snplist[[x]],snplist[[(length(snplist)-1)]],snplist[[(length(snplist))]], (x!=1&x!=3))))
+
+
+getH1<-function(sim){
+  return(mean(sim$BUGSoutput$sims.list$assoc))
+}
+H1bySNP<- sapply(allSNP, function(snplist)
+  lapply(snplist[1:(length(snplist)-2)],function(x)
+    getH1(x)))
+
+save(ORbySNP, snps, H1bySNP, file="p53OR.RData")
+@
+
+
+\begin{figure}
+\caption{OR and 95\% CI for p53 SNPs.}
+<<>>=
+load("p53OR.RData")
+
+overall = do.call("rbind", lapply(ORbySNP, function(y) data.frame(t(sapply(y, function(x) (x[dim(x)[1],]))))))
+
+#overall=data.frame(t(sapply(ORbySNP[[2]], function(x) x[dim(x)[1],])))
+colnames(overall) = c("X","L","U", "L1","U1")
+overall$model = rep(c("HB","HSS","CL","AHSS"),length(snps))
+overall$model<- factor(overall$model, levels= c("HSS","CL","AHSS","HB"))
+overall$snp = rep(snps, each = 4)
+# ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+ 
+#   geom_hline(yintercept=1, alpha=.3)+
+#   geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = .7))+
+#   geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = .7))+ 
+#   geom_point(aes(x=snp, y=X),size=3, shape=13,position = position_dodge(width = .7)) +theme_classic() + scale_colour_few()+labs(y="Odds Ratio", title= "OR and 95% CI for p53 SNPs")+ theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+#   geom_point(aes(x=snp, y=L),size=3, shape=4,position = position_dodge(width = .7))+
+#   geom_point(aes(x=snp, y=L1),size=3, shape=4,position = position_dodge(width = .7))+
+#   geom_point(aes(x=snp, y=U),size=3, shape=4,position = position_dodge(width = .7))+
+#   geom_point(aes(x=snp, y=U1),size=3, shape=4,position = position_dodge(width = .7))
+overall$pointmass<-NA
+overall$pointmass[which(overall$U-overall$L==0 & !is.na(overall$L1))]<-1
+
+ggplot(data = overall, aes(group=model,color=model,x = snp,xend = snp))+ 
+  geom_hline(yintercept=1, alpha=.3)+
+  geom_linerange(aes(ymin=L, ymax=U), position = position_dodge(width = .7))+
+  geom_linerange(aes(ymin=L1, ymax=U1), position = position_dodge(width = .7))+ 
+  geom_point(aes(x=snp, y=X,shape=model),size=2, position = position_dodge(width = .7)) +
+  geom_point(aes(y=pointmass),size=1,position = position_dodge(width = .7))+
+  theme_classic() + scale_colour_few()+labs(y="Odds Ratio")+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+@
+\end{figure}
+
+<<>>=
+colnames(H1bySNP)<-snps
+rownames(H1bySNP)<-c("HB","HSS","CL","AHSS")
+kable(H1bySNP,caption = "Proportion of H1 in Posterior Samples", digits = 3)
+@
+
+
+The new models shrunk estimates towards 0 for all SNPs. The AHSS model set all point estimates to zero, as did the HSS model with the exception of one. This is the same SNP (\Sexpr{overall$snp[which(overall$X!=1 &overall$model=="bayesian")]}) 
+that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the HSS credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
+
+Below are the full tables of OR by site and SNP.
+
+<<results="asis">>=
+all.sitenames<-lapply(snps, function(x) getdata(x)$site.names)
+
+formatCI<- function(ORvec){
+  if(is.na(ORvec[2])) ret<-"-"
+  else ret<-paste(ORvec[2],"-",ORvec[3])
+  if (!is.na(ORvec[4])){
+    ret<-paste(ret, ", ", ORvec[4],"-",ORvec[5])
+  }
+  return(ret)
+}
+makeORtable<-function(OR, sitenames){
+  est<-sapply(OR, function(x) paste(round(x[,1], 3)))
+  CI<-sapply(OR, function(x) apply(round(x, 3),1, formatCI))
+  ret<-matrix(NA, nrow = dim(est)[1],ncol=8)
+  ret[,-c(2,4,6,8)]<-est
+  ret[,c(2,4,6,8)]<-CI
+  colnames(ret)<- c("HB median","HB CI",
+                    "HSS median","HSS CI",
+                    "CL median","CL CI",
+                    "AHSS median","AHSS CI")
+  rownames(ret)<- c(sitenames, "Overall")
+  return(ret)
+}
+
+for(i in 1:length(snps)){
+  print(kable_styling(kable(makeORtable(ORbySNP[[i]], all.sitenames[[i]]), #caption=paste0("\\label{tab:", snps[i],"}"))
+    caption = snps[i]),latex_options = "scale_down"))
+}
+
+@
+
+
+\section{Conclusion}\label{sec:conclusion}
+
+
+We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The HSS model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
+
+One clear advantage of the HSS model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
+
+The conditional likelihood and Bayes factor approximation methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The Bayes factor model has a quasi-testing feature since it accounts for the probability of a true association, but is very sensitive to the p-value as well as the choice of prior, and can be illogical for a prior such as the uniform.
+
+Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the HSS model may actually be more computationally feasible.
+
+
+
+\nocite{*}% Show all bib entries - both cited and uncited; comment this line to view only cited bib entries;
+%\bibliography{wileyNJD-AMA}%
+\bibliography{bib/thesis1}
+
+\clearpage
+
+\section*{Author Biography}
+
+\end{document}
