@@ -1421,7 +1421,6 @@ print(intlenplot)
 This model shows little difference across levels of $\alpha$.
 
 \section{Analysis of TP53}\label{sec:tp53}
----------------
 \subsection{Models}
 
 
@@ -1869,8 +1868,151 @@ kable(H1bySNP,caption = "Proportion of H1 in Posterior Samples", digits = 3)
 The new models shrunk estimates towards 0 for all SNPs. The AHSS model set all point estimates to zero, as did the HSS model with the exception of one. This is the same SNP (\Sexpr{overall$snp[which(overall$X!=1 &overall$model=="bayesian")]}) 
 that was detected as significant in the MISA analysis \cite{schildkraut2010association}. However, the HSS credible interval for this SNP is longer than the original model's, indicating that if data closer to 0 were collected and added to the analysis, the interval would become disjoint with the point mass at zero and a narrower nozero interval.  The Bayes factor model credible interval for this SNP is the same as the original credible interval. This is because the p-value was small enough to skew the distribution towards one, and there was enough information in the validation data that the chain got "stuck" at $H = 1$. Although the conditional likelihood model does not set any estimates to zero, all its credible intervals contain zero. These results are consistent with those from recent GWAS \cite{phelan2017identification}, which found no association between any of the TP53 SNPs and cancer.
 
-Below are the full tables of OR by site and SNP.
+The full tables of OR by site and SNP can be found in the supplement.
 
+\section{Conclusion}\label{sec:conclusion}
+
+
+We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The HSS model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
+
+One clear advantage of the HSS model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
+
+The CL and AHSS methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The AHSS model has a quasi-testing feature since it accounts for the probability of a true association, but is very sensitive to the p-value as well as the choice of prior, and can be illogical for a prior such as the uniform. However, it is extremely fast and requires very little data, making it easy to use.
+
+Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the HSS model may actually be more computationally feasible.
+
+\section{Supplementary Material}\label{sec:supplement}
+
+\subsection{JAGS code}
+<<echo=TRUE>>=
+p53.HB = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]
+  }
+  for (k in 1:n.sites) {
+    beta.site[k] ~ dnorm(mu.site, phi.site)
+    beta.p53[k] ~ dnorm(mu.p53, phi.p53)
+    beta.Age[k] ~ dnorm(mu.Age, phi.Age)
+  }
+  
+  beta.BC ~ dnorm(0, 3)
+  
+  mu.site ~ dnorm(0, .1)
+  phi.site <- pow(sigma.site, -2)
+  sigma.site ~ dunif(0,5)
+  
+  mu.p53 ~ dnorm(0, .1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dunif(0, 5)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age <- pow(sigma.Age, -2)
+  sigma.Age  ~ dunif(0, 5)
+  
+}
+
+p53.HSS = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
+  
+  for (l in 1:n.sites) {
+    beta.site[l] ~ dnorm(mu.site, phi.site)
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*assoc
+    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
+  }
+  beta.BC ~ dnorm(0, .1)
+  
+  mu.site ~ dnorm(0, .1)
+  phi.site ~ dgamma(1,.05)
+  sigma.site <- pow(phi.site, -.5)
+  
+  mu.p53<- mu1.p53*assoc
+  mu1.p53 ~ dt(0,.1, 1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age ~ dgamma(1, .05)
+  sigma.Age  <- pow(phi.Age, -.5)
+  
+  assoc ~ dbern(pind) 
+  pind ~ dbeta(.5,.5)
+}
+
+p53.CL = function() {
+  for (j in 1:J) {
+    CaseCon[j] ~ dbern(theta[j])
+    logit(theta[j]) <- beta.site[site[j]] + beta.p53[site[j]]*p53[j] +
+      beta.Age[site[j]]*Age[j] + beta.BC*BC[j]    }
+  
+  for (l in 1:n.sites) {
+    beta.site[l] ~ dnorm(mu.site, phi.site)
+    beta.p53[l] ~ dnorm(mu.p53, phi.p53)
+    beta.Age[l] ~ dnorm(mu.Age, phi.Age)
+  }
+  C<-1000
+  
+  for(m in (n.sites+1):(n.sites+n.discovery)){
+    beta.p53[m] ~ dnorm(mu.p53, phi.p53)
+  }
+  
+  for (k in 1:n.discovery){
+    #zeroes trick for MLE~cond prob
+    tau[k]<- pow(SE[k], -2)
+    L[k]<- dnorm(MLE[k],beta.p53[k+n.sites], tau[k])/
+      (pnorm(-q*SE[k], beta.p53[k+n.sites], tau[k]) +
+         1-pnorm(q*SE[k], beta.p53[k+n.sites], tau[k]))
+    phi[k]<- -log(L[k])+C
+    zeroes[k]~dpois(phi[k])
+  }
+  
+  beta.BC ~ dnorm(0, .1)
+  
+  mu.site ~ dnorm(0, .1)
+  phi.site ~ dgamma(1,.05)
+  sigma.site <- pow(phi.site, -.5)
+  
+  mu.p53 ~ dt(0,.1,1)
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  mu.Age ~ dnorm(0, .1)
+  phi.Age ~ dgamma(1, .05)
+  sigma.Age  <- pow(phi.Age, -.5)
+  pind ~ dbeta(.5,.5)
+}
+
+p53.AHSS = function() {
+  
+  for (l in 1:n.sites) {
+    beta.p53.1[l] ~ dnorm(mu.p53, phi.p53)
+    beta.p53[l] <- beta.p53.1[l]*(assoc)
+  }
+  
+  for (k in 1:n.sites){
+    tau[k]<- pow(SE[k], -2)
+    MLE[k]~dnorm(beta.p53[k], tau[k])
+  }
+  
+  mu.p53.1 ~ dt(0,.1,1)
+  mu.p53<-mu.p53.1*assoc
+  phi.p53 <- pow(sigma.p53, -2)
+  sigma.p53 ~ dt(0,1,1)%_%T(0,)
+  
+  assoc~dbern(post.ind)
+  prior.odds<- (pind)/(1-pind) #a/0
+  BF<- 1/(-exp(1)*p*log(p)) #eplogp is BF h0/h1
+  post.ind<-prior.odds*BF/(1+prior.odds*BF)
+  pind ~ dbeta(.9,.9)
+}
+@
+
+\subsection{OR tables}
 <<results="asis">>=
 all.sitenames<-lapply(snps, function(x) getdata(x)$site.names)
 
@@ -1902,19 +2044,6 @@ for(i in 1:length(snps)){
 }
 
 @
-
-
-\section{Conclusion}\label{sec:conclusion}
-
-
-We expand on three ideas from current literature to deal with the winner's curse by reducing the selection effect in initial studies that test for significance, as well as in replicated ones that aim to validate previous discoveries. The HSS model uses all the data to make inference and uses a binary latent variable to model the true association. This is equivalent to a spike and slab prior, or to model averaging with two possible models: the null and the alternative.  The conditional likelihood method uses the likelihood of the estimate conditional on being significant. This is a frequentist approach to selection bias, and it depends on the significance test level as well as the effect estimate and standard error. The conditional likelihood is then used as a prior in the (Bayesian) validation analysis. The Bayes factor approximation method uses an upper bound on the Bayes factor that is only dependent on the p-value to calculate a "best-case scenario" posterior probability of the alternative hypothesis. The distribution that arises from this transformation is used as the prior of the association probability in the validation analysis. This approach also has a frequentist component, since p-values are used, but is a step towards the Bayesian framework since the only function of the p-value is to approximate the Bayes Factor. All models improve upon naive methods in the discovery phase, as shown in the normal simulation study, as well as the validation phase, as shown in the hierarchical simulation study and analysis of p53 data.
-
-One clear advantage of the HSS model is that it can perform testing and estimation simultaneously. This means all the data is used once, which is why the credible intervals are smaller and the RMSE is lower in the simulations. However, it is not always feasible to implement if the discovery data is unavailable. Furthermore, Bayesian methods are not enough to not guarantee bias correction. They must take into account the selection mechanism (as is done here), and also report the uncertainty that is associated with this. Ignoring the selection effect or reporting only the selected interval can lead to paradoxes, especially for conjugate priors in multivariate inference, as was the case with the original model for the p53 analysis \cite{dawid1994selection}.
-
-The conditional likelihood and Bayes factor approximation methods can be used in follow-up studies even when the discovery data is not publicly available. Both provide significant improvements over the naive method. The Bayes factor model has a quasi-testing feature since it accounts for the probability of a true association, but is very sensitive to the p-value as well as the choice of prior, and can be illogical for a prior such as the uniform.
-
-Although the conditional likelihood itself is dependent on the significance test, this prior is only used for the discovery sites, and can be thought of as a posterior distribution under a flat prior. Under a hierarchical model, the global effect is actually unaffected by the $\alpha$ level. This is extremely useful because discoveries that do not have are not significant at the $10^{-7}$ level can still be used without affecting the results. However, the level $\alpha$ is crucial in the discovery phase. The integration over all significant events is simple to compute in this case, but might not be as simple for other distributions. For example, if one chooses to do Bayesian variable selection the conditional likelihood becomes intractable and must be approximated \cite{panigrahi2016bayesian}. In this case, an adaptation of the HSS model may actually be more computationally feasible.
-
 
 
 \nocite{*}% Show all bib entries - both cited and uncited; comment this line to view only cited bib entries;
